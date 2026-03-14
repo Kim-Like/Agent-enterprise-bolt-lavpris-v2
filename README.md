@@ -1,10 +1,10 @@
-# Agent Enterprise Bolt Lavpris Branch
+# Agent Enterprise Bolt Lavpris
 
-This repository is the Bolt-targeted reduced working tree for Agent Enterprise.
+This repository is the dedicated Bolt-targeted Lavprishjemmeside V2 repo for Agent Enterprise.
 
-It exists so an external agent can work on Lavprishjemmeside V2 and the directly related Agent Enterprise surfaces without loading the full external monorepo.
+It exists so an external agent can work on Lavprishjemmeside V2 and the directly related Agent Enterprise surfaces without loading the full broader Agent Enterprise repo.
 
-This branch is intentionally smaller than the full external repo:
+This repository is intentionally smaller than the full broader repo:
 
 - Lavprishjemmeside program files stay in scope
 - the relevant control-plane code stays in scope
@@ -47,7 +47,7 @@ This branch is intentionally smaller than the full external repo:
 This repo includes a Bolt-specific scope filter at `.bolt/ignore`.
 
 - It is tuned for the current Lavprishjemmeside V2 work.
-- It hides remaining archive/task noise inside the reduced branch.
+- It hides remaining archive/task noise inside this dedicated repo.
 - If Bolt needs broader access later, remove entries deliberately instead of deleting the file wholesale.
 
 For Lavprishjemmeside work, then load:
