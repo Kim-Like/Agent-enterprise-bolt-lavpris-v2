@@ -404,7 +404,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         if (pc) pc.is_published = newState;
         selectPage(selectedPage);
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -432,10 +432,10 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     window.createNewPage = async function() {
       var rawPath = (document.getElementById('new-page-path').value || '').trim();
-      if (!rawPath) { alert('Angiv en side-sti'); return; }
+      if (!rawPath) { if (window.toast) toast('Angiv en side-sti', 'warning'); else alert('Angiv en side-sti'); return; }
       if (!rawPath.startsWith('/')) rawPath = '/' + rawPath;
       if (allPageComponents.some(function(pc) { return pc.page_path === rawPath; })) {
-        alert('En side med stien "' + rawPath + '" eksisterer allerede.'); return;
+        if (window.toast) toast('En side med stien "' + rawPath + '" eksisterer allerede.', 'warning'); else alert('En side med stien "' + rawPath + '" eksisterer allerede.'); return;
       }
       try {
         var res = await fetch(API + '/page-components', {
@@ -447,7 +447,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           var errBody = await res.json().catch(function() { return {}; });
           if (errBody.error && errBody.error.includes('component_id')) {
             var defaultComp = allComponents[0];
-            if (!defaultComp) { alert('Ingen komponenter tilg\u00e6ngelige. Tilf\u00f8j en komponent til siden manuelt.'); closeNewPageModal(); selectPage(rawPath); return; }
+            if (!defaultComp) { if (window.toast) toast('Ingen komponenter tilgængelige. Tilføj en komponent til siden manuelt.', 'warning'); else alert('Ingen komponenter tilgængelige.'); closeNewPageModal(); selectPage(rawPath); return; }
             res = await fetch(API + '/page-components', {
               method: 'POST',
               headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -495,12 +495,12 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       var sortOrder = parseInt(document.getElementById('sort-order-input').value);
 
       if (!componentId) {
-        alert('Vælg venligst en komponent');
+        if (window.toast) toast('Vælg venligst en komponent', 'warning'); else alert('Vælg venligst en komponent');
         return;
       }
 
       if (isNaN(sortOrder) || sortOrder < 1) {
-        alert('Sorteringsrækkefølge skal være et tal >= 1');
+        if (window.toast) toast('Sorteringsrækkefølge skal være et tal >= 1', 'warning'); else alert('Sorteringsrækkefølge skal være et tal >= 1');
         return;
       }
 
@@ -526,7 +526,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         selectPage(selectedPage);
         closeAddComponentModal();
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -564,7 +564,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         pageComponents[newIndex].sort_order = fromOrder;
         selectPage(selectedPage);
       } catch (err) {
-        alert('Fejl ved sortering: ' + err.message);
+        if (window.toast) toast('Fejl ved sortering: ' + err.message, 'error'); else alert('Fejl ved sortering: ' + err.message);
       }
     };
 
@@ -592,7 +592,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         allPageComponents.push(newPc);
         selectPage(selectedPage);
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -612,7 +612,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         allPageComponents = allPageComponents.filter(function(pc) { return pc.id !== id; });
         selectPage(selectedPage);
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -621,7 +621,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       var pageComponents = allPageComponents.filter(function(pc) { return pc.page_path === selectedPage; });
 
       if (pageComponents.length === 0) {
-        alert('Siden har ingen komponenter at publicere');
+        if (window.toast) toast('Siden har ingen komponenter at publicere', 'warning'); else alert('Siden har ingen komponenter at publicere');
         return;
       }
 
@@ -640,9 +640,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           })
         );
 
-        alert('\u2713 Side publiceret');
+        if (window.toast) toast('Side publiceret', 'success'); else alert('Side publiceret');
       } catch (err) {
-        alert('Fejl ved publicering: ' + err.message);
+        if (window.toast) toast('Fejl ved publicering: ' + err.message, 'error'); else alert('Fejl ved publicering: ' + err.message);
       } finally {
         var btn = document.getElementById('publish-btn');
         btn.disabled = false;
@@ -676,7 +676,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         renderPages();
         showDeployNotice(pageName, result.deleted_count);
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -689,7 +689,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     window.editComponent = function(id) {
       var pc = allPageComponents.find(function(x) { return x.id === id; });
-      if (!pc) { alert('Komponent ikke fundet'); return; }
+      if (!pc) { if (window.toast) toast('Komponent ikke fundet', 'error'); else alert('Komponent ikke fundet'); return; }
 
       var component = allComponents.find(function(c) { return c.id === pc.component_id; });
       editingComponentId = id;
@@ -834,9 +834,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
         closeEditModal();
         selectPage(selectedPage);
-        alert('\u2713 Komponent opdateret');
+        if (window.toast) toast('Komponent opdateret', 'success'); else alert('Komponent opdateret');
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -1597,11 +1597,11 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           if (btn) { btn.textContent = 'Udrulning startet'; btn.className = 'flex-1 bg-green-600 text-white font-medium px-4 py-3 rounded-lg'; }
           setTimeout(function() { var n = document.getElementById('deploy-notice'); if (n) n.remove(); }, 3000);
         } else {
-          alert('Fejl: ' + (data.error || res.status));
+          if (window.toast) toast('Fejl: ' + (data.error || res.status), 'error'); else alert('Fejl: ' + (data.error || res.status));
           if (btn) { btn.disabled = false; btn.textContent = 'Udrulning nu'; }
         }
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
         if (btn) { btn.disabled = false; btn.textContent = 'Udrulning nu'; }
       }
     };
@@ -1662,11 +1662,12 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           og_image: document.getElementById('seo-og-image').value,
           schema_markup: currentSeoMeta ? currentSeoMeta.schema_markup : null
         };
+        if (window.toast) toast('SEO meta gemt', 'success');
         var status = document.getElementById('seo-save-status');
         status.classList.remove('hidden');
         setTimeout(function() { status.classList.add('hidden'); }, 2000);
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 

@@ -316,7 +316,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       });
 
       if (selectedFiles.length === 0) {
-        alert('Ingen gyldige billeder valgt (maks 5MB, kun billedformater)');
+        if (window.toast) toast('Ingen gyldige billeder valgt (maks 5MB, kun billedformater)', 'warning'); else alert('Ingen gyldige billeder valgt (maks 5MB, kun billedformater)');
         return;
       }
 
@@ -426,8 +426,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         editingMedia.alt_text = newAlt;
         renderGrid();
         closeEditModal();
+        if (window.toast) toast('Alt-tekst gemt', 'success');
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 
@@ -467,7 +468,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     };
 
     window.bulkDelete = async function() {
-      if (selectedIds.size === 0) { alert('Ingen billeder valgt'); return; }
+      if (selectedIds.size === 0) { if (window.toast) toast('Ingen billeder valgt', 'warning'); else alert('Ingen billeder valgt'); return; }
       if (!confirm('Slet ' + selectedIds.size + ' billede(r) permanent?')) return;
       var ids = Array.from(selectedIds);
       var errors = 0;
@@ -485,7 +486,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       selectedIds.clear();
       updateBulkCount();
       renderGrid();
-      if (errors > 0) alert(errors + ' billede(r) kunne ikke slettes.');
+      if (errors > 0) { if (window.toast) toast(errors + ' billede(r) kunne ikke slettes.', 'warning'); else alert(errors + ' billede(r) kunne ikke slettes.'); }
+      else if (window.toast) toast('Billeder slettet', 'success');
     };
 
     window.deleteMedia = async function() {
@@ -504,8 +506,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         allMedia = allMedia.filter(function(m) { return m.id !== editingMedia.id; });
         renderGrid();
         closeEditModal();
+        if (window.toast) toast('Billede slettet', 'success');
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       }
     };
 

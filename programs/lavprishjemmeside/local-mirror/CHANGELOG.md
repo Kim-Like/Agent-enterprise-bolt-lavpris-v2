@@ -21,6 +21,24 @@ Change discipline:
 
 > Features developed on `main` but not yet tagged. Will become the next release.
 
+### Added (Phase 5.1 — Enterprise CMS Modernisation)
+- **Global Toast/Notification System** — Added centralized `toast(message, type, duration)` function in `AdminLayout.astro`. Replaces all `alert()` calls across admin panel with non-blocking, auto-dismissing toasts in success/error/warning/info variants with animated entrance/exit. `window.toast` is globally available on all admin pages.
+- **Dashboard Skeleton Loading States** — Replaced the bare "Henter data..." spinner with animated shimmer skeleton cards that match the final layout structure (stat cards, chart, table). Eliminates layout shift on load.
+- **Dashboard Activity Chart** — Added a 14-day sparkline-style bar chart under the stat cards, derived from recent events data. Shows per-day event counts with hover tooltips and a "Top: N events" label.
+- **Dashboard Stat Card Improvements** — Added trend indicator slots on event/session cards, "seneste 24 timer" note on today's stat, hover shadow on all stat cards.
+- **Theme Gallery Visual Previews** — Replaced plain text/radio-button theme cards with visual mini-preview renders showing each theme's color palette, header style, typography, and button design. Active theme shows a blue checkmark badge. Theme grid adapts to available space.
+- **Components Browser Sorting & Filtering** — Added category dropdown filter, sort controls (name A-Z, name Z-A, category, most props, most used), live result count badge. All controls work together with the existing search input.
+- **Components Browser Usage Counts** — Component cards now display a green "brugt Nx" badge derived from actual page-component assignments, making it easy to identify which components are in active use.
+- **Components Browser Status Labels** — Component cards now show STABIL / BETA / UDGÅET status badges based on the `status` field on each component record.
+- **Styling Editor Recent Colors Palette** — Added a persistent recent-colors swatch row that appears above the color inputs after the first color edit. Clicking a swatch applies it to the currently focused color field. Up to 12 colors are remembered across sessions in `localStorage`.
+- **Styling Editor Autosave Draft** — Color changes automatically save a draft to `localStorage` (1.2 s debounce). Draft is restored on next page load with a visible "Kladde indlæst" indicator. Draft is cleared on successful API save.
+- **Toast Feedback on All Save/Publish Actions** — Success and error toasts added to: dashboard publish, pages publish/component save, media alt-text, header-footer save, themes save, styling save/publish, AI assembler deploy, shop reviews.
+
+### Changed (Phase 5.1)
+- Styling editor header replaced with a more compact, inline design matching the rest of the admin panel.
+- Components grid card design refreshed with tighter typography, pill badges, flex layout, and hover border highlight.
+- `components.astro` now loads page-component data in parallel with component data to calculate live usage counts.
+
 ### Added
 - Implemented the first-party e-commerce module with shop schema, Flatpay / Frisbii payment integration, public storefront routes, admin shop management, and transactional order email support.
 

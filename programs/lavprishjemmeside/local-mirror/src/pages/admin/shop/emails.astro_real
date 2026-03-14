@@ -14,14 +14,14 @@ const DEFAULT_TEMPLATES = [
     <div class="et-header">
       <div>
         <h1 class="et-title">E-mailskabeloner</h1>
-        <p class="et-sub">Tilpas transaktionelle e-mails til kunder. Brug <code>&#123;&#123;variabel&#125;&#125;</code> til dynamisk indhold.</p>
+        <p class="et-sub">Tilpas transaktionelle e-mails til kunder. Brug <code>{{'{{'}}variabel{{'}}'}}</code> til dynamisk indhold.</p>
       </div>
     </div>
 
     <div class="et-layout">
       <aside class="et-sidebar">
         {DEFAULT_TEMPLATES.map((t) => (
-          <button class="et-tmpl-btn" data-slug={t.slug} data-label={t.label} data-tokens={JSON.stringify(t.tokens)}>
+          <button class="et-tmpl-btn" data-slug={t.slug} data-label={t.label} data-subject={t.subject} data-tokens={JSON.stringify(t.tokens)}>
             {t.label}
           </button>
         ))}
@@ -256,8 +256,7 @@ function showMsg(msg: string, type: 'success' | 'error') {
   setTimeout(() => { saveMsg.style.display = 'none'; }, 4000);
 }
 
-async function loadTemplate(slug: string, label: string, tokens: string[]) {
-  const defaultSubject = DEFAULT_TEMPLATES[slug]?.subject || '';
+async function loadTemplate(slug: string, label: string, tokens: string[], defaultSubject: string) {
   currentSlug = slug;
   buttons.forEach(b => b.classList.toggle('active', b.getAttribute('data-slug') === slug));
   placeholder.style.display = 'none';
@@ -301,7 +300,8 @@ buttons.forEach(btn => {
     const slug = btn.getAttribute('data-slug')!;
     const label = btn.getAttribute('data-label')!;
     const tokens = JSON.parse(btn.getAttribute('data-tokens') || '[]');
-    loadTemplate(slug, label, tokens);
+    const subject = btn.getAttribute('data-subject')!;
+    loadTemplate(slug, label, tokens, subject);
   });
 });
 

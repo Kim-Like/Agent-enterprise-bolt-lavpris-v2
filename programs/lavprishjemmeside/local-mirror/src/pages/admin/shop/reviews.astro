@@ -214,7 +214,7 @@ window.toggleApprove = async (id, approved) => {
     });
     if (!res.ok) throw new Error();
     loadReviews();
-  } catch { alert('Opdatering fejlede'); }
+  } catch { if (window.toast) toast('Opdatering fejlede', 'error'); else alert('Opdatering fejlede'); }
 };
 
 window.deleteReview = async (id) => {
@@ -223,7 +223,8 @@ window.deleteReview = async (id) => {
     const res = await fetch(`${apiUrl}/shop/admin/reviews/${id}`, { method: 'DELETE', headers: headers() });
     if (!res.ok) throw new Error();
     loadReviews();
-  } catch { alert('Sletning fejlede'); }
+    if (window.toast) toast('Anmeldelse slettet', 'success');
+  } catch { if (window.toast) toast('Sletning fejlede', 'error'); else alert('Sletning fejlede'); }
 };
 
 document.getElementById('rv-filter').addEventListener('change', (e) => {

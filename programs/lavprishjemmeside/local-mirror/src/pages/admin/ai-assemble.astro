@@ -360,13 +360,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           })
         });
         if (res.ok) {
+          if (window.toast) window.toast('Promptindstillinger gemt', 'success');
           toast.classList.remove('hidden');
           setTimeout(() => toast.classList.add('hidden'), 2500);
         } else {
-          alert('Kunne ikke gemme: ' + ((await res.json()).error || res.status));
+          if (window.toast) window.toast('Kunne ikke gemme: ' + ((await res.json().catch(() => ({}))).error || res.status), 'error'); else alert('Kunne ikke gemme');
         }
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) window.toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       } finally {
         btn.disabled = false;
       }
@@ -422,7 +423,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       const btn = document.getElementById('generate-btn');
 
       if (!prompt) {
-        alert('Udfyld beskrivelsen');
+        if (window.toast) window.toast('Udfyld beskrivelsen', 'warning'); else alert('Udfyld beskrivelsen');
         return;
       }
 
@@ -473,7 +474,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       const btn = document.getElementById('generate-btn-advanced');
 
       if (!contentMarkdown.trim()) {
-        alert('Udfyld indholdet');
+        if (window.toast) window.toast('Udfyld indholdet', 'warning'); else alert('Udfyld indholdet');
         return;
       }
 
@@ -523,12 +524,12 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         });
         const data = await res.json();
         if (res.ok) {
-          alert('✓ Udrulning startet. Siden er klar om ca. 90 sekunder.');
+          if (window.toast) window.toast('Udrulning startet. Siden er klar om ca. 90 sekunder.', 'success'); else alert('Udrulning startet.');
         } else {
-          alert('Fejl: ' + (data.error || res.status));
+          if (window.toast) window.toast('Fejl: ' + (data.error || res.status), 'error'); else alert('Fejl: ' + (data.error || res.status));
         }
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) window.toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
       } finally {
         if (btn) {
           btn.disabled = false;

@@ -6,9 +6,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 <AdminLayout title="Design Token Editor">
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Design System Editor</h1>
-      <p class="text-gray-600 mt-2">Rediger farver, typografi og former</p>
+    <div class="mb-6 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900" style="letter-spacing:-0.02em;">Design System Editor</h1>
+        <p class="text-sm text-gray-500 mt-0.5">Rediger farver, typografi og former</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.625rem;">
+        <span id="autosave-indicator" style="display:none;font-size:0.6875rem;color:#9ca3af;"></span>
+      </div>
     </div>
 
     <!-- Loading state -->
@@ -28,7 +33,10 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           <form id="styling-form" class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <!-- Colors Section -->
             <div class="mb-8">
-              <h2 class="text-lg font-semibold mb-4 text-gray-900">Farver</h2>
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+                <h2 class="text-lg font-semibold text-gray-900">Farver</h2>
+              </div>
+              <div id="recent-colors-row" style="display:none;align-items:center;gap:0.375rem;flex-wrap:wrap;margin-bottom:1rem;padding:0.625rem 0.75rem;background:#f9fafb;border:1px solid #f3f4f6;border-radius:0.5rem;"></div>
 
               <!-- Primary Colors -->
               <div class="mb-6">
@@ -316,6 +324,93 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     }
 
     let currentSettings = {};
+    let autosaveTimer = null;
+    const DRAFT_KEY = 'lph_styling_draft';
+
+    function saveDraft() {
+      try {
+        const colorFields = ['color_primary','color_primary_hover','color_primary_light','color_secondary','color_secondary_hover','color_secondary_light','color_accent','color_accent_hover'];
+        const draft = {};
+        colorFields.forEach(function(f) { const el = document.getElementById(f); if (el) draft[f] = el.value; });
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        var indicator = document.getElementById('autosave-indicator');
+        if (indicator) { indicator.textContent = 'Kladde gemt'; indicator.style.display = 'inline'; setTimeout(function() { indicator.style.display = 'none'; }, 2000); }
+      } catch(_) {}
+    }
+
+    function loadDraftIfNeeded() {
+      try {
+        var raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        var draft = JSON.parse(raw);
+        var colorFields = ['color_primary','color_primary_hover','color_primary_light','color_secondary','color_secondary_hover','color_secondary_light','color_accent','color_accent_hover'];
+        colorFields.forEach(function(f) {
+          if (draft[f]) {
+            var col = document.getElementById(f);
+            var hex = document.getElementById(f + '_hex');
+            if (col && /^#[0-9a-f]{6}$/i.test(draft[f])) { col.value = draft[f]; if (hex) hex.value = draft[f].toUpperCase(); }
+          }
+        });
+        updatePreview();
+        var indicator = document.getElementById('autosave-indicator');
+        if (indicator) { indicator.textContent = 'Kladde indlæst'; indicator.style.display = 'inline'; setTimeout(function() { indicator.style.display = 'none'; }, 2500); }
+      } catch(_) {}
+    }
+
+    function scheduleAutosave() {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(saveDraft, 1200);
+    }
+
+    function getRecentColors() {
+      try { return JSON.parse(localStorage.getItem('lph_recent_colors') || '[]'); } catch(_) { return []; }
+    }
+
+    function addRecentColor(hex) {
+      try {
+        var recent = getRecentColors().filter(function(c) { return c !== hex; });
+        recent.unshift(hex);
+        if (recent.length > 12) recent = recent.slice(0, 12);
+        localStorage.setItem('lph_recent_colors', JSON.stringify(recent));
+        renderRecentColors();
+      } catch(_) {}
+    }
+
+    function renderRecentColors() {
+      var container = document.getElementById('recent-colors-row');
+      if (!container) return;
+      var recent = getRecentColors();
+      if (recent.length === 0) { container.style.display = 'none'; return; }
+      container.style.display = 'flex';
+      container.innerHTML = '<span style="font-size:0.6875rem;color:#9ca3af;white-space:nowrap;align-self:center;">Seneste</span>'
+        + recent.map(function(c) {
+          return '<button type="button" title="' + c + '" onclick="applyRecentColor(\'' + c + '\')" style="width:1.25rem;height:1.25rem;border-radius:50%;background:' + c + ';border:2px solid #e5e7eb;cursor:pointer;flex-shrink:0;transition:transform 0.1s;" onmouseover="this.style.transform=\'scale(1.2)\'" onmouseout="this.style.transform=\'scale(1)\'"></button>';
+        }).join('');
+    }
+
+    window.applyRecentColor = function(hex) {
+      var focused = document.activeElement;
+      var target = null;
+      if (focused && focused.dataset && focused.dataset.colorTarget) {
+        target = focused.dataset.colorTarget;
+      }
+      if (!target) {
+        var colorFields = ['color_primary','color_primary_hover','color_primary_light','color_secondary','color_secondary_hover','color_secondary_light','color_accent','color_accent_hover'];
+        for (var i = 0; i < colorFields.length; i++) {
+          var el = document.getElementById(colorFields[i]);
+          if (el && el === document.activeElement) { target = colorFields[i]; break; }
+          var hex2 = document.getElementById(colorFields[i] + '_hex');
+          if (hex2 && hex2 === document.activeElement) { target = colorFields[i]; break; }
+        }
+      }
+      if (target) {
+        var col = document.getElementById(target);
+        var hexEl = document.getElementById(target + '_hex');
+        if (col) col.value = hex;
+        if (hexEl) hexEl.value = hex.toUpperCase();
+        updatePreview();
+      }
+    };
 
     // Diagnostic: verify required DOM elements exist before we use them
     function diagnoseDOM() {
@@ -350,7 +445,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     createNeutralInputs();
 
-    // Sync color inputs with hex inputs
     function setupColorSync(colorId) {
       const colorInput = document.getElementById(colorId);
       const hexInput = document.getElementById(colorId + '_hex');
@@ -359,19 +453,24 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
       colorInput.addEventListener('change', function() {
         hexInput.value = this.value.toUpperCase();
+        addRecentColor(this.value.toUpperCase());
         updatePreview();
+        scheduleAutosave();
       });
 
       hexInput.addEventListener('change', function() {
         if (/^#[0-9A-F]{6}$/i.test(this.value)) {
           colorInput.value = this.value;
+          addRecentColor(this.value.toUpperCase());
           updatePreview();
+          scheduleAutosave();
         }
       });
 
       colorInput.addEventListener('input', function() {
         hexInput.value = this.value.toUpperCase();
         updatePreview();
+        scheduleAutosave();
       });
     }
 
@@ -480,6 +579,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('content').classList.remove('hidden');
       updatePreview();
+      renderRecentColors();
+      loadDraftIfNeeded();
     }
 
     // Form field names use underscore (color_secondary); CSS vars use hyphen (--color-secondary)
@@ -647,6 +748,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         document.getElementById('success-message')?.classList.remove('hidden');
         const successEl = document.querySelector('#success-message p');
         if (successEl) successEl.textContent = '✓ Indstillinger gemt. Klik "Publicer til live" for at vise på sitet.';
+        if (window.toast) toast('Design-indstillinger gemt', 'success');
+        try { localStorage.removeItem(DRAFT_KEY); } catch(_) {}
         setTimeout(() => {
           document.getElementById('success-message')?.classList.add('hidden');
           if (successEl) successEl.textContent = '✓ Indstillinger gemt';
@@ -678,11 +781,12 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           btn.textContent = '✓ Udrulning startet';
           btn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
           btn.classList.add('bg-green-600');
+          if (window.toast) toast('Udrulning startet. Siden er live om ~90 sek.', 'success');
         } else {
           throw new Error(data.error || res.status);
         }
       } catch (err) {
-        alert('Fejl: ' + err.message);
+        if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
         btn.textContent = 'Publicer til live (~90 sek)';
       } finally {
         btn.disabled = false;

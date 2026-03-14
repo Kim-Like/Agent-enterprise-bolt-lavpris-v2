@@ -5,9 +5,23 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
 <AdminLayout title="Oversigt">
   <style>
-    .dash-stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:1.125rem 1.25rem; }
+    .dash-stat-card { background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:1.125rem 1.25rem; transition:box-shadow 0.14s; }
+    .dash-stat-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.07); }
     .dash-stat-value { font-size:1.75rem; font-weight:700; color:#111827; letter-spacing:-0.03em; line-height:1.1; }
     .dash-stat-label { font-size:0.75rem; color:#6b7280; font-weight:500; margin-bottom:0.25rem; display:block; }
+    .dash-stat-trend { display:inline-flex; align-items:center; gap:0.2rem; font-size:0.6875rem; font-weight:600; margin-top:0.25rem; }
+    .dash-stat-trend--up { color:#16a34a; }
+    .dash-stat-trend--neutral { color:#9ca3af; }
+    .skel { background:linear-gradient(90deg,#f3f4f6 25%,#e9ebee 50%,#f3f4f6 75%); background-size:200% 100%; animation:skelShimmer 1.4s infinite; border-radius:0.375rem; }
+    @keyframes skelShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .activity-chart-wrap { background:#fff; border:1px solid #e5e7eb; border-radius:0.75rem; padding:1.25rem; margin-bottom:1.25rem; }
+    .activity-chart-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.875rem; }
+    .activity-chart-title { font-size:0.8125rem; font-weight:600; color:#111827; }
+    .activity-bars { display:flex; align-items:flex-end; gap:3px; height:4.5rem; }
+    .activity-bar { flex:1; border-radius:3px 3px 0 0; background:#3b82f6; opacity:0.7; transition:opacity 0.14s; min-width:0; cursor:default; }
+    .activity-bar:hover { opacity:1; }
+    .activity-day-labels { display:flex; gap:3px; margin-top:0.25rem; }
+    .activity-day-label { flex:1; font-size:0.55rem; color:#9ca3af; text-align:center; white-space:nowrap; overflow:hidden; }
     .dash-table th { font-size:0.6875rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:#9ca3af; padding-bottom:0.5rem; border-bottom:1px solid #f3f4f6; text-align:left; }
     .dash-table td { padding:0.5rem 0; font-size:0.8125rem; border-bottom:1px solid #f9fafb; color:#374151; }
     .dash-table tr:last-child td { border-bottom:none; }
@@ -65,7 +79,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     Kun master-brugere har adgang til Master Hub.
   </div>
 
-  <div id="loading" style="text-align:center;padding:3rem 0;color:#9ca3af;font-size:0.875rem;">Henter data...</div>
+  <div id="loading">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(10rem,1fr));gap:0.75rem;margin-bottom:1.25rem;">
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.125rem 1.25rem;"><div class="skel" style="height:0.75rem;width:55%;margin-bottom:0.5rem;"></div><div class="skel" style="height:1.75rem;width:70%;"></div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.125rem 1.25rem;"><div class="skel" style="height:0.75rem;width:55%;margin-bottom:0.5rem;"></div><div class="skel" style="height:1.75rem;width:70%;"></div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.125rem 1.25rem;"><div class="skel" style="height:0.75rem;width:55%;margin-bottom:0.5rem;"></div><div class="skel" style="height:1.75rem;width:70%;"></div></div>
+      <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.125rem 1.25rem;"><div class="skel" style="height:0.75rem;width:55%;margin-bottom:0.5rem;"></div><div class="skel" style="height:1.75rem;width:70%;"></div></div>
+    </div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.25rem;margin-bottom:1.25rem;"><div class="skel" style="height:4.5rem;width:100%;"></div></div>
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:0.75rem;padding:1.25rem;"><div class="skel" style="height:1rem;width:40%;margin-bottom:0.75rem;"></div><div class="skel" style="height:0.75rem;width:100%;margin-bottom:0.4rem;"></div><div class="skel" style="height:0.75rem;width:90%;margin-bottom:0.4rem;"></div><div class="skel" style="height:0.75rem;width:80%;"></div></div>
+  </div>
   <div id="error" class="hidden" style="text-align:center;padding:3rem 0;">
     <p id="error-text" style="color:#ef4444;margin-bottom:0.75rem;font-size:0.875rem;"></p>
     <button onclick="window.location.reload()" style="color:#3b82f6;font-size:0.8rem;background:none;border:none;cursor:pointer;text-decoration:underline;">Prøv igen</button>
@@ -114,19 +137,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       <div class="dash-stat-card">
         <span class="dash-stat-label">Hændelser i alt</span>
         <span class="dash-stat-value" id="stat-events-total">&mdash;</span>
+        <div id="stat-events-total-trend" class="dash-stat-trend dash-stat-trend--neutral" style="display:none;"></div>
       </div>
       <div class="dash-stat-card">
         <span class="dash-stat-label">Hændelser i dag</span>
         <span class="dash-stat-value" id="stat-events-today">&mdash;</span>
+        <div id="stat-events-today-note" style="font-size:0.6875rem;color:#9ca3af;margin-top:0.25rem;display:none;">seneste 24 timer</div>
       </div>
       <div class="dash-stat-card">
         <span class="dash-stat-label">Sessioner i alt</span>
         <span class="dash-stat-value" id="stat-sessions-total">&mdash;</span>
+        <div id="stat-sessions-total-trend" class="dash-stat-trend dash-stat-trend--neutral" style="display:none;"></div>
       </div>
       <div class="dash-stat-card">
         <span class="dash-stat-label">Sider pr. session</span>
         <span class="dash-stat-value" id="stat-avg-pages">&mdash;</span>
+        <div style="font-size:0.6875rem;color:#9ca3af;margin-top:0.25rem;">gennemsnit</div>
       </div>
+    </div>
+
+    <div class="activity-chart-wrap" id="activity-chart-section" style="display:none;">
+      <div class="activity-chart-header">
+        <span class="activity-chart-title">Aktivitet — seneste 14 dage</span>
+        <span id="activity-chart-peak" style="font-size:0.6875rem;color:#9ca3af;"></span>
+      </div>
+      <div class="activity-bars" id="activity-bars"></div>
+      <div class="activity-day-labels" id="activity-day-labels"></div>
     </div>
 
     <div class="quick-action-grid">
@@ -368,6 +404,11 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       document.getElementById('stat-sessions-total').textContent = (sessions.total || 0).toLocaleString('da-DK');
       document.getElementById('stat-avg-pages').textContent = sessions.avg_pages != null ? sessions.avg_pages : '—';
 
+      var todayNote = document.getElementById('stat-events-today-note');
+      if (todayNote && (events.today || 0) > 0) todayNote.style.display = 'block';
+
+      buildActivityChart(events.recent || []);
+
       var html = '';
       (events.top_events || []).slice(0, 8).forEach(function(ev) {
         html += '<tr><td>' + esc(ev.event_name) + '</td><td><span style="font-size:0.7rem;background:#f3f4f6;color:#6b7280;padding:0.1rem 0.4rem;border-radius:0.25rem;">' + esc(ev.event_type) + '</span></td><td style="text-align:right;font-weight:600;">' + ev.count + '</td></tr>';
@@ -401,6 +442,52 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       document.getElementById('error').classList.remove('hidden');
     });
 
+    function buildActivityChart(recentEvents) {
+      var section = document.getElementById('activity-chart-section');
+      var barsEl = document.getElementById('activity-bars');
+      var labelsEl = document.getElementById('activity-day-labels');
+      var peakEl = document.getElementById('activity-chart-peak');
+      if (!section || !barsEl || !labelsEl || recentEvents.length === 0) return;
+
+      var dayMap = {};
+      recentEvents.forEach(function(ev) {
+        var d = (ev.created_at || '').slice(0, 10);
+        if (d) dayMap[d] = (dayMap[d] || 0) + 1;
+      });
+
+      var today = new Date();
+      var days = [];
+      for (var i = 13; i >= 0; i--) {
+        var d = new Date(today);
+        d.setDate(today.getDate() - i);
+        var key = d.toISOString().slice(0, 10);
+        days.push({ key: key, label: d.toLocaleDateString('da-DK', { month: 'numeric', day: 'numeric' }), count: dayMap[key] || 0 });
+      }
+
+      var max = Math.max.apply(null, days.map(function(d) { return d.count; }));
+      if (max === 0) return;
+
+      barsEl.innerHTML = '';
+      labelsEl.innerHTML = '';
+
+      days.forEach(function(d) {
+        var pct = max > 0 ? (d.count / max) * 100 : 0;
+        var bar = document.createElement('div');
+        bar.className = 'activity-bar';
+        bar.style.height = Math.max(4, pct) + '%';
+        bar.title = d.label + ': ' + d.count + ' hændelser';
+        barsEl.appendChild(bar);
+
+        var lbl = document.createElement('div');
+        lbl.className = 'activity-day-label';
+        lbl.textContent = i === 0 ? 'i dag' : (d.key === days[0].key ? d.label : (days.indexOf(d) % 2 === 0 ? d.label : ''));
+        labelsEl.appendChild(lbl);
+      });
+
+      if (peakEl) peakEl.textContent = 'Top: ' + max + ' hændelser';
+      section.style.display = 'block';
+    }
+
     function triggerPublish(btn, successLabel, originalLabel) {
       btn.disabled = true;
       var qaIcon = btn.querySelector && btn.querySelector('.qa-icon');
@@ -426,7 +513,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           }
         })
         .catch(function(err) {
-          alert('Fejl: ' + err.message);
+          if (window.toast) toast('Fejl: ' + err.message, 'error'); else alert('Fejl: ' + err.message);
           btn.disabled = false;
           if (!btn.querySelector) btn.textContent = originalLabel;
         });

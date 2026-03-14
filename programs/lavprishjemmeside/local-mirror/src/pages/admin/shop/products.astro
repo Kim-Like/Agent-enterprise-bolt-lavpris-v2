@@ -432,7 +432,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         document.body.removeChild(a);
         URL.revokeObjectURL(objUrl);
       })
-      .catch(() => alert('Eksport fejlede'));
+      .catch(() => { if (window.toast) toast('Eksport fejlede', 'error'); else alert('Eksport fejlede'); });
   });
 
   // Import CSV
