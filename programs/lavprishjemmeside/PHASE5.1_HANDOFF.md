@@ -1,6 +1,54 @@
 # Phase 5.1 Handoff: Enterprise CMS Modernisation
 
-> Status: Implemented. All seven lanes delivered and build verified passing.
+## Phase 5.1 Handoff
+
+### Completed
+- Added global toast/notification system to `AdminLayout.astro`; replaces all `alert()` calls across admin panel with non-blocking auto-dismissing toasts (success, error, warning, info variants)
+- Replaced dashboard loading spinner with animated shimmer skeleton cards matching final layout
+- Added 14-day activity bar chart on dashboard derived from existing events data
+- Added visual mini-preview renders for each theme in `themes.astro` (simple, modern, kreativ); active theme shows checkmark badge
+- Added category filter dropdown, sort controls, result count badge, status badges (STABIL/BETA/UDGÅET), and live usage counts to components browser
+- Added recent-colors swatch palette and 1.2 s debounced autosave draft to localStorage in styling editor
+- Added live preview modal to components browser with viewport toggles (375/768/full); replaced external link with inline iframe modal
+- Added split-pane live preview panel to page builder with viewport controls and auto-load on page select
+- Fixed pre-existing Tailwind v4 build error in `src/pages/admin/shop/emails.astro` caused by `{{...}}` template syntax in `data-subject` attributes
+- Produced mandatory Phase 5 gap ledger per `extended_tasks.md` requirement
+
+### Files Changed
+- `src/layouts/AdminLayout.astro` — toast system CSS + HTML + JS
+- `src/pages/admin/dashboard.astro` — skeleton states, activity chart, trend indicators
+- `src/pages/admin/themes.astro` — visual theme previews, toast
+- `src/pages/admin/components.astro` — sorting, filtering, status badges, usage counts, HTML fix, live preview modal
+- `src/pages/admin/styling.astro` — autosave draft, recent colors, toast
+- `src/pages/admin/pages.astro` — alert() → toast replacements, live split-pane preview panel
+- `src/pages/admin/media.astro` — alert() → toast replacements
+- `src/pages/admin/header-footer.astro` — alert() → toast replacements
+- `src/pages/admin/ai-assemble.astro` — alert() → toast replacements
+- `src/pages/admin/shop/products.astro` — alert() → toast replacement
+- `src/pages/admin/shop/reviews.astro` — alert() → toast replacements
+- `src/pages/admin/shop/emails.astro` — pre-existing build error fixed
+
+### Tests And Checks
+- `npm run build` in `local-mirror/` — passed, 67 pages generated, no errors
+- Manual check: toast system fires on all save/publish/error actions; dashboard skeleton shimmer renders; theme gallery shows visual previews; components browser filtering, sorting, and status badges work; styling editor draft restored on reload; components preview modal opens with correct viewport toggles; page builder preview panel splits layout on toggle
+
+### Handoff Artifacts
+- `programs/lavprishjemmeside/PHASE5.1_HANDOFF.md` — this document (gap ledger, files changed, operator steps)
+- `programs/lavprishjemmeside/CHANGELOG.md` — Phase 5.1 section added under `[Unreleased]`
+- `programs/lavprishjemmeside/local-mirror/CHANGELOG.md` — Phase 5.1 section added under `[Unreleased]`
+
+### cPanel / Operator Handoff
+- none — Phase 5.1 is entirely frontend. No DB migrations, no env changes, no SSH execution required.
+
+### Blockers
+- none
+
+### Outside-Folder Follow-Ups
+- none — all changes are contained within `programs/lavprishjemmeside/local-mirror/`
+
+### Changelog
+- root changelog: updated — Phase 5 and Phase 5.1 sections added under `[Unreleased]`
+- local-mirror changelog: updated — Phase 5.1 section added under `[Unreleased]`
 
 ---
 

@@ -21,6 +21,29 @@ Change discipline:
 
 > Features developed on `main` but not yet tagged. Will become the next release.
 
+### Added (Phase 6 — Master Console Uplift, Provider Switching, Subscriptions, Email Client Foundation)
+- **Master Hub AI Usage Fleet Summary** — Fleet-level summary bar on the AI tab: total tokens, total cost, total requests, and active site count for the 30-day window. Per-site cards now show request count alongside token and cost totals.
+- **Master Hub Stale Activity Signal** — Sites with no AI usage in the last 7+ days show an amber "Inaktiv Xd" pill; active sites show last-active date. DB-unavailable sites show red "DB utilgængelig" error pill.
+- **Master Hub Provider Tab (Tab 4)** — New "Provider" tab in Master Hub (master-only). Visual radio-card selector (Anthropic vs OpenAI). Provider choice persisted to `provider_config` DB table. Saving generates a formatted operator packet with exact `.env` changes and cPanel restart instructions. Full audit trail rendered in-UI from `provider_audit_log`. No fake routing — real switching is operator-executed via the generated packet.
+- **Master Hub Subscriptions Tab (Tab 5)** — New "Abonnementer" tab. Per-site subscription cards with plan badge (Starter/Growth/Pro), 4 usage bars (AI tokens, sider, lager, mail-konti) colour-coded by usage %. Overdue billing warning. Upgrade request flow: select site + new plan → logged to `subscription_upgrade_requests`.
+- **Email Client Admin Page** — New `src/pages/admin/email.astro`. Always shows setup notice with required env vars. Unconfigured state shows graceful gate. Configured state: 2-column folder list + message list/viewer, compose modal (To, Subject, Body, Send, Save Draft), reply pre-population.
+- **New schema files**: `api/src/schema_subscriptions.sql` (`subscriptions`, `subscription_usage_snapshots`, `subscription_upgrade_requests`, `provider_config`, `provider_audit_log`); `api/src/schema_email_client.sql` (`email_accounts`, `email_folders`, `email_messages`, `email_drafts`).
+- **New API endpoints**: `GET /master/provider-config`, `POST /master/provider-config`, `GET /master/subscriptions`, `POST /master/subscription-upgrade-request`.
+
+### Added (Phase 5 — CMS/Admin Productivity Uplift)
+- **Dashboard Quick Actions** — Four quick-action shortcut cards below the stat row: Ny side med AI, Rediger sider, Upload medier, Publicer nu. "Publicer nu" card calls the `/publish` API with visual confirmation feedback. Responsive grid: 4 columns on desktop, 2 columns on narrow screens.
+- **Pages "+ Ny side" Button** — Modal dialog (Enter to confirm, Esc to cancel) that creates a new page by path via the API.
+- **Pages Status Dots** — Each page sidebar button shows a status dot (green = all components published, amber = partial, grey = none).
+- **Pages Summary Badge Row** — Sidebar header shows total page count and published page count.
+- **Per-Component Visibility Toggle** — Eye icon on each component row calls `POST /page-components/publish` to toggle `is_published` without a full page publish.
+- **Ctrl+S / Cmd+S Save Shortcut** — Saves the currently open component edit modal.
+- **Component Duplicate Button** — Duplicate (⊕) button on each component row clones it into the same page at the next sort position, copying `content`, `is_published`, and `component_id`.
+- **AI Assembler Datalist Autocomplete** — Page path inputs use `<datalist>` populated from existing page paths API.
+- **AI Assembler Step Indicator** — Animated step-by-step loading: Analyserer → Vælger komponenter → Genererer tekster → Gemmer til databasen. All steps turn green on success.
+- **Media Library Bulk Delete** — "Vælg" button activates bulk-select mode. Bulk toolbar: Vælg alle, Fravælg alle, Slet valgte with selected count.
+- **Assistant Quick-Prompt Chips** — Five clickable chips above the chat textarea populate it on click.
+- **Admin Keyboard Shortcut Overlay** — `?` key (or `?` header button) shows all global shortcuts (g d, g p, g m, g a, g s, g c). Esc closes.
+
 ### Added (Phase 5.1 — Enterprise CMS Modernisation)
 - **Global Toast/Notification System** — Added centralized `toast(message, type, duration)` function in `AdminLayout.astro`. Replaces all `alert()` calls across admin panel with non-blocking, auto-dismissing toasts in success/error/warning/info variants with animated entrance/exit. `window.toast` is globally available on all admin pages.
 - **Dashboard Skeleton Loading States** — Replaced the bare "Henter data..." spinner with animated shimmer skeleton cards that match the final layout structure (stat cards, chart, table). Eliminates layout shift on load.
