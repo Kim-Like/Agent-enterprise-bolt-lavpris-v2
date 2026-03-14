@@ -24,6 +24,9 @@ Change discipline:
 ### Added
 - Implemented the first-party e-commerce module with shop schema, Flatpay / Frisbii payment integration, public storefront routes, admin shop management, and transactional order email support.
 
+### Planned
+- Phase 4.1 planning complete: scoped Ecommerce Functional Depth sprint covering admin shop dashboard, inventory reservation at checkout, storefront product search, refund/return workflow, and order notes as Tier 1 blockers; shipping zones, customer accounts, product filters, and email template customization as Tier 2 differentiators; back-in-stock notifications, abandoned cart recovery, product reviews, and bulk import/export as Tier 3. Full implementation plan in `PHASE4.1_HANDOFF.md`. No code changes in this entry.
+
 ### Changed
 - Uplifted all shop storefront, cart, checkout, and admin pages from Tailwind utility classes to scoped `<style>` blocks using CSS design tokens: `shop/index.astro`, `shop/[category].astro`, `shop/produkt/[slug].astro`, `shop/kurv.astro`, `shop/checkout.astro`, `shop/ordre/[token].astro`, `admin/shop/products.astro`, `admin/shop/orders.astro`, `admin/shop/settings.astro`. All Tailwind `hidden` class toggles replaced with `element.style.display` or semantic `.is-open` class patterns. Status badge class assignments in JS template literals replaced with semantic BEM-style classes defined in scoped CSS. No JavaScript logic, API contracts, or schema changes.
 - Uplifted shop components (`ShopHero.astro`, `CartDrawer.astro`, `PriceDisplay.astro`) from Tailwind to scoped CSS. `CartDrawer` slide animation changed from `translate-x-full`/`translate-x-0` class toggling to `.is-open` CSS class with `transform: translateX()`. `PriceDisplay` size variants converted to `.price-display--sm/md/lg` modifier classes.

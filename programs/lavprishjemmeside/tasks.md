@@ -253,6 +253,98 @@ Commerce is one of the most visible V2 value lanes. The shop should inspire more
 - uplift requires inventing a new commerce platform
 - payment or webhook behavior would break without a safe operator-verified path
 
+## Phase 4.1: Ecommerce Functional Depth — Commerce-First Client Readiness
+
+### Objective
+
+Raise the first-party shop from a functional MVP to a credible commerce product capable of supporting a client whose primary business runs through the shop.
+
+### Product Intent
+
+A commerce-first client assessment found the shop is production-ready for small catalogs with simple shipping needs but would not survive a client who relies heavily on ecommerce. The gaps are functional, not visual. Phase 4 fixed the CSS. Phase 4.1 fixes the product.
+
+Three categories of clients are unblocked by this phase: clients migrating from WooCommerce or a hosted Shopify plan, clients with 50+ SKU catalogs, and clients who need to process refunds and manage stock reliably at scale.
+
+### Detailed Implementation Lanes
+
+Tiers are ordered by priority. Tier 1 are blockers. Tier 2 are strong differentiators. Tier 3 are nice-to-have.
+
+**Tier 1 — Blockers:**
+- build admin shop dashboard page that surfaces the existing `/shop/admin/dashboard` KPIs: revenue, orders, pending/to-ship counts, recent orders, top products, and low-stock alerts
+- implement inventory reservation at checkout: `stock_reservations` table, `POST /shop/cart/reserve` endpoint called before Flatpay session creation, lazy expiry sweep on each reservation call, available-stock calculation in product detail endpoint
+- add storefront product search: `GET /shop/search` endpoint using the existing MySQL fulltext index, `SearchBar.astro` component with debounced dropdown, injected into header and shop index
+- add refund and return workflow: `POST /shop/admin/orders/:id/refund` endpoint with optional stock restoration and customer email, refund modal in admin orders UI, `order_events` audit entry
+- add order notes: customer-facing note field at checkout stored in new `customer_note` column, internal admin note input stored as `order_events` entries displayed in event timeline
+
+**Tier 2 — Strong Differentiators:**
+- shipping zones: extend `shipping_methods` with `countries JSON NULL` column; filter methods by country at checkout; admin UI country selector per method
+- customer accounts (light): registration, login, session-based auth, order history page; guest checkout flow unchanged
+- storefront product filters: price range, in-stock toggle, and sort options on category pages via new `ProductFilters.astro` component; backed by extended `GET /shop/products` query params
+- email template customization: `email_templates` DB table, admin editor page, `{{variable}}` token replacement, hardcoded fallback if table is empty
+
+**Tier 3 — Nice to Have:**
+- back-in-stock notifications: opt-in email list per product/variant, triggered on stock restoration via refund
+- abandoned cart recovery: cart session capture with optional email, operator-triggerable reminder cron endpoint
+- product reviews: star rating + comment submission, admin moderation, display on product detail
+- bulk product import/export: CSV download and upload by SKU
+
+### In-Folder Scope
+
+- `local-mirror/src/pages/admin/shop/dashboard.astro` (new)
+- `local-mirror/src/pages/admin/shop/emails.astro` (new)
+- `local-mirror/src/pages/admin/shop/orders.astro` (refund modal + note section)
+- `local-mirror/src/pages/shop/checkout.astro` (reserve call + customer note field)
+- `local-mirror/src/pages/shop/produkt/[slug].astro` (available_stock usage)
+- `local-mirror/src/pages/shop/index.astro` (SearchBar injection)
+- `local-mirror/src/pages/shop/konto/` (customer account pages — Tier 2)
+- `local-mirror/src/components/SearchBar.astro` (new)
+- `local-mirror/src/components/ProductFilters.astro` (new — Tier 2)
+- `local-mirror/src/components/Header.astro` (SearchBar injection)
+- `local-mirror/src/layouts/AdminLayout.astro` (shop dashboard nav link)
+- `local-mirror/api/src/routes/shop-public.cjs` (new endpoints)
+- `local-mirror/api/src/routes/shop-admin.cjs` (new endpoints)
+- `local-mirror/api/src/services/shop-email.cjs` (DB template loading — Tier 2)
+- `local-mirror/api/src/schema_stock_reservations.sql` (new)
+- `local-mirror/api/src/schema_order_notes.sql` (new)
+- `local-mirror/api/src/schema_shipping_zones.sql` (new — Tier 2)
+- `local-mirror/api/src/schema_customer_accounts.sql` (new — Tier 2)
+- `local-mirror/api/src/schema_email_templates.sql` + seed (new — Tier 2)
+
+### Outside-Folder Dependencies
+
+- live cPanel MySQL: schema migrations require operator SSH execution via `node api/run-schema.cjs`
+- live Flatpay / Frisbii: no new webhook events; existing `charge_settled` handler updated to release reservations
+- live Resend credential: no new credential; new refund and back-in-stock email templates use the existing service
+
+### Required Handoff Artifacts
+
+- `PHASE4.1_HANDOFF.md` (complete planning document — already written)
+- per-tier SQL operator packets with run-order notes for `api/run-schema.cjs`
+- updated `CHANGELOG.md` (root) and `local-mirror/CHANGELOG.md` under `[Unreleased]`
+- regression note confirming existing checkout, order, and payment flow is unchanged
+- API contract notes for each new or extended endpoint
+
+### Acceptance Checks
+
+- shop dashboard page renders live KPIs from the existing API
+- simultaneous checkout of the last unit results in only one successful reservation
+- storefront search returns products by name, description, or SKU
+- refund action records an audit event, optionally restores stock, and sends a customer email
+- customer note at checkout is stored and visible in admin
+- internal admin notes display in the order event timeline
+- all new schema files are idempotent
+- no existing API contract changed without a backwards-compatible extension
+- `CHANGELOG.md` updated before handoff
+
+### Hard Stop Conditions
+
+- inventory reservation must not require an external scheduler
+- customer accounts must not break the guest checkout flow
+- refund workflow must not delete or alter existing order rows
+- no payment or webhook contract may change without explicit operator verification
+
+---
+
 ## Phase 5: CMS/Admin Productivity Uplift and Selected Old-V2 Improvements
 
 ### Objective
