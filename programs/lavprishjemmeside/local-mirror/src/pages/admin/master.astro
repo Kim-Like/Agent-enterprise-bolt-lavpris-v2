@@ -17,65 +17,501 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       } catch(e) {}
     })();
   </script>
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-bold">Master Hub</h1>
-    <span class="text-xs text-gray-400">lavprishjemmeside.dk only</span>
+
+  <style>
+    .master-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+    .master-title {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+    }
+    .master-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 999px;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+      font-weight: 500;
+    }
+    .master-badge-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      background: #22c55e;
+      flex-shrink: 0;
+    }
+
+    /* Tab bar */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 1.5rem;
+    }
+    .tab-btn {
+      padding: 0.625rem 1.125rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      border: none;
+      background: none;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      color: #6b7280;
+      margin-bottom: -1px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active {
+      border-bottom-color: #3b82f6;
+      color: #2563eb;
+    }
+
+    /* Panel shared */
+    .panel-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+    }
+
+    /* Sites grid */
+    .sites-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+    @media (min-width: 900px) {
+      .sites-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* Site card */
+    .site-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.125rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .site-card-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .site-card-name {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      color: #111827;
+      text-decoration: none;
+    }
+    .site-card-name:hover { color: #2563eb; }
+    .site-card-domain { font-size: 0.75rem; color: #9ca3af; margin-top: 0.125rem; }
+    .site-card-badges {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      flex-shrink: 0;
+    }
+    .site-card-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+    .stat-mini {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.375rem;
+      text-align: center;
+    }
+    .stat-mini-val {
+      font-size: 1.0625rem;
+      font-weight: 700;
+      color: #111827;
+      line-height: 1.2;
+    }
+    .stat-mini-lbl {
+      font-size: 0.6875rem;
+      color: #9ca3af;
+      margin-top: 0.125rem;
+    }
+    .site-card-note {
+      background: #f9fafb;
+      border: 1px solid #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    .site-card-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+    .site-card-foot strong { color: #374151; }
+    .site-card-admin-link {
+      color: #3b82f6;
+      font-weight: 500;
+      text-decoration: none;
+      font-size: 0.75rem;
+    }
+    .site-card-admin-link:hover { text-decoration: underline; }
+
+    /* Health dot */
+    .health-dot {
+      display: inline-block;
+      width: 0.625rem;
+      height: 0.625rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .health-online { background: #22c55e; }
+    .health-degraded { background: #f59e0b; }
+    .health-offline { background: #ef4444; }
+    .health-unknown { background: #d1d5db; }
+
+    /* Pill badges */
+    .pill {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      border-radius: 999px;
+      padding: 0.125rem 0.5rem;
+      white-space: nowrap;
+    }
+    .pill-gray { background: #f3f4f6; color: #6b7280; }
+    .pill-blue { background: #dbeafe; color: #1d4ed8; }
+    .pill-amber { background: #fef3c7; color: #92400e; }
+    .pill-red { background: #fee2e2; color: #991b1b; }
+    .pill-green { background: #dcfce7; color: #166534; }
+
+    /* Rollout banner */
+    .rollout-banner {
+      border-radius: 0.625rem;
+      border: 1px solid #e5e7eb;
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Loading / error states */
+    .state-center {
+      text-align: center;
+      padding: 3rem 1rem;
+      font-size: 0.875rem;
+      color: #9ca3af;
+    }
+    .state-error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 0.75rem;
+      padding: 0.875rem 1rem;
+      color: #b91c1c;
+      font-size: 0.8125rem;
+      margin-bottom: 1rem;
+    }
+
+    /* Add site form */
+    .add-site-summary {
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      padding: 0.5rem 0;
+    }
+    .add-site-summary:hover { color: #111827; }
+    .add-site-form {
+      margin-top: 1rem;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.875rem;
+    }
+    @media (max-width: 640px) {
+      .add-site-form { grid-template-columns: 1fr; }
+    }
+    .form-label {
+      display: block;
+      font-size: 0.6875rem;
+      color: #9ca3af;
+      margin-bottom: 0.25rem;
+      font-weight: 500;
+    }
+    .form-input {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8125rem;
+      color: #111827;
+      background: #fff;
+      box-sizing: border-box;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+    .form-span2 { grid-column: span 2; }
+    @media (max-width: 640px) {
+      .form-span2 { grid-column: span 1; }
+    }
+
+    /* AI Usage tab */
+    .ai-site-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.125rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+    }
+    .ai-site-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .ai-chart { display: flex; align-items: flex-end; gap: 2px; height: 3rem; }
+    .ai-chart-bar { background: #93c5fd; border-radius: 2px 2px 0 0; width: 0.75rem; flex-shrink: 0; transition: background 0.1s; }
+    .ai-chart-bar:hover { background: #3b82f6; }
+    .ai-unavailable { font-size: 0.75rem; color: #f87171; }
+
+    /* Claude Code tab */
+    .claude-step-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 700px) {
+      .claude-step-grid { grid-template-columns: 1fr; }
+    }
+    .claude-step {
+      border: 1px solid #e5e7eb;
+      border-radius: 0.625rem;
+      padding: 0.875rem;
+    }
+    .claude-step-blue { background: linear-gradient(135deg, #eff6ff 0%, #fff 100%); }
+    .claude-step-green { background: linear-gradient(135deg, #f0fdf4 0%, #fff 100%); }
+    .claude-step-amber { background: linear-gradient(135deg, #fffbeb 0%, #fff 100%); }
+    .step-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.375rem;
+    }
+    .step-label-blue { color: #1d4ed8; }
+    .step-label-green { color: #166534; }
+    .step-label-amber { color: #92400e; }
+    .claude-options-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: flex-end;
+      margin-bottom: 1rem;
+    }
+    .auth-status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding-top: 0.625rem;
+    }
+    .claude-prompt-label {
+      font-size: 0.6875rem;
+      color: #9ca3af;
+      font-weight: 500;
+      margin-bottom: 0.375rem;
+    }
+    textarea.form-input {
+      font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+      resize: vertical;
+      min-height: 6rem;
+    }
+    .claude-actions {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.875rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary { background: #3b82f6; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #2563eb; }
+    .btn-danger { background: #ef4444; color: #fff; }
+    .btn-danger:hover:not(:disabled) { background: #dc2626; }
+    .btn-ghost {
+      background: #fff;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+    }
+    .btn-ghost:hover:not(:disabled) { background: #f9fafb; }
+    .btn-ghost-blue {
+      background: #fff;
+      color: #3b82f6;
+      border: 1px solid #bfdbfe;
+    }
+    .btn-ghost-blue:hover:not(:disabled) { background: #eff6ff; }
+
+    /* Auth panel */
+    .auth-panel {
+      background: #fff;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .auth-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.875rem;
+    }
+    .auth-steps {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-bottom: 1rem;
+      padding-left: 1rem;
+      line-height: 1.75;
+    }
+
+    /* Terminal */
+    .terminal {
+      background: #090c10;
+      border: 1px solid #1f2937;
+      border-radius: 0.75rem;
+      padding: 1rem;
+      min-height: 16rem;
+    }
+    .terminal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .terminal-label {
+      font-size: 0.6875rem;
+      color: #4b5563;
+      font-family: ui-monospace, monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #claude-output {
+      font-size: 0.8125rem;
+      font-family: ui-monospace, 'Cascadia Code', 'Fira Code', monospace;
+      white-space: pre-wrap;
+      word-break: break-words;
+      overflow: auto;
+      max-height: 60vh;
+      color: #d1d5db;
+    }
+
+    /* Site add section */
+    .add-section { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #f3f4f6; }
+
+    .hidden-el { display: none !important; }
+  </style>
+
+  <div class="master-header">
+    <div class="master-title">
+      <h1 style="font-size:1.375rem;font-weight:700;color:#111827;margin:0;">Master Hub</h1>
+    </div>
+    <div class="master-badge">
+      <span class="master-badge-dot"></span>
+      lavprishjemmeside.dk
+    </div>
   </div>
 
   <!-- Tab bar -->
-  <div class="flex gap-1 border-b border-gray-200 mb-6">
-    <button onclick="switchTab('sites')" id="tab-sites" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-blue-600 text-blue-700">
+  <div class="tab-bar">
+    <button onclick="switchTab('sites')" id="tab-sites" class="tab-btn active">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><rect x="1" y="1" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y="1" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="1" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="7.5" y="7.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
       Sites
     </button>
-    <button onclick="switchTab('ai')" id="tab-ai" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+    <button onclick="switchTab('ai')" id="tab-ai" class="tab-btn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><path d="M2 10 L4 5 L6.5 8.5 L8 6 L11 10" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       AI Usage
     </button>
-    <button onclick="switchTab('claude')" id="tab-claude" class="tab-btn px-4 py-2.5 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">
+    <button onclick="switchTab('claude')" id="tab-claude" class="tab-btn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><rect x="1" y="3" width="11" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 7l1.5-1.5L4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 7h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       Claude Code
     </button>
   </div>
 
   <!-- ── Tab 1: Sites ────────────────────────────────────────── -->
   <div id="panel-sites">
-    <div id="sites-rollout-banner" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm"></div>
-    <div id="sites-loading" class="text-center py-12 text-gray-400">Henter sites…</div>
-    <div id="sites-error" class="hidden bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-4"></div>
-    <div id="sites-grid" class="hidden grid grid-cols-1 lg:grid-cols-2 gap-5"></div>
+    <div id="sites-rollout-banner" class="rollout-banner hidden-el"></div>
+    <div id="sites-loading" class="state-center">Henter sites…</div>
+    <div id="sites-error" class="state-error hidden-el"></div>
+    <div id="sites-grid" class="sites-grid hidden-el"></div>
 
-    <div class="mt-6 pt-4 border-t border-gray-200">
+    <div class="add-section">
       <details>
-        <summary class="text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900">+ Registrer nyt site</summary>
-        <form id="add-site-form" class="mt-4 bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <summary class="add-site-summary">+ Registrer nyt site</summary>
+        <form id="add-site-form" class="add-site-form">
           <div>
-            <label class="text-xs text-gray-500 block mb-1">Navn</label>
-            <input name="name" placeholder="Min Kunde A/S" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">Navn</label>
+            <input name="name" placeholder="Min Kunde A/S" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">Domain</label>
-            <input name="domain" placeholder="minkunde.dk" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">Domain</label>
+            <input name="domain" placeholder="minkunde.dk" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">API URL</label>
-            <input name="api_url" placeholder="https://api.minkunde.dk" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">API URL</label>
+            <input name="api_url" placeholder="https://api.minkunde.dk" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">Admin URL</label>
-            <input name="admin_url" placeholder="https://minkunde.dk/admin/" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">Admin URL</label>
+            <input name="admin_url" placeholder="https://minkunde.dk/admin/" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">DB Name</label>
-            <input name="db_name" placeholder="theartis_minkunde" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">DB Name</label>
+            <input name="db_name" placeholder="theartis_minkunde" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">DB User</label>
-            <input name="db_user" placeholder="theartis_minkunde" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">DB User</label>
+            <input name="db_user" placeholder="theartis_minkunde" class="form-input" />
           </div>
           <div>
-            <label class="text-xs text-gray-500 block mb-1">DB Password</label>
-            <input name="db_password" type="password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+            <label class="form-label">DB Password</label>
+            <input name="db_password" type="password" class="form-input" />
           </div>
-          <div class="md:col-span-2 flex justify-end">
-            <button type="submit" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700">Gem site</button>
+          <div class="form-span2" style="display:flex;justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">Gem site</button>
           </div>
         </form>
       </details>
@@ -83,132 +519,134 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   </div>
 
   <!-- ── Tab 2: AI Usage ─────────────────────────────────────── -->
-  <div id="panel-ai" class="hidden">
-    <div id="ai-loading" class="text-center py-12 text-gray-400">Henter AI-forbrug…</div>
-    <div id="ai-content" class="hidden space-y-6"></div>
+  <div id="panel-ai" class="hidden-el">
+    <div id="ai-loading" class="state-center">Henter AI-forbrug…</div>
+    <div id="ai-content" class="hidden-el" style="display:flex;flex-direction:column;gap:0.875rem;"></div>
   </div>
 
   <!-- ── Tab 3: Claude Code Runner ──────────────────────────── -->
-  <div id="panel-claude" class="hidden">
-    <div class="bg-white border border-gray-200 rounded-xl p-5 mb-4">
-      <div class="grid grid-cols-1 xl:grid-cols-3 gap-3 mb-4">
-        <div class="border border-gray-200 rounded-xl p-3 bg-gradient-to-br from-blue-50 to-white">
-          <p class="text-[11px] uppercase tracking-wide text-blue-700 font-semibold mb-1">Step 1</p>
-          <label class="text-xs text-gray-500 block mb-1">Repository</label>
-          <select id="claude-repo" onchange="onClaudeRepoOrTaskChange()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+  <div id="panel-claude" class="hidden-el">
+    <div class="panel-card" style="margin-bottom:1rem;">
+      <!-- Step selectors -->
+      <div class="claude-step-grid">
+        <div class="claude-step claude-step-blue">
+          <p class="step-label step-label-blue">Step 1</p>
+          <label class="form-label">Repository</label>
+          <select id="claude-repo" onchange="onClaudeRepoOrTaskChange()" class="form-input">
             <option value="">Henter repos…</option>
           </select>
         </div>
-        <div class="border border-gray-200 rounded-xl p-3 bg-gradient-to-br from-emerald-50 to-white">
-          <p class="text-[11px] uppercase tracking-wide text-emerald-700 font-semibold mb-1">Step 2</p>
-          <div class="flex items-center gap-2 mb-1">
-            <label class="text-xs text-gray-500 block">Kanban task</label>
-            <button onclick="loadClaudeKanbanTasks()" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 hover:bg-gray-50">Refresh</button>
+        <div class="claude-step claude-step-green">
+          <p class="step-label step-label-green">Step 2</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
+            <label class="form-label" style="margin-bottom:0;">Kanban task</label>
+            <button onclick="loadClaudeKanbanTasks()" class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.6875rem;">Refresh</button>
           </div>
-          <select id="claude-task" onchange="onClaudeRepoOrTaskChange()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <select id="claude-task" onchange="onClaudeRepoOrTaskChange()" class="form-input">
             <option value="">Vælg task…</option>
           </select>
         </div>
-        <div class="border border-gray-200 rounded-xl p-3 bg-gradient-to-br from-amber-50 to-white">
-          <p class="text-[11px] uppercase tracking-wide text-amber-700 font-semibold mb-1">Step 3</p>
-          <div class="flex items-center gap-2 mb-1">
-            <label class="text-xs text-gray-500 block">Plan .md file</label>
-            <button onclick="loadTaskMdFiles()" class="text-[11px] px-2 py-0.5 rounded border border-gray-200 hover:bg-gray-50">Refresh</button>
+        <div class="claude-step claude-step-amber">
+          <p class="step-label step-label-amber">Step 3</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
+            <label class="form-label" style="margin-bottom:0;">Plan .md file</label>
+            <button onclick="loadTaskMdFiles()" class="btn btn-ghost" style="padding:0.2rem 0.5rem;font-size:0.6875rem;">Refresh</button>
           </div>
-          <select id="claude-md-file" onchange="updateRunButtonState()" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <select id="claude-md-file" onchange="updateRunButtonState()" class="form-input">
             <option value="">Vælg .md-fil…</option>
           </select>
-          <div id="claude-md-help" class="text-[11px] text-gray-500 mt-1">A run requires a planning .md file.</div>
-          <button onclick="createNewPlanMd()" class="mt-2 text-xs px-2.5 py-1 rounded-lg border border-gray-300 hover:bg-gray-50">Create new .md plan</button>
+          <div id="claude-md-help" style="font-size:0.6875rem;color:#9ca3af;margin-top:0.375rem;">A run requires a planning .md file.</div>
+          <button onclick="createNewPlanMd()" class="btn btn-ghost" style="margin-top:0.5rem;font-size:0.75rem;padding:0.3rem 0.625rem;">Create new .md plan</button>
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-3 items-end mb-4">
+      <!-- Model / auth row -->
+      <div class="claude-options-row">
         <div>
-          <label class="text-xs text-gray-500 block mb-1">Model</label>
-          <select id="claude-model" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <label class="form-label">Model</label>
+          <select id="claude-model" class="form-input" style="min-width:13rem;">
             <option value="sonnet">Sonnet 4.6 (default)</option>
             <option value="haiku">Haiku 4.5 (fast / cheap)</option>
             <option value="opus">Opus 4.6 (powerful)</option>
           </select>
         </div>
         <div>
-          <input id="claude-account" type="hidden" value="/home/theartis/.claude" />
-          <div class="flex items-center gap-1.5 mt-1.5">
-            <span id="auth-dot" class="inline-block w-2 h-2 rounded-full bg-gray-300 flex-shrink-0"></span>
-            <span id="auth-label" class="text-xs text-gray-400 truncate">Checking…</span>
-          </div>
-        </div>
-        <div>
-          <label class="text-xs text-gray-500 block mb-1">Timeout</label>
-          <select id="claude-timeout" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+          <label class="form-label">Timeout</label>
+          <select id="claude-timeout" class="form-input">
             <option value="10">10 min</option>
             <option value="30">30 min</option>
             <option value="60">60 min</option>
           </select>
         </div>
+        <div>
+          <input id="claude-account" type="hidden" value="/home/theartis/.claude" />
+          <div class="auth-status-row">
+            <span id="auth-dot" style="display:inline-block;width:0.5rem;height:0.5rem;border-radius:50%;background:#d1d5db;flex-shrink:0;"></span>
+            <span id="auth-label" style="font-size:0.75rem;color:#9ca3af;max-width:12rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Checking…</span>
+          </div>
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="text-xs text-gray-500 block mb-1">Task / prompt</label>
-        <textarea id="claude-prompt" rows="5" placeholder="Describe the task for Claude Code…&#10;e.g. Run node api/run-schema.cjs and report any errors" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono resize-y"></textarea>
+
+      <!-- Prompt -->
+      <div style="margin-bottom:0.875rem;">
+        <div class="claude-prompt-label">Task / prompt</div>
+        <textarea id="claude-prompt" rows="5" placeholder="Describe the task for Claude Code…&#10;e.g. Run node api/run-schema.cjs and report any errors" class="form-input"></textarea>
       </div>
-      <div class="flex gap-2 flex-wrap">
-        <button onclick="runClaude()" id="claude-run-btn" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 font-medium">
-          ▶ Run
+
+      <!-- Actions -->
+      <div class="claude-actions">
+        <button onclick="runClaude()" id="claude-run-btn" class="btn btn-primary">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 2l7 4-7 4V2z" fill="currentColor"/></svg>
+          Run
         </button>
-        <button onclick="killClaude()" id="claude-kill" class="hidden px-4 py-2 bg-red-500 text-white text-sm rounded-lg hover:bg-red-600 font-medium">
-          ■ Kill
+        <button onclick="killClaude()" id="claude-kill" class="btn btn-danger hidden-el">
+          <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1.5" y="1.5" width="8" height="8" rx="1" fill="currentColor"/></svg>
+          Kill
         </button>
-        <button onclick="clearOutput()" class="px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
-          Clear
-        </button>
-        <button onclick="openAuthPanel()" class="ml-auto px-4 py-2 border border-gray-300 text-gray-600 text-sm rounded-lg hover:bg-gray-50">
-          Auth Account
-        </button>
+        <button onclick="clearOutput()" class="btn btn-ghost">Clear</button>
+        <button onclick="openAuthPanel()" class="btn btn-ghost-blue" style="margin-left:auto;">Auth Account</button>
       </div>
     </div>
 
-    <!-- Auth panel (shown when "Auth Account" is clicked) -->
-    <div id="claude-auth-panel" class="hidden bg-white border border-blue-200 rounded-xl p-5 mb-4">
-      <div class="flex items-center justify-between mb-3">
-        <p class="text-sm font-semibold text-gray-800">Authenticate Claude Account</p>
-        <button onclick="closeAuthPanel()" class="text-gray-400 hover:text-gray-600 text-xs px-2 py-1 rounded hover:bg-gray-100">✕ Close</button>
+    <!-- Auth panel -->
+    <div id="claude-auth-panel" class="auth-panel hidden-el">
+      <div class="auth-panel-head">
+        <p style="font-size:0.875rem;font-weight:600;color:#111827;margin:0;">Authenticate Claude Account</p>
+        <button onclick="closeAuthPanel()" class="btn btn-ghost" style="padding:0.25rem 0.625rem;font-size:0.75rem;">Close</button>
       </div>
-      <ol class="text-xs text-gray-500 mb-4 space-y-1 list-decimal list-inside">
+      <ol class="auth-steps">
         <li>Click <strong>Generate Auth URL</strong></li>
         <li>Click the link that appears and authorize in your browser</li>
         <li>The callback page shows: <em>"Authentication Code — Paste this into Claude Code:"</em></li>
         <li>Paste that code into the field below and click <strong>Submit Code</strong></li>
       </ol>
 
-      <div class="flex gap-2 mb-3">
-        <button onclick="startClaudeAuth()" id="auth-start-btn" class="px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 font-medium">
-          Generate Auth URL
-        </button>
-        <span id="auth-spinner" class="hidden text-xs text-gray-400 self-center">Generating…</span>
+      <div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.75rem;">
+        <button onclick="startClaudeAuth()" id="auth-start-btn" class="btn btn-primary" style="font-size:0.8125rem;">Generate Auth URL</button>
+        <span id="auth-spinner" class="hidden-el" style="font-size:0.75rem;color:#9ca3af;">Generating…</span>
       </div>
 
-      <div id="auth-url-box" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-xs">
-        <p class="text-gray-500 mb-1">Open this URL in your browser to authorize:</p>
-        <a id="auth-url-link" href="#" target="_blank" rel="noopener" class="text-blue-700 break-all hover:underline font-mono"></a>
+      <div id="auth-url-box" class="hidden-el" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:0.5rem;padding:0.75rem;margin-bottom:0.75rem;">
+        <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.25rem;">Open this URL in your browser to authorize:</p>
+        <a id="auth-url-link" href="#" target="_blank" rel="noopener" style="font-size:0.75rem;color:#1d4ed8;word-break:break-all;font-family:ui-monospace,monospace;"></a>
       </div>
 
-      <pre id="auth-output" class="hidden text-xs font-mono bg-gray-950 text-green-400 rounded-lg p-3 max-h-40 overflow-auto whitespace-pre-wrap break-all mb-3"></pre>
+      <pre id="auth-output" class="hidden-el" style="font-size:0.75rem;font-family:ui-monospace,monospace;background:#090c10;color:#4ade80;border-radius:0.5rem;padding:0.75rem;max-height:10rem;overflow:auto;white-space:pre-wrap;word-break:break-all;margin-bottom:0.75rem;"></pre>
 
-      <div class="flex gap-2">
-        <input id="auth-code-input" type="text" placeholder="Paste Authentication Code here…" class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono" />
-        <button onclick="submitAuthCode()" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 font-medium whitespace-nowrap">Submit Code</button>
+      <div style="display:flex;gap:0.5rem;">
+        <input id="auth-code-input" type="text" placeholder="Paste Authentication Code here…" class="form-input" style="flex:1;font-family:ui-monospace,monospace;" />
+        <button onclick="submitAuthCode()" class="btn btn-primary" style="white-space:nowrap;">Submit Code</button>
       </div>
-      <p id="auth-status" class="text-xs mt-2 text-gray-500"></p>
+      <p id="auth-status" style="font-size:0.75rem;margin-top:0.5rem;color:#6b7280;"></p>
     </div>
 
     <!-- Output terminal -->
-    <div class="bg-gray-950 rounded-xl border border-gray-800 p-4 min-h-64">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs text-gray-500 font-mono">Output</span>
-        <span id="claude-status" class="text-xs text-gray-500"></span>
+    <div class="terminal">
+      <div class="terminal-head">
+        <span class="terminal-label">Output</span>
+        <span id="claude-status" style="font-size:0.6875rem;color:#4b5563;font-family:ui-monospace,monospace;"></span>
       </div>
-      <pre id="claude-output" class="text-sm font-mono whitespace-pre-wrap break-words overflow-auto max-h-[60vh] text-gray-300"></pre>
+      <pre id="claude-output"></pre>
     </div>
   </div>
 </AdminLayout>
@@ -240,7 +678,6 @@ function buildApiCandidates(primary) {
     if (candidates.indexOf(clean) === -1) candidates.push(clean);
   }
 
-  var currentOrigin = window.location.origin;
   var currentHost = normalizedHost(window.location.hostname);
   var fallbackApi = '';
   try {
@@ -298,7 +735,6 @@ function masterFetchJson(path, options) {
     try {
       baseHost = normalizedHost(new URL(base).hostname);
     } catch (_) {}
-    // Never use site-origin fallback for /master/* requests.
     return isApiLikeBase(base) || baseHost !== normalizedHost(window.location.hostname);
   });
   if (!attempts.length) attempts = [normalizeApiBase(apiUrl)];
@@ -331,7 +767,6 @@ function masterFetchJson(path, options) {
   return attempt();
 }
 
-// ─── Auth helper ──────────────────────────────────────────────
 function authHeaders() {
   var token = localStorage.getItem('admin_token');
   var headers = { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
@@ -365,17 +800,22 @@ function ensureMasterStepUp() {
     });
 }
 
-// ─── Tab switching ─────────────────────────────────────────────
+function show(id) { var el = document.getElementById(id); if (el) el.style.display = ''; }
+function hide(id) { var el = document.getElementById(id); if (el) el.style.display = 'none'; }
+function showEl(el) { if (el) el.style.display = ''; }
+function hideEl(el) { if (el) el.style.display = 'none'; }
+
 function switchTab(tab) {
   ['sites', 'ai', 'claude'].forEach(function(t) {
     var panel = document.getElementById('panel-' + t);
     var btn = document.getElementById('tab-' + t);
-    if (panel) panel.classList.toggle('hidden', t !== tab);
+    if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) {
-      btn.classList.toggle('border-blue-600', t === tab);
-      btn.classList.toggle('text-blue-700', t === tab);
-      btn.classList.toggle('border-transparent', t !== tab);
-      btn.classList.toggle('text-gray-500', t !== tab);
+      if (t === tab) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
     }
   });
   activeTab = tab;
@@ -392,15 +832,16 @@ function switchTab(tab) {
   }
 }
 
-// ─── Sites tab ────────────────────────────────────────────────
-function healthDot(status) {
-  var colors = { online: 'bg-green-500', degraded: 'bg-amber-400', offline: 'bg-red-500', unknown: 'bg-gray-400' };
-  return '<span class="inline-block w-2.5 h-2.5 rounded-full ' + (colors[status] || 'bg-gray-400') + '"></span>';
+function healthDotHtml(status) {
+  var cls = { online: 'health-online', degraded: 'health-degraded', offline: 'health-offline', unknown: 'health-unknown' };
+  return '<span class="health-dot ' + (cls[status] || 'health-unknown') + '"></span>';
 }
 
-function priorityBadge(p) {
-  var map = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100 text-blue-700', high: 'bg-amber-100 text-amber-700', critical: 'bg-red-100 text-red-700' };
-  return '<span class="text-xs px-2 py-0.5 rounded-full font-medium ' + (map[p] || map.medium) + '">' + p + '</span>';
+function rolloutBadgeHtml(status) {
+  if (status === 'update_available') return '<span class="pill pill-blue">Update available</span>';
+  if (status === 'changelog_live_pending') return '<span class="pill pill-amber">Rollout pending</span>';
+  if (status === 'telemetry_missing' || status === 'status_unavailable') return '<span class="pill pill-amber">Status unavailable</span>';
+  return '';
 }
 
 function fmt(n) { return Number(n).toLocaleString('da-DK'); }
@@ -408,38 +849,29 @@ function fmtCost(n) { return '$' + Number(n).toFixed(4); }
 
 function renderSiteCard(site) {
   var buildLabel = site.live_build || site.version || 'ukendt';
-  var rolloutBadge = '';
-  if (site.update_status === 'update_available') {
-    rolloutBadge = '<span class="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">Update available</span>';
-  } else if (site.update_status === 'changelog_live_pending') {
-    rolloutBadge = '<span class="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Rollout pending</span>';
-  } else if (site.update_status === 'telemetry_missing' || site.update_status === 'status_unavailable') {
-    rolloutBadge = '<span class="text-xs px-2 py-0.5 rounded-full font-medium bg-amber-100 text-amber-700">Status unavailable</span>';
-  }
-
-  return '<div class="bg-white border border-gray-200 rounded-xl p-5 space-y-3">' +
-    '<div class="flex items-center justify-between">' +
+  return '<div class="site-card">' +
+    '<div class="site-card-head">' +
       '<div>' +
-        '<a href="' + site.admin_url + '" target="_blank" class="font-semibold text-gray-900 hover:text-blue-600">' + site.name + '</a>' +
-        '<p class="text-xs text-gray-500">' + site.domain + '</p>' +
+        '<a href="' + site.admin_url + '" target="_blank" class="site-card-name">' + site.name + '</a>' +
+        '<p class="site-card-domain">' + site.domain + '</p>' +
       '</div>' +
-      '<div class="flex items-center gap-2 flex-wrap justify-end">' +
-        healthDot(site.health) +
-        '<span class="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">' + buildLabel + '</span>' +
-        rolloutBadge +
+      '<div class="site-card-badges">' +
+        healthDotHtml(site.health) +
+        '<span class="pill pill-gray">' + buildLabel + '</span>' +
+        rolloutBadgeHtml(site.update_status) +
       '</div>' +
     '</div>' +
-    '<div class="grid grid-cols-4 gap-2 text-center">' +
-      '<div class="bg-gray-50 rounded-lg p-2"><p class="text-lg font-bold text-gray-900">' + site.pages + '</p><p class="text-xs text-gray-500">Sider</p></div>' +
-      '<div class="bg-gray-50 rounded-lg p-2"><p class="text-lg font-bold text-gray-900">' + site.components_used + '</p><p class="text-xs text-gray-500">Kompon.</p></div>' +
-      '<div class="bg-gray-50 rounded-lg p-2"><p class="text-lg font-bold text-gray-900">' + site.media + '</p><p class="text-xs text-gray-500">Media</p></div>' +
-      '<div class="bg-gray-50 rounded-lg p-2"><p class="text-lg font-bold text-gray-900">' + site.db_size_mb + '</p><p class="text-xs text-gray-500">MB DB</p></div>' +
+    '<div class="site-card-stats">' +
+      '<div class="stat-mini"><div class="stat-mini-val">' + site.pages + '</div><div class="stat-mini-lbl">Sider</div></div>' +
+      '<div class="stat-mini"><div class="stat-mini-val">' + site.components_used + '</div><div class="stat-mini-lbl">Kompon.</div></div>' +
+      '<div class="stat-mini"><div class="stat-mini-val">' + site.media + '</div><div class="stat-mini-lbl">Media</div></div>' +
+      '<div class="stat-mini"><div class="stat-mini-val">' + site.db_size_mb + '</div><div class="stat-mini-lbl">MB DB</div></div>' +
     '</div>' +
-    '<div class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-xs text-gray-600">' + (site.update_message || 'Ingen opdateringsnote.') + '</div>' +
-    '<div class="flex items-center justify-between text-xs text-gray-500">' +
-      '<span>AI tokens (30d): <strong class="text-gray-800">' + fmt(site.ai_tokens) + '</strong></span>' +
-      '<span>Cost: <strong class="text-gray-800">' + fmtCost(site.ai_cost_usd) + '</strong></span>' +
-      '<a href="' + site.admin_url + '" target="_blank" class="text-blue-600 hover:underline font-medium">Admin →</a>' +
+    '<div class="site-card-note">' + (site.update_message || 'Ingen opdateringsnote.') + '</div>' +
+    '<div class="site-card-foot">' +
+      '<span>AI tokens (30d): <strong>' + fmt(site.ai_tokens) + '</strong></span>' +
+      '<span>Cost: <strong>' + fmtCost(site.ai_cost_usd) + '</strong></span>' +
+      '<a href="' + site.admin_url + '" target="_blank" class="site-card-admin-link">Admin →</a>' +
     '</div>' +
   '</div>';
 }
@@ -449,45 +881,47 @@ function loadSites() {
   var grid = document.getElementById('sites-grid');
   var errEl = document.getElementById('sites-error');
   var banner = document.getElementById('sites-rollout-banner');
-  loading.classList.remove('hidden');
-  grid.classList.add('hidden');
-  errEl.classList.add('hidden');
-  banner.classList.add('hidden');
+  showEl(loading);
+  hideEl(grid);
+  hideEl(errEl);
+  hideEl(banner);
 
   fetch(API + '/master/sites', { headers: authHeaders() })
     .then(function(r) { return r.json(); })
     .then(function(payload) {
       var sites = Array.isArray(payload) ? payload : (payload.sites || []);
       var rollout = Array.isArray(payload) ? null : payload.rollout;
-      loading.classList.add('hidden');
+      hideEl(loading);
       grid.innerHTML = sites.map(renderSiteCard).join('');
-      grid.classList.remove('hidden');
+      showEl(grid);
 
       if (rollout && rollout.sourceVsParent && rollout.sourceVsParent.status === 'changelog_live_pending') {
-        banner.className = 'mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900';
+        banner.style.cssText = 'border-color:#fde68a;background:#fffbeb;color:#92400e;';
         banner.innerHTML = '<strong>Rollout afventer.</strong> ' + rollout.sourceVsParent.message;
+        showEl(banner);
         return;
       }
 
       if (rollout && rollout.summary && rollout.summary.clientUpdateCount > 0) {
-        banner.className = 'mb-4 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900';
+        banner.style.cssText = 'border-color:#bfdbfe;background:#eff6ff;color:#1e3a8a;';
         banner.innerHTML = '<strong>Opdateringer tilgængelige.</strong> ' + rollout.summary.clientUpdateCount + ' klientsite(s) er bag mastersitet.';
+        showEl(banner);
         return;
       }
 
       if (rollout && (rollout.status === 'status_unavailable' || rollout.error)) {
-        banner.className = 'mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800';
+        banner.style.cssText = 'border-color:#fde68a;background:#fffbeb;color:#78350f;';
         banner.innerHTML = '<strong>Opdateringsstatus utilgængelig.</strong> ' + (rollout.error || 'Agent Enterprise svarede ikke med rollout-data.');
+        showEl(banner);
       }
     })
     .catch(function(e) {
-      loading.classList.add('hidden');
+      hideEl(loading);
       errEl.textContent = 'Kunne ikke hente sites: ' + e.message;
-      errEl.classList.remove('hidden');
+      showEl(errEl);
     });
 }
 
-// Add site form
 document.getElementById('add-site-form').addEventListener('submit', function(e) {
   e.preventDefault();
   var data = {};
@@ -502,53 +936,51 @@ document.getElementById('add-site-form').addEventListener('submit', function(e) 
     .catch(function(e) { alert('Fejl: ' + e.message); });
 });
 
-// ─── AI Usage tab ─────────────────────────────────────────────
 function renderMiniChart(usageRows) {
-  if (!usageRows || !usageRows.length) return '<p class="text-xs text-gray-400">Ingen data</p>';
+  if (!usageRows || !usageRows.length) return '<p style="font-size:0.75rem;color:#9ca3af;">Ingen data</p>';
   var max = Math.max.apply(null, usageRows.map(function(r) { return Number(r.tokens) || 0; })) || 1;
   var bars = usageRows.slice(-14).map(function(r) {
-    var h = Math.max(2, Math.round((Number(r.tokens) / max) * 40));
-    return '<div title="' + r.day + ': ' + fmt(r.tokens) + ' tokens" style="height:' + h + 'px" class="bg-blue-400 rounded-sm w-3 mt-auto"></div>';
+    var h = Math.max(3, Math.round((Number(r.tokens) / max) * 48));
+    return '<div class="ai-chart-bar" title="' + r.day + ': ' + fmt(r.tokens) + ' tokens" style="height:' + h + 'px;"></div>';
   }).join('');
-  return '<div class="flex items-end gap-0.5 h-12">' + bars + '</div>';
+  return '<div class="ai-chart">' + bars + '</div>';
 }
 
 function loadAiUsage() {
   var loading = document.getElementById('ai-loading');
   var content = document.getElementById('ai-content');
-  loading.classList.remove('hidden');
-  content.classList.add('hidden');
+  showEl(loading);
+  hideEl(content);
 
   fetch(API + '/master/ai-usage', { headers: authHeaders() })
     .then(function(r) { return r.json(); })
     .then(function(sites) {
-      loading.classList.add('hidden');
+      hideEl(loading);
       content.innerHTML = sites.map(function(site) {
         var totalTokens = (site.usage || []).reduce(function(s, r) { return s + Number(r.tokens); }, 0);
         var totalCost = (site.usage || []).reduce(function(s, r) { return s + Number(r.cost_usd); }, 0);
-        return '<div class="bg-white border border-gray-200 rounded-xl p-5">' +
-          '<div class="flex items-center justify-between mb-3">' +
+        return '<div class="ai-site-card">' +
+          '<div class="ai-site-head">' +
             '<div>' +
-              '<p class="font-semibold text-gray-900">' + site.site + '</p>' +
-              '<p class="text-xs text-gray-400">' + site.domain + '</p>' +
+              '<p style="font-size:0.9375rem;font-weight:600;color:#111827;margin:0;">' + site.site + '</p>' +
+              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + site.domain + '</p>' +
             '</div>' +
-            '<div class="text-right">' +
-              '<p class="text-sm font-bold">' + fmt(totalTokens) + ' tokens</p>' +
-              '<p class="text-xs text-gray-500">' + fmtCost(totalCost) + ' (30 dage)</p>' +
+            '<div style="text-align:right;">' +
+              '<p style="font-size:0.875rem;font-weight:700;color:#111827;margin:0;">' + fmt(totalTokens) + ' tokens</p>' +
+              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + fmtCost(totalCost) + ' (30 dage)</p>' +
             '</div>' +
           '</div>' +
           renderMiniChart(site.usage) +
-          (site.error ? '<p class="text-xs text-red-400 mt-2">DB utilgængelig</p>' : '') +
+          (site.error ? '<p class="ai-unavailable">DB utilgængelig</p>' : '') +
         '</div>';
-      }).join('') || '<p class="text-gray-400 text-sm">Ingen sites fundet.</p>';
-      content.classList.remove('hidden');
+      }).join('') || '<p style="color:#9ca3af;font-size:0.875rem;">Ingen sites fundet.</p>';
+      showEl(content);
     })
     .catch(function() {
       loading.textContent = 'Kunne ikke hente AI-forbrug.';
     });
 }
 
-// ─── Claude Code Runner ───────────────────────────────────────
 var claudeTasks = [];
 
 function loadClaudeRepos() {
@@ -701,34 +1133,32 @@ function loadAuthStatus() {
     .then(function(r) { return r.json(); })
     .then(function(s) {
       if (s.authenticated) {
-        dot.className = 'inline-block w-2 h-2 rounded-full bg-green-500 flex-shrink-0';
-        var display = s.email || s.name || 'Authenticated';
-        label.textContent = display;
-        label.className = 'text-xs text-green-700 truncate';
+        dot.style.background = '#22c55e';
+        label.textContent = s.email || s.name || 'Authenticated';
+        label.style.color = '#15803d';
       } else if (s.expired) {
-        dot.className = 'inline-block w-2 h-2 rounded-full bg-amber-400 flex-shrink-0';
+        dot.style.background = '#f59e0b';
         label.textContent = 'Token expired — re-authenticate';
-        label.className = 'text-xs text-amber-600 truncate';
+        label.style.color = '#92400e';
       } else {
-        dot.className = 'inline-block w-2 h-2 rounded-full bg-gray-300 flex-shrink-0';
+        dot.style.background = '#d1d5db';
         label.textContent = 'Not authenticated';
-        label.className = 'text-xs text-gray-400 truncate';
+        label.style.color = '#9ca3af';
       }
     })
     .catch(function() {
-      dot.className = 'inline-block w-2 h-2 rounded-full bg-gray-300 flex-shrink-0';
+      dot.style.background = '#d1d5db';
       label.textContent = 'Status unknown';
-      label.className = 'text-xs text-gray-400 truncate';
+      label.style.color = '#9ca3af';
     });
 }
 
-function appendOutput(text, colorClass) {
+function appendOutput(text, color) {
   var out = document.getElementById('claude-output');
   var span = document.createElement('span');
-  span.className = colorClass || 'text-gray-300';
+  span.style.color = color || '#d1d5db';
   span.textContent = text;
   out.appendChild(span);
-  // Trim oldest output if too long
   if (out.children.length > 5000) {
     for (var i = 0; i < 1000; i++) { if (out.firstChild) out.removeChild(out.firstChild); }
   }
@@ -744,7 +1174,7 @@ function setRunning(running) {
   var runBtn = document.getElementById('claude-run-btn');
   var killBtn = document.getElementById('claude-kill');
   if (runBtn) runBtn.disabled = running || !canRunClaude();
-  if (killBtn) killBtn.classList.toggle('hidden', !running);
+  if (killBtn) { killBtn.style.display = running ? '' : 'none'; }
   document.getElementById('claude-status').textContent = running ? 'Running…' : '';
 }
 
@@ -800,9 +1230,9 @@ function runClaude() {
     }
     clearOutput();
     setRunning(true);
-    appendOutput('$ claude --model ' + model + ' --print --dangerously-skip-permissions\n', 'text-gray-500');
-    appendOutput('  repo: ' + repo + ' | task: #' + task_id + ' | md: ' + md_path + '\n', 'text-gray-600');
-    appendOutput('  account: ' + account_dir + ' | timeout: ' + timeout_min + 'min\n\n', 'text-gray-600');
+    appendOutput('$ claude --model ' + model + ' --print --dangerously-skip-permissions\n', '#6b7280');
+    appendOutput('  repo: ' + repo + ' | task: #' + task_id + ' | md: ' + md_path + '\n', '#4b5563');
+    appendOutput('  account: ' + account_dir + ' | timeout: ' + timeout_min + 'min\n\n', '#4b5563');
 
     fetch(API + '/master/claude-run', {
       method: 'POST',
@@ -821,22 +1251,22 @@ function runClaude() {
       if (res.status === 403) {
         return res.json().then(function(j) {
           if (j.code === 'STEP_UP_REQUIRED') {
-            appendOutput('Step-up authentication required. Run cancelled.\n', 'text-amber-400');
+            appendOutput('Step-up authentication required. Run cancelled.\n', '#fbbf24');
           } else {
-            appendOutput('Error: ' + (j.error || 'Forbidden') + '\n', 'text-red-400');
+            appendOutput('Error: ' + (j.error || 'Forbidden') + '\n', '#f87171');
           }
           setRunning(false);
         });
       }
       if (res.status === 409 || res.status === 400) {
         return res.json().then(function(j) {
-          appendOutput('Error: ' + j.error + '\n', 'text-red-400');
+          appendOutput('Error: ' + j.error + '\n', '#f87171');
           setRunning(false);
         });
       }
       currentTaskId = res.headers.get('X-Task-Id');
       if (!res.body) {
-        appendOutput('Error: No response body (SSE not supported?)\n', 'text-red-400');
+        appendOutput('Error: No response body (SSE not supported?)\n', '#f87171');
         setRunning(false);
         return;
       }
@@ -844,7 +1274,6 @@ function runClaude() {
       var decoder = new TextDecoder();
       var buf = '';
       var statusEl = document.getElementById('claude-status');
-
       var hitLimit = false;
 
       function isLimitMsg(text) {
@@ -864,31 +1293,31 @@ function runClaude() {
             var ev;
             try { ev = JSON.parse(raw); } catch { return; }
             if (ev.type === 'start' && ev.md_path) {
-              appendOutput('[Using plan file: ' + ev.md_path + (ev.kanban_task_id ? ' | task #' + ev.kanban_task_id : '') + ']\n', 'text-cyan-300');
+              appendOutput('[Using plan file: ' + ev.md_path + (ev.kanban_task_id ? ' | task #' + ev.kanban_task_id : '') + ']\n', '#67e8f9');
             }
             if (ev.type === 'out') {
               if (isLimitMsg(ev.text)) {
                 hitLimit = true;
-                appendOutput(ev.text, 'text-purple-400');
+                appendOutput(ev.text, '#c084fc');
                 if (statusEl) statusEl.textContent = 'Usage limit reached';
               } else {
-                appendOutput(ev.text, 'text-green-400');
+                appendOutput(ev.text, '#4ade80');
               }
             }
             if (ev.type === 'err') {
               if (isLimitMsg(ev.text)) {
                 hitLimit = true;
-                appendOutput(ev.text, 'text-purple-400');
+                appendOutput(ev.text, '#c084fc');
                 if (statusEl) statusEl.textContent = 'Usage limit reached';
               } else {
-                appendOutput(ev.text, 'text-amber-400');
+                appendOutput(ev.text, '#fbbf24');
               }
             }
             if (ev.type === 'done') {
               if (hitLimit) {
-                appendOutput('\nClaude Pro daily limit reached. Check the message above for reset time.\n', 'text-purple-400');
+                appendOutput('\nClaude Pro daily limit reached. Check the message above for reset time.\n', '#c084fc');
               } else {
-                appendOutput('\n[Exited with code ' + ev.code + ']\n', ev.code === 0 ? 'text-blue-400' : 'text-red-400');
+                appendOutput('\n[Exited with code ' + ev.code + ']\n', ev.code === 0 ? '#60a5fa' : '#f87171');
               }
               setRunning(false);
               currentTaskId = null;
@@ -900,7 +1329,7 @@ function runClaude() {
       }
       return read();
     }).catch(function(err) {
-      appendOutput('Request failed: ' + err.message + '\n', 'text-red-400');
+      appendOutput('Request failed: ' + err.message + '\n', '#f87171');
       setRunning(false);
       updateRunButtonState();
     });
@@ -911,19 +1340,20 @@ function killClaude() {
   if (!currentTaskId) return;
   fetch(API + '/master/claude-run/' + currentTaskId, { method: 'DELETE', headers: authHeaders() })
     .then(function() {
-      appendOutput('\n[Killed by user]\n', 'text-amber-400');
+      appendOutput('\n[Killed by user]\n', '#fbbf24');
       setRunning(false);
       currentTaskId = null;
       updateRunButtonState();
     });
 }
 
-// ─── Claude Auth Panel ────────────────────────────────────────
 function openAuthPanel() {
-  document.getElementById('claude-auth-panel').classList.remove('hidden');
+  var el = document.getElementById('claude-auth-panel');
+  if (el) el.style.display = '';
 }
 function closeAuthPanel() {
-  document.getElementById('claude-auth-panel').classList.add('hidden');
+  var el = document.getElementById('claude-auth-panel');
+  if (el) el.style.display = 'none';
 }
 
 function startClaudeAuth() {
@@ -935,12 +1365,12 @@ function startClaudeAuth() {
   var spinner = document.getElementById('auth-spinner');
   var startBtn = document.getElementById('auth-start-btn');
 
-  out.classList.add('hidden');
-  urlBox.classList.add('hidden');
+  hideEl(out);
+  hideEl(urlBox);
   statusEl.textContent = '';
-  statusEl.className = 'text-xs mt-2 text-gray-500';
+  statusEl.style.color = '#6b7280';
   startBtn.disabled = true;
-  spinner.classList.remove('hidden');
+  showEl(spinner);
 
   fetch(API + '/master/claude-auth-start', {
     method: 'POST',
@@ -948,33 +1378,33 @@ function startClaudeAuth() {
     body: JSON.stringify({ account_dir: account_dir }),
   }).then(function(r) { return r.json(); })
     .then(function(j) {
-      spinner.classList.add('hidden');
+      hideEl(spinner);
       startBtn.disabled = false;
 
       if (j.error) {
         out.textContent = 'Error: ' + j.error + (j.detail ? '\n' + j.detail : '');
-        out.classList.remove('hidden');
+        showEl(out);
         statusEl.textContent = 'Failed — see output above';
-        statusEl.className = 'text-xs mt-2 text-red-500';
+        statusEl.style.color = '#ef4444';
         return;
       }
 
       if (j.url) {
         urlLink.href = j.url;
         urlLink.textContent = j.url;
-        urlBox.classList.remove('hidden');
+        showEl(urlBox);
         statusEl.textContent = 'URL ready — click the link above, authorize, then paste the code below';
-        statusEl.className = 'text-xs mt-2 text-blue-600';
+        statusEl.style.color = '#2563eb';
         document.getElementById('auth-code-input').focus();
       }
     })
     .catch(function(err) {
-      spinner.classList.add('hidden');
+      hideEl(spinner);
       startBtn.disabled = false;
       out.textContent = 'Request failed: ' + err.message;
-      out.classList.remove('hidden');
+      showEl(out);
       statusEl.textContent = 'Network error';
-      statusEl.className = 'text-xs mt-2 text-red-500';
+      statusEl.style.color = '#ef4444';
     });
 }
 
@@ -985,12 +1415,12 @@ function submitAuthCode() {
   var spinner = document.getElementById('auth-spinner');
   if (!code) {
     statusEl.textContent = 'Paste the authentication code first';
-    statusEl.className = 'text-xs mt-2 text-amber-500';
+    statusEl.style.color = '#f59e0b';
     return;
   }
   statusEl.textContent = 'Submitting code — exchanging token…';
-  statusEl.className = 'text-xs mt-2 text-gray-500';
-  spinner.classList.remove('hidden');
+  statusEl.style.color = '#6b7280';
+  showEl(spinner);
 
   fetch(API + '/master/claude-auth-code', {
     method: 'POST',
@@ -998,35 +1428,33 @@ function submitAuthCode() {
     body: JSON.stringify({ code: code }),
   }).then(function(r) { return r.json(); })
     .then(function(j) {
-      spinner.classList.add('hidden');
+      hideEl(spinner);
       document.getElementById('auth-code-input').value = '';
       if (j.ok) {
-        out.textContent = '✓ ' + (j.output || 'Authentication successful.');
-        out.classList.remove('hidden');
+        out.textContent = String.fromCharCode(10003) + ' ' + (j.output || 'Authentication successful.');
+        showEl(out);
         statusEl.textContent = 'Authenticated! Claude Code will now use your Claude Pro account.';
-        statusEl.className = 'text-xs mt-2 text-green-600';
+        statusEl.style.color = '#16a34a';
         loadClaudeAccounts();
         loadAuthStatus();
       } else {
-        out.textContent = '✗ ' + j.error + (j.detail ? '\n' + j.detail : '');
-        out.classList.remove('hidden');
+        out.textContent = String.fromCharCode(10007) + ' ' + j.error + (j.detail ? '\n' + j.detail : '');
+        showEl(out);
         statusEl.textContent = 'Authentication failed — see output above';
-        statusEl.className = 'text-xs mt-2 text-red-500';
+        statusEl.style.color = '#ef4444';
       }
     })
     .catch(function(err) {
-      spinner.classList.add('hidden');
+      hideEl(spinner);
       statusEl.textContent = 'Request failed: ' + err.message;
-      statusEl.className = 'text-xs mt-2 text-red-500';
+      statusEl.style.color = '#ef4444';
     });
 }
 
-// ─── Utilities ────────────────────────────────────────────────
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// Expose onclick-called functions to global scope (define:vars wraps in IIFE)
 window.switchTab = switchTab;
 window.toggleIAnControl = toggleIAnControl;
 window.openAddCard = openAddCard;
@@ -1050,6 +1478,5 @@ window.submitAuthCode = submitAuthCode;
 var promptInput = document.getElementById('claude-prompt');
 if (promptInput) promptInput.addEventListener('input', updateRunButtonState);
 
-// Load initial tab
 loadSites();
 </script>

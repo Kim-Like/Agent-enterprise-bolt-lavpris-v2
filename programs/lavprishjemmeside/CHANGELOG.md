@@ -25,6 +25,10 @@ Change discipline:
 - Implemented the first-party e-commerce module with shop schema, Flatpay / Frisbii payment integration, public storefront routes, admin shop management, and transactional order email support.
 
 ### Changed
+- Uplifted admin shell (`AdminLayout.astro`) with a dark `#0f1117` sidebar, SVG icon navigation, active-state left-border indicator, Master Hub violet accent, user avatar/email footer, sticky top bar with role badge and page title, and mobile slide-in overlay.
+- Uplifted admin dashboard (`dashboard.astro`) with a dark version strip, auto-fill stat cards, three-column overview (Pages / Design / Indhold & SEO), inline SVG icons, status dots, responsive breakpoints, and cleaner publish/rollout UI.
+- Uplifted master hub (`master.astro`) with a scoped CSS design system: tab bar with SVG icons and active underline, improved site cards (health dot, build pill, 4-col mini-stat row, rollout badge), AI usage bar chart with hover state, and Claude Code step grid with tinted gradient step panels and a dark terminal output area.
+- Added `docs/V2_DESIGN_UPLIFT.md` documenting the Phase 2 design tokens, component patterns, CSS strategy, and contract-unchanged confirmation.
 - Strengthened contract-documentation rules in `EXTERNAL_AGENT_INSTRUCTIONS.md` so the external sprint must explicitly document all structured contracts (schema, seed, API, env, workflow, outside-folder) with specific file updates, not vague summaries.
 - Removed the remaining stale references to the retired duplicate planning location from the canonical V2 docs and authority maps after the planning set was moved fully into `programs/lavprishjemmeside/`.
 - Tightened the external-agent startup contract so `EXTERNAL_AGENT_PROMPT.md` and `EXTERNAL_AGENT_INSTRUCTIONS.md` now force the in-folder trilogy, require explicit documentation/handoff completion, and treat cPanel/DB/env work as operator packets rather than improviseable implementation scope.
