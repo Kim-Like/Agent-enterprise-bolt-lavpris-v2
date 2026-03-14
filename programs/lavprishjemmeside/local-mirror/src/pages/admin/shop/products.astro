@@ -7,8 +7,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   <div class="admin-shop-products">
     <div class="asp-header">
       <h1 class="asp-title">Produkter</h1>
-      <button id="new-product-btn" class="asp-btn-primary">+ Nyt produkt</button>
+      <div class="asp-header-actions">
+        <a id="export-btn" class="asp-btn-secondary" href="#">Eksporter CSV</a>
+        <label class="asp-btn-secondary" style="cursor:pointer;">
+          Importer CSV
+          <input type="file" id="import-file" accept=".csv" style="display:none;">
+        </label>
+        <button id="new-product-btn" class="asp-btn-primary">+ Nyt produkt</button>
+      </div>
     </div>
+    <div id="import-result" class="asp-import-result" style="display:none;"></div>
 
     <div class="asp-filters">
       <input id="search-input" type="search" placeholder="Søg produkt eller SKU..." class="admin-input asp-search" />
@@ -182,6 +190,28 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 .admin-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; }
+.asp-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.asp-btn-secondary {
+  display: inline-block;
+  padding: 8px 14px;
+  background: var(--color-surface, #fff);
+  color: var(--color-text-primary);
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color 150ms, background 150ms;
+}
+.asp-btn-secondary:hover { border-color: var(--color-primary); background: #f8faff; }
+.asp-import-result {
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+}
+.asp-import-result.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+.asp-import-result.error { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
 .asp-btn-primary {
   padding: 8px 16px;
   background: var(--color-primary);
@@ -383,4 +413,55 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   });
 
   loadProducts();
+
+  // Export CSV
+  document.getElementById('export-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    const url = `${apiUrl}/shop/admin/products/export.csv`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('Authorization', `Bearer ${token()}`);
+    fetch(url, { headers: headers() })
+      .then(res => res.blob())
+      .then(blob => {
+        const objUrl = URL.createObjectURL(blob);
+        a.href = objUrl;
+        a.download = 'products-export.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objUrl);
+      })
+      .catch(() => alert('Eksport fejlede'));
+  });
+
+  // Import CSV
+  document.getElementById('import-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const resultEl = document.getElementById('import-result');
+    resultEl.style.display = 'none';
+
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+      const res = await fetch(`${apiUrl}/shop/admin/products/import`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token()}` },
+        body: fd,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Import fejlede');
+      resultEl.textContent = `Import fuldført: ${data.upserted} produkter opdateret/oprettet, ${data.skipped} sprunget over.${data.errors?.length ? ' Fejl på rækker: ' + data.errors.map(er => er.row).join(', ') : ''}`;
+      resultEl.className = 'asp-import-result success';
+      resultEl.style.display = 'block';
+      loadProducts();
+    } catch (err) {
+      resultEl.textContent = err.message;
+      resultEl.className = 'asp-import-result error';
+      resultEl.style.display = 'block';
+    }
+    e.target.value = '';
+  });
 </script>

@@ -96,6 +96,42 @@ Change discipline:
 1. Run `node api/run-schema.cjs` to apply the three new Tier 2 schema files.
 2. Trigger Astro build + deploy.
 
+### Phase 4.1 — Ecommerce Functional Depth (Tier 3 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_stock_notifications.sql` — `stock_notifications` table: email opt-in for out-of-stock products/variants; indexed on product, variant, email, and notified_at.
+- `schema_abandoned_carts.sql` — `cart_sessions` table: session_id, email, cart JSON, captured_at, last_activity_at, reminder_sent_at, recovered_at; used for abandoned cart recovery.
+- `schema_product_reviews.sql` — `product_reviews` table: product_id, customer_email, customer_name, rating (1–5), body, approved flag, created_at; indexed on product and approval status.
+
+**New API endpoints (public):**
+- `POST /shop/notify/stock` — register email for back-in-stock notification; deduplicates per product/variant/email; rate-limited via existing `orderRateLimiter`.
+- `POST /shop/products/:slug/review` — submit a product review (rate-limited, 5/hour per IP); stores as unapproved; returns `pending_approval: true`.
+- `GET /shop/products/:slug/reviews` — return approved reviews with average rating and count.
+- `POST /shop/cart/session` — upsert cart session row for abandoned cart tracking; called from cart client side; `ON DUPLICATE KEY UPDATE` pattern.
+
+**New API endpoints (admin):**
+- `GET /shop/admin/reviews` — list all reviews with optional `?approved=0|1` filter and pagination.
+- `PUT /shop/admin/reviews/:id/approve` — approve or unapprove a review.
+- `DELETE /shop/admin/reviews/:id` — permanently delete a review.
+- `GET /shop/admin/cron/abandoned-carts` — operator/cPanel-cron callable endpoint; sends reminder emails to cart sessions with email captured, no reminder sent yet, and last activity > 2 hours ago; marks `reminder_sent_at`.
+- `GET /shop/admin/products/export.csv` — download all products as UTF-8 CSV with BOM; correct CSV quoting.
+- `POST /shop/admin/products/import` — multipart CSV upload (max 5 MB); validates required columns (`sku`, `name`, `slug`, `price_ore`); upserts by SKU via `ON DUPLICATE KEY UPDATE`; returns `{ upserted, skipped, errors }`.
+
+**New admin page:**
+- `src/pages/admin/shop/reviews.astro` — review moderation list with approve/unapprove/delete actions, filter by status, and pagination.
+
+**Modified files:**
+- `src/pages/shop/produkt/[slug].astro` — added approved review list with star rating display and average summary; added review submission form (name, email, star rating, body); added back-in-stock notification widget that appears when the add-to-cart button is disabled (out of stock).
+- `src/pages/admin/shop/products.astro` — added "Eksporter CSV" and "Importer CSV" buttons to the page header; added import result message strip; added JS for client-side CSV download with `Authorization` header and file upload handling.
+- `api/src/routes/shop-admin.cjs` — added `multer` import and `upload` instance; added all Tier 3 admin endpoints; wired back-in-stock notification dispatch into the refund stock-restore path.
+- `src/layouts/AdminLayout.astro` — added "Anmeldelser" nav link to `/admin/shop/reviews/` in the Shop section.
+- `api/run-schema.cjs` — registered `schema_stock_notifications.sql`, `schema_abandoned_carts.sql`, and `schema_product_reviews.sql` in `SCHEMA_ORDER`.
+
+**Operator actions required at rollout:**
+1. Run `node api/run-schema.cjs` to apply the three new Tier 3 schema files.
+2. Trigger Astro build + deploy.
+3. (Optional) Configure a cPanel cron job: `curl -s -H "Authorization: Bearer <admin_token>" https://api.lavprishjemmeside.dk/shop/admin/cron/abandoned-carts` — run every 30 minutes.
+
 ### Changed
 - Uplifted all shop storefront, cart, checkout, and admin pages from Tailwind utility classes to scoped `<style>` blocks using CSS design tokens: `shop/index.astro`, `shop/[category].astro`, `shop/produkt/[slug].astro`, `shop/kurv.astro`, `shop/checkout.astro`, `shop/ordre/[token].astro`, `admin/shop/products.astro`, `admin/shop/orders.astro`, `admin/shop/settings.astro`. All Tailwind `hidden` class toggles replaced with `element.style.display` or semantic `.is-open` class patterns. Status badge class assignments in JS template literals replaced with semantic BEM-style classes defined in scoped CSS. No JavaScript logic, API contracts, or schema changes.
 - Uplifted shop components (`ShopHero.astro`, `CartDrawer.astro`, `PriceDisplay.astro`) from Tailwind to scoped CSS. `CartDrawer` slide animation changed from `translate-x-full`/`translate-x-0` class toggling to `.is-open` CSS class with `transform: translateX()`. `PriceDisplay` size variants converted to `.price-display--sm/md/lg` modifier classes.

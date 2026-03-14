@@ -1,0 +1,236 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+---
+
+<AdminLayout title="Anmeldelser — Shop">
+  <div class="rv-page">
+    <div class="rv-header">
+      <h1 class="rv-title">Produktanmeldelser</h1>
+      <div class="rv-filter-wrap">
+        <select id="rv-filter" class="rv-select">
+          <option value="">Alle</option>
+          <option value="0">Afventer godkendelse</option>
+          <option value="1">Godkendt</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="rv-loading" class="rv-loading">Henter anmeldelser…</div>
+    <div id="rv-error" class="rv-error" style="display:none;"></div>
+    <div id="rv-empty" class="rv-empty" style="display:none;">Ingen anmeldelser fundet.</div>
+
+    <div id="rv-list" class="rv-list"></div>
+    <div id="rv-pagination" class="rv-pagination" style="display:none;"></div>
+  </div>
+</AdminLayout>
+
+<style>
+.rv-page { max-width: 900px; }
+.rv-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+.rv-title { font-size: 1.375rem; font-weight: 800; color: #111827; margin: 0; }
+.rv-select {
+  padding: 8px 12px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: #fff;
+  outline: none;
+  cursor: pointer;
+}
+.rv-loading { color: #6b7280; font-size: 0.9375rem; }
+.rv-error { padding: 12px 16px; background: #fef2f2; border: 1px solid #fca5a5; border-radius: 7px; color: #dc2626; font-size: 0.875rem; }
+.rv-empty { color: #6b7280; font-size: 0.9375rem; }
+.rv-list { display: flex; flex-direction: column; gap: 10px; }
+.rv-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: start;
+}
+.rv-card.pending { border-left: 3px solid #f59e0b; }
+.rv-card.approved { border-left: 3px solid #22c55e; }
+.rv-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.rv-name { font-weight: 600; font-size: 0.9375rem; color: #111827; }
+.rv-stars { color: #f59e0b; font-size: 0.9375rem; }
+.rv-product { font-size: 0.8125rem; color: #6b7280; }
+.rv-date { font-size: 0.8125rem; color: #9ca3af; }
+.rv-body { font-size: 0.9rem; color: #374151; line-height: 1.6; margin-top: 4px; }
+.rv-email { font-size: 0.8125rem; color: #9ca3af; }
+.rv-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; }
+.rv-btn-approve {
+  padding: 6px 14px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+  white-space: nowrap;
+}
+.rv-btn-approve:hover { opacity: 0.88; }
+.rv-btn-unapprove {
+  padding: 6px 14px;
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+  white-space: nowrap;
+}
+.rv-btn-unapprove:hover { opacity: 0.88; }
+.rv-btn-delete {
+  padding: 6px 14px;
+  background: none;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+  white-space: nowrap;
+}
+.rv-btn-delete:hover { background: #fef2f2; }
+.rv-pagination { display: flex; gap: 8px; margin-top: 16px; }
+.rv-page-btn {
+  padding: 7px 14px;
+  background: #fff;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: border-color 150ms;
+}
+.rv-page-btn:hover { border-color: #3b82f6; }
+.rv-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.rv-status-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.badge-pending { background: #fef3c7; color: #92400e; }
+.badge-approved { background: #d1fae5; color: #065f46; }
+</style>
+
+<script define:vars={{ apiUrl }}>
+const token = () => localStorage.getItem('admin_token');
+const headers = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` });
+
+let page = 1;
+let filterApproved = '';
+
+function starsHtml(n) {
+  return '★'.repeat(n) + '☆'.repeat(5 - n);
+}
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+async function loadReviews() {
+  document.getElementById('rv-loading').style.display = 'block';
+  document.getElementById('rv-error').style.display = 'none';
+  document.getElementById('rv-empty').style.display = 'none';
+  document.getElementById('rv-list').innerHTML = '';
+  document.getElementById('rv-pagination').style.display = 'none';
+
+  const params = new URLSearchParams({ page });
+  if (filterApproved !== '') params.set('approved', filterApproved);
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/admin/reviews?${params}`, { headers: headers() });
+    const data = await res.json();
+    document.getElementById('rv-loading').style.display = 'none';
+    if (!res.ok) throw new Error(data.error || 'Fejl');
+
+    if (!data.reviews?.length) {
+      document.getElementById('rv-empty').style.display = 'block';
+      return;
+    }
+
+    const list = document.getElementById('rv-list');
+    list.innerHTML = data.reviews.map(r => `
+      <div class="rv-card ${r.approved ? 'approved' : 'pending'}" data-id="${r.id}" data-approved="${r.approved}">
+        <div>
+          <div class="rv-meta">
+            <span class="rv-name">${r.customer_name}</span>
+            <span class="rv-stars">${starsHtml(r.rating)}</span>
+            <span class="rv-status-badge ${r.approved ? 'badge-approved' : 'badge-pending'}">${r.approved ? 'Godkendt' : 'Afventer'}</span>
+            <span class="rv-product"><a href="/shop/produkt/${r.product_slug}/" target="_blank" style="color:inherit;">${r.product_name}</a></span>
+            <span class="rv-date">${fmtDate(r.created_at)}</span>
+          </div>
+          ${r.body ? `<div class="rv-body">${r.body}</div>` : ''}
+          <div class="rv-email">${r.customer_email}</div>
+        </div>
+        <div class="rv-actions">
+          ${r.approved
+            ? `<button class="rv-btn-unapprove" onclick="toggleApprove(${r.id}, false)">Fortryd</button>`
+            : `<button class="rv-btn-approve" onclick="toggleApprove(${r.id}, true)">Godkend</button>`}
+          <button class="rv-btn-delete" onclick="deleteReview(${r.id})">Slet</button>
+        </div>
+      </div>
+    `).join('');
+
+    // Pagination
+    const total = data.total || 0;
+    if (total > 50) {
+      const pg = document.getElementById('rv-pagination');
+      pg.style.display = 'flex';
+      pg.innerHTML = `
+        <button class="rv-page-btn" id="rv-prev" ${page <= 1 ? 'disabled' : ''}>← Forrige</button>
+        <span style="padding:7px 10px;font-size:0.875rem;color:#6b7280;">Side ${page}</span>
+        <button class="rv-page-btn" id="rv-next" ${page * 50 >= total ? 'disabled' : ''}>Næste →</button>
+      `;
+      document.getElementById('rv-prev')?.addEventListener('click', () => { page--; loadReviews(); });
+      document.getElementById('rv-next')?.addEventListener('click', () => { page++; loadReviews(); });
+    }
+  } catch (err) {
+    document.getElementById('rv-loading').style.display = 'none';
+    const errEl = document.getElementById('rv-error');
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+}
+
+window.toggleApprove = async (id, approved) => {
+  try {
+    const res = await fetch(`${apiUrl}/shop/admin/reviews/${id}/approve`, {
+      method: 'PUT',
+      headers: headers(),
+      body: JSON.stringify({ approved }),
+    });
+    if (!res.ok) throw new Error();
+    loadReviews();
+  } catch { alert('Opdatering fejlede'); }
+};
+
+window.deleteReview = async (id) => {
+  if (!confirm('Slet denne anmeldelse?')) return;
+  try {
+    const res = await fetch(`${apiUrl}/shop/admin/reviews/${id}`, { method: 'DELETE', headers: headers() });
+    if (!res.ok) throw new Error();
+    loadReviews();
+  } catch { alert('Sletning fejlede'); }
+};
+
+document.getElementById('rv-filter').addEventListener('change', (e) => {
+  filterApproved = e.target.value;
+  page = 1;
+  loadReviews();
+});
+
+loadReviews();
+</script>

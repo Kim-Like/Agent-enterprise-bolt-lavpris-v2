@@ -6,10 +6,13 @@
  */
 
 const express = require('express');
+const multer = require('multer');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
 const { sendShippingNotification, sendRefundConfirmation } = require('../services/shop-email.cjs');
+const { sendEmail } = require('../services/email');
 
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 const router = express.Router();
 
 // All admin shop routes require authentication
@@ -698,6 +701,33 @@ router.post('/orders/:id/refund', async (req, res) => {
       );
     }
 
+    // Trigger back-in-stock notifications for restored products (best-effort)
+    if (restore_stock && itemsRefunded.length > 0) {
+      const siteUrl = process.env.FLATPAY_ACCEPT_URL
+        ? process.env.FLATPAY_ACCEPT_URL.replace('/shop/ordre', '')
+        : 'https://lavprishjemmeside.dk';
+      for (const refundedItem of itemsRefunded) {
+        const [[item]] = await pool.query('SELECT product_id, variant_id FROM order_items WHERE id = ?', [refundedItem.order_item_id]).catch(() => [[]]);
+        if (!item) continue;
+        const [[productInfo]] = await pool.query('SELECT name, slug FROM products WHERE id = ?', [item.product_id]).catch(() => [[]]);
+        if (!productInfo) continue;
+
+        const [notifications] = await pool.query(
+          'SELECT id, email FROM stock_notifications WHERE product_id = ? AND (variant_id IS NULL OR variant_id = ?) AND notified_at IS NULL',
+          [item.product_id, item.variant_id || null]
+        );
+        for (const notif of notifications) {
+          sendEmail({
+            to: notif.email,
+            subject: `${productInfo.name} er tilbage på lager`,
+            html: `<p>Godt nyt! <strong>${productInfo.name}</strong> er nu tilbage på lager.</p><p><a href="${siteUrl}/shop/produkt/${productInfo.slug}/">Køb nu →</a></p><p>Hilsen Lavprishjemmeside.dk</p>`,
+            text: `${productInfo.name} er nu tilbage på lager.\n\nKøb her: ${siteUrl}/shop/produkt/${productInfo.slug}/`,
+          }).catch((e) => console.error('Back-in-stock email failed:', e.message));
+          pool.query('UPDATE stock_notifications SET notified_at = NOW() WHERE id = ?', [notif.id]).catch(() => {});
+        }
+      }
+    }
+
     res.json({ ok: true });
   } catch (err) {
     await conn.rollback();
@@ -783,6 +813,223 @@ router.get('/dashboard', async (req, res) => {
   } catch (err) {
     console.error('GET /shop/admin/dashboard:', err.message);
     res.status(500).json({ error: 'Kunne ikke hente dashboard' });
+  }
+});
+
+// ─── PRODUCT REVIEWS ─────────────────────────────────────────────────────────
+
+// GET /shop/admin/reviews
+router.get('/reviews', async (req, res) => {
+  try {
+    const { approved, page = 1 } = req.query;
+    const offset = (Math.max(1, parseInt(page)) - 1) * 50;
+    let where = [];
+    const params = [];
+    if (approved !== undefined) { where.push('pr.approved = ?'); params.push(approved === '1' ? 1 : 0); }
+    const whereClause = where.length ? 'WHERE ' + where.join(' AND ') : '';
+    const [reviews] = await pool.query(`
+      SELECT pr.*, p.name AS product_name, p.slug AS product_slug
+      FROM product_reviews pr
+      JOIN products p ON pr.product_id = p.id
+      ${whereClause}
+      ORDER BY pr.created_at DESC LIMIT 50 OFFSET ?
+    `, [...params, offset]);
+    const [[{ total }]] = await pool.query(`SELECT COUNT(*) AS total FROM product_reviews pr ${whereClause}`, params);
+    res.json({ reviews, total });
+  } catch (err) {
+    console.error('GET /shop/admin/reviews:', err.message);
+    res.status(500).json({ error: 'Kunne ikke hente anmeldelser' });
+  }
+});
+
+// PUT /shop/admin/reviews/:id/approve
+router.put('/reviews/:id/approve', async (req, res) => {
+  try {
+    const { approved } = req.body;
+    await pool.query('UPDATE product_reviews SET approved = ? WHERE id = ?', [approved !== false ? 1 : 0, parseInt(req.params.id)]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /shop/admin/reviews/:id/approve:', err.message);
+    res.status(500).json({ error: 'Kunne ikke opdatere anmeldelse' });
+  }
+});
+
+// DELETE /shop/admin/reviews/:id
+router.delete('/reviews/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM product_reviews WHERE id = ?', [parseInt(req.params.id)]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('DELETE /shop/admin/reviews/:id:', err.message);
+    res.status(500).json({ error: 'Kunne ikke slette anmeldelse' });
+  }
+});
+
+// ─── ABANDONED CART RECOVERY ─────────────────────────────────────────────────
+
+// GET /shop/admin/cron/abandoned-carts — safe to call from cPanel cron job
+router.get('/cron/abandoned-carts', async (req, res) => {
+  try {
+    const siteUrl = process.env.FLATPAY_ACCEPT_URL
+      ? process.env.FLATPAY_ACCEPT_URL.replace('/shop/ordre', '')
+      : 'https://lavprishjemmeside.dk';
+
+    const [carts] = await pool.query(`
+      SELECT * FROM cart_sessions
+      WHERE email IS NOT NULL
+        AND recovered_at IS NULL
+        AND reminder_sent_at IS NULL
+        AND last_activity_at < DATE_SUB(NOW(), INTERVAL 2 HOUR)
+        AND captured_at IS NOT NULL
+      LIMIT 50
+    `);
+
+    let sent = 0;
+    for (const cart of carts) {
+      try {
+        let cartItems = [];
+        try { cartItems = JSON.parse(cart.cart_json); } catch {}
+        const itemList = Array.isArray(cartItems)
+          ? cartItems.map(i => `${i.name || i.product_name || 'Vare'} × ${i.quantity || 1}`).join(', ')
+          : 'Dine varer';
+
+        await sendEmail({
+          to: cart.email,
+          subject: 'Du har glemt noget i din indkøbskurv',
+          html: `<p>Hej,</p><p>Du har varer liggende i din kurv på Lavprishjemmeside.dk:</p><p>${itemList}</p><p><a href="${siteUrl}/shop/kurv/">Gå til kurven →</a></p><p>Hilsen Lavprishjemmeside.dk</p>`,
+          text: `Du har glemt varer i din kurv: ${itemList}\n\nGå til kurven: ${siteUrl}/shop/kurv/`,
+        });
+
+        await pool.query('UPDATE cart_sessions SET reminder_sent_at = NOW() WHERE id = ?', [cart.id]);
+        sent++;
+      } catch (mailErr) {
+        console.error('Abandoned cart email failed for cart', cart.id, mailErr.message);
+      }
+    }
+
+    res.json({ ok: true, processed: carts.length, sent });
+  } catch (err) {
+    console.error('GET /shop/admin/cron/abandoned-carts:', err.message);
+    res.status(500).json({ error: 'Cron fejlede' });
+  }
+});
+
+// ─── BULK PRODUCT IMPORT / EXPORT ────────────────────────────────────────────
+
+// GET /shop/admin/products/export.csv
+router.get('/products/export.csv', async (req, res) => {
+  try {
+    const [products] = await pool.query(`
+      SELECT p.sku, p.name, p.slug, p.short_desc, p.price_ore, p.compare_ore,
+             p.vat_rate, p.stock, p.track_stock, p.is_active, p.is_featured,
+             p.weight_g, p.meta_title, p.meta_desc, c.slug AS category_slug
+      FROM products p
+      LEFT JOIN product_categories c ON p.category_id = c.id
+      ORDER BY p.created_at DESC
+    `);
+
+    const headers = ['sku','name','slug','short_desc','price_ore','compare_ore','vat_rate','stock','track_stock','is_active','is_featured','weight_g','meta_title','meta_desc','category_slug'];
+
+    function escCsv(v) {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"';
+      return s;
+    }
+
+    const rows = [
+      headers.join(','),
+      ...products.map(p => headers.map(h => escCsv(p[h])).join(',')),
+    ];
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="products-export.csv"');
+    res.send('\uFEFF' + rows.join('\r\n'));
+  } catch (err) {
+    console.error('GET /shop/admin/products/export.csv:', err.message);
+    res.status(500).json({ error: 'Eksport fejlede' });
+  }
+});
+
+// POST /shop/admin/products/import
+router.post('/products/import', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Ingen fil uploadet' });
+
+    const text = req.file.buffer.toString('utf-8').replace(/^\uFEFF/, '');
+    const lines = text.split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) return res.status(400).json({ error: 'Filen er tom eller har ingen rækker' });
+
+    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+    const required = ['sku', 'name', 'slug', 'price_ore'];
+    for (const r of required) {
+      if (!headers.includes(r)) return res.status(400).json({ error: `Manglende kolonne: ${r}` });
+    }
+
+    function parseCsvRow(line) {
+      const vals = [];
+      let cur = '', inQuote = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuote && line[i+1] === '"') { cur += '"'; i++; }
+          else inQuote = !inQuote;
+        } else if (ch === ',' && !inQuote) {
+          vals.push(cur); cur = '';
+        } else cur += ch;
+      }
+      vals.push(cur);
+      return vals;
+    }
+
+    let upserted = 0, skipped = 0, errors = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      try {
+        const vals = parseCsvRow(lines[i]);
+        const row = {};
+        headers.forEach((h, idx) => { row[h] = vals[idx] !== undefined ? vals[idx].trim() : ''; });
+
+        if (!row.sku || !row.name || !row.slug) { skipped++; continue; }
+
+        const priceOre = parseInt(row.price_ore);
+        if (isNaN(priceOre) || priceOre < 0) { skipped++; continue; }
+
+        let categoryId = null;
+        if (row.category_slug) {
+          const [[cat]] = await pool.query('SELECT id FROM product_categories WHERE slug = ?', [row.category_slug]);
+          if (cat) categoryId = cat.id;
+        }
+
+        await pool.query(`
+          INSERT INTO products (sku, name, slug, short_desc, price_ore, compare_ore, vat_rate, stock, track_stock, is_active, is_featured, weight_g, meta_title, meta_desc, category_id)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          ON DUPLICATE KEY UPDATE
+            name=VALUES(name), short_desc=VALUES(short_desc), price_ore=VALUES(price_ore),
+            compare_ore=VALUES(compare_ore), stock=VALUES(stock), track_stock=VALUES(track_stock),
+            is_active=VALUES(is_active), is_featured=VALUES(is_featured), category_id=VALUES(category_id),
+            meta_title=VALUES(meta_title), meta_desc=VALUES(meta_desc), updated_at=NOW()
+        `, [
+          row.sku, row.name, row.slug, row.short_desc || null,
+          priceOre, row.compare_ore ? parseInt(row.compare_ore) : null,
+          row.vat_rate ? parseFloat(row.vat_rate) : 0.25,
+          row.stock ? parseInt(row.stock) : 0,
+          row.track_stock === '0' ? 0 : 1,
+          row.is_active === '0' ? 0 : 1,
+          row.is_featured === '1' ? 1 : 0,
+          row.weight_g ? parseInt(row.weight_g) : null,
+          row.meta_title || null, row.meta_desc || null, categoryId,
+        ]);
+        upserted++;
+      } catch (rowErr) {
+        errors.push({ row: i + 1, error: rowErr.message });
+      }
+    }
+
+    res.json({ ok: true, upserted, skipped, errors });
+  } catch (err) {
+    console.error('POST /shop/admin/products/import:', err.message);
+    res.status(500).json({ error: 'Import fejlede' });
   }
 });
 

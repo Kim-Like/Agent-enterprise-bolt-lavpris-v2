@@ -671,6 +671,106 @@ router.get('/orders/:token', async (req, res) => {
   }
 });
 
+// ─── POST /shop/notify/stock ─────────────────────────────────────────────────
+router.post('/notify/stock', orderRateLimiter, async (req, res) => {
+  try {
+    const { product_id, variant_id, email } = req.body;
+    if (!product_id || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Gyldigt e-mail og produkt-id er påkrævet' });
+    }
+
+    const [[existing]] = await pool.query(
+      'SELECT id FROM stock_notifications WHERE product_id = ? AND email = ? AND (variant_id <=> ?) AND notified_at IS NULL',
+      [parseInt(product_id), email.trim().toLowerCase(), variant_id ? parseInt(variant_id) : null]
+    );
+    if (existing) return res.json({ ok: true, already_registered: true });
+
+    await pool.query(
+      'INSERT INTO stock_notifications (product_id, variant_id, email) VALUES (?,?,?)',
+      [parseInt(product_id), variant_id ? parseInt(variant_id) : null, email.trim().toLowerCase()]
+    );
+    res.status(201).json({ ok: true });
+  } catch (err) {
+    console.error('POST /shop/notify/stock:', err.message);
+    res.status(500).json({ error: 'Registrering fejlede' });
+  }
+});
+
+// ─── POST /shop/products/:slug/review ────────────────────────────────────────
+const reviewRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (_req, res) => res.status(429).json({ error: 'For mange anmeldelser. Prøv igen om en time.' }),
+});
+
+router.post('/products/:slug/review', reviewRateLimiter, async (req, res) => {
+  try {
+    const { customer_email, customer_name, rating, body } = req.body;
+    if (!customer_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer_email)) {
+      return res.status(400).json({ error: 'Gyldig e-mail er påkrævet' });
+    }
+    if (!rating || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Bedømmelse skal være mellem 1 og 5' });
+    }
+
+    const [[product]] = await pool.query('SELECT id FROM products WHERE slug = ? AND is_active = 1', [req.params.slug]);
+    if (!product) return res.status(404).json({ error: 'Produkt ikke fundet' });
+
+    await pool.query(
+      'INSERT INTO product_reviews (product_id, customer_email, customer_name, rating, body) VALUES (?,?,?,?,?)',
+      [product.id, customer_email.trim().toLowerCase(), (customer_name || 'Anonym').trim().substring(0, 200), parseInt(rating), body ? body.trim().substring(0, 2000) : null]
+    );
+
+    res.status(201).json({ ok: true, pending_approval: true });
+  } catch (err) {
+    console.error('POST /shop/products/:slug/review:', err.message);
+    res.status(500).json({ error: 'Anmeldelse fejlede' });
+  }
+});
+
+// ─── GET /shop/products/:slug/reviews ────────────────────────────────────────
+router.get('/products/:slug/reviews', async (req, res) => {
+  try {
+    const [[product]] = await pool.query('SELECT id FROM products WHERE slug = ? AND is_active = 1', [req.params.slug]);
+    if (!product) return res.status(404).json({ error: 'Produkt ikke fundet' });
+
+    const [reviews] = await pool.query(
+      'SELECT id, customer_name, rating, body, created_at FROM product_reviews WHERE product_id = ? AND approved = 1 ORDER BY created_at DESC LIMIT 50',
+      [product.id]
+    );
+    const [[stats]] = await pool.query(
+      'SELECT COUNT(*) AS count, AVG(rating) AS avg_rating FROM product_reviews WHERE product_id = ? AND approved = 1',
+      [product.id]
+    );
+
+    res.json({ reviews, count: stats.count, avg_rating: stats.avg_rating ? parseFloat(stats.avg_rating).toFixed(1) : null });
+  } catch (err) {
+    console.error('GET /shop/products/:slug/reviews:', err.message);
+    res.status(500).json({ error: 'Kunne ikke hente anmeldelser' });
+  }
+});
+
+// ─── CART SESSIONS (abandoned cart tracking) ─────────────────────────────────
+router.post('/cart/session', async (req, res) => {
+  try {
+    const { session_id, cart_json, email } = req.body;
+    if (!session_id || !cart_json) return res.status(400).json({ error: 'session_id og cart_json er påkrævet' });
+
+    await pool.query(`
+      INSERT INTO cart_sessions (session_id, cart_json, email, captured_at)
+      VALUES (?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE cart_json = VALUES(cart_json), email = COALESCE(VALUES(email), email), last_activity_at = NOW()
+    `, [session_id.substring(0, 64), JSON.stringify(typeof cart_json === 'string' ? cart_json : JSON.stringify(cart_json)), email || null, email ? new Date() : null]);
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /shop/cart/session:', err.message);
+    res.status(500).json({ error: 'Session-opdatering fejlede' });
+  }
+});
+
 // ─── CUSTOMER AUTH ───────────────────────────────────────────────────────────
 
 const authRateLimiter = rateLimit({
