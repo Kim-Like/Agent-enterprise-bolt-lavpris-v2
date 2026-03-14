@@ -21,6 +21,11 @@ Change discipline:
 
 > Features developed on `main` but not yet tagged. Will become the next release.
 
+### Added (Phase 7 — Final Handoff and Operator Packet Consolidation)
+- **SCHEMA_OVERVIEW Updated** — `local-mirror/docs/SCHEMA_OVERVIEW.md` now includes all Phase 4.1 shop extension schema files and Phase 6 master/email schema files that were missing from the manual module section.
+- **Consolidated Rollout Packet** — `PHASE7_HANDOFF.md` contains the complete operator packet for Phases 4.1 and 6: SQL run orders, idempotency notes, verification queries, rollback commands, env packets, and the live verification checklist.
+- **Final Blocker and Outside-Folder Ledgers** — Email proxy routes, subscription cron, live billing, provider middleware, and release-health verification are explicitly recorded as outside-folder operator handoff items. Nothing is silently dropped.
+
 ### Added (Phase 6 — Master Console Uplift, Provider Switching, Subscriptions, Email Client Foundation)
 - **Master Hub AI Usage Fleet Summary** — Fleet-level summary bar on the AI tab: total tokens, total cost, total requests, and active site count for the 30-day window. Per-site cards now show request count alongside token and cost totals.
 - **Master Hub Stale Activity Signal** — Sites with no AI usage in the last 7+ days show an amber "Inaktiv Xd" pill; active sites show last-active date. DB-unavailable sites show red "DB utilgængelig" error pill.

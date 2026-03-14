@@ -53,7 +53,7 @@ node api/run-schema.cjs
 
 ### 3. Manual module bootstrap
 
-#### Shop module
+#### Shop module (core)
 
 The implemented shop module currently uses a separate schema file:
 
@@ -74,6 +74,41 @@ This creates and seeds:
 - `order_items`
 - `order_events`
 - `shop_settings`
+
+#### Shop module — Phase 4.1 extensions (shop-enabled sites)
+
+Apply in this order via cPanel phpMyAdmin or SSH after `schema_shop.sql`:
+
+| Step | File | Tables / Columns Created |
+|------|------|--------------------------|
+| 1 | `api/src/schema_stock_reservations.sql` | `stock_reservations` |
+| 2 | `api/src/schema_order_notes.sql` | `order_notes`; `customer_note` column on `orders` |
+| 3 | `api/src/schema_shipping_zones.sql` | `countries` column on `shipping_methods` |
+| 4 | `api/src/schema_customer_accounts.sql` | `customer_accounts` |
+| 5 | `api/src/schema_email_templates.sql` | `email_templates` (with default seeds) |
+| 6 | `api/src/schema_product_reviews.sql` | `product_reviews` |
+| 7 | `api/src/schema_stock_notifications.sql` | `stock_notifications` |
+| 8 | `api/src/schema_abandoned_carts.sql` | `abandoned_carts` |
+
+All files use `IF NOT EXISTS` guards. Safe to re-run.
+
+#### Master module — Phase 6 extensions (master DB only)
+
+Apply to the master database (not per-client):
+
+| File | Tables Created |
+|------|----------------|
+| `api/src/schema_subscriptions.sql` | `subscriptions`, `subscription_usage_snapshots`, `subscription_upgrade_requests`, `provider_config` (seeded with `active_provider = 'anthropic'`), `provider_audit_log` |
+
+#### Email client — Phase 6 (per client DB, optional)
+
+Apply to each client DB where the email admin page should be activated:
+
+| File | Tables Created |
+|------|----------------|
+| `api/src/schema_email_client.sql` | `email_accounts`, `email_folders`, `email_messages`, `email_drafts` |
+
+Required env vars for email activation: `EMAIL_IMAP_HOST`, `EMAIL_IMAP_PORT`, `EMAIL_IMAP_SSL`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_SMTP_SSL`, `EMAIL_ENCRYPTION_KEY`. See `PHASE6_HANDOFF.md` for the full env packet and route contract.
 
 ---
 
