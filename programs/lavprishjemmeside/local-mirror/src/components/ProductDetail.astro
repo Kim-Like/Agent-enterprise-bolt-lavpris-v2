@@ -42,7 +42,7 @@ const {
 const primaryImage = images.find(i => i.is_primary) || images[0];
 const hasVariants = variants.length > 0;
 const isOut = track_stock && !hasVariants && stock === 0;
-const stockStatusClass = isOut ? 'text-red-600' : 'text-green-600';
+const stockStatusClass = isOut ? 'pd-stock-out' : 'pd-stock-in';
 const stockStatusText = isOut
   ? 'Udsolgt'
   : track_stock && stock && stock <= 5
@@ -50,27 +50,24 @@ const stockStatusText = isOut
     : 'På lager';
 ---
 
-<article class="product-detail mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)] py-12">
-  <!-- Breadcrumb -->
+<article class="product-detail">
   {category_name && (
-    <nav class="mb-6 text-sm text-[var(--color-text-secondary)]" aria-label="Brødkrumme">
-      <a href="/shop/" class="hover:text-[var(--color-primary)]">Shop</a>
-      <span class="mx-2">›</span>
+    <nav class="pd-breadcrumb" aria-label="Brødkrumme">
+      <a href="/shop/" class="pd-breadcrumb-link">Shop</a>
+      <span class="pd-breadcrumb-sep">›</span>
       {category_slug && (
         <>
-          <a href={`/shop/${category_slug}/`} class="hover:text-[var(--color-primary)]">{category_name}</a>
-          <span class="mx-2">›</span>
+          <a href={`/shop/${category_slug}/`} class="pd-breadcrumb-link">{category_name}</a>
+          <span class="pd-breadcrumb-sep">›</span>
         </>
       )}
-      <span class="text-[var(--color-text-primary)]">{name}</span>
+      <span class="pd-breadcrumb-current">{name}</span>
     </nav>
   )}
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-    <!-- Images -->
-    <div class="product-images">
-      <!-- Main image -->
-      <div class="aspect-square overflow-hidden rounded-[var(--radius-lg)] bg-[var(--color-neutral-100)] mb-3">
+  <div class="pd-layout">
+    <div class="pd-images">
+      <div class="pd-main-img-wrap">
         <img
           id="main-product-image"
           src={primaryImage?.url || '/favicon.svg'}
@@ -79,55 +76,44 @@ const stockStatusText = isOut
           height="600"
           loading="eager"
           decoding="async"
-          class="w-full h-full object-cover"
+          class="pd-main-img"
         />
       </div>
-      <!-- Thumbnails -->
       {images.length > 1 && (
-        <div class="flex gap-2 overflow-x-auto pb-1">
+        <div class="pd-thumbs">
           {images.map(img => (
             <button
               type="button"
-              class="product-thumb shrink-0 w-16 h-16 rounded-[var(--radius-md)] overflow-hidden
-                     border-2 border-transparent hover:border-[var(--color-primary)] transition-colors"
+              class="product-thumb pd-thumb"
               data-src={img.url}
               data-alt={img.alt || name}
               aria-label={`Vis billede: ${img.alt || name}`}
             >
-              <img src={img.url} alt={img.alt || name} width="64" height="64" class="w-full h-full object-cover" loading="lazy" />
+              <img src={img.url} alt={img.alt || name} width="64" height="64" class="pd-thumb-img" loading="lazy" />
             </button>
           ))}
         </div>
       )}
     </div>
 
-    <!-- Product info -->
-    <div class="product-info flex flex-col gap-5">
+    <div class="pd-info">
       <div>
-        <h1 class="text-3xl font-extrabold text-[var(--color-text-primary)]">{name}</h1>
-        {short_desc && <p class="mt-2 text-[var(--color-text-secondary)]">{short_desc}</p>}
+        <h1 class="pd-name">{name}</h1>
+        {short_desc && <p class="pd-short-desc">{short_desc}</p>}
       </div>
 
-      <!-- Price -->
-      <div class="py-3 border-t border-b border-[var(--color-border)]">
+      <div class="pd-price-row">
         <PriceDisplay ore={price_ore} compareOre={compare_ore} showVat={true} size="lg" id="detail-price" />
       </div>
 
-      <!-- Stock status -->
-      <div id="stock-status" class="text-sm font-medium"
-           class:list={[stockStatusClass]}>
+      <div id="stock-status" class:list={['pd-stock', stockStatusClass]}>
         {stockStatusText}
       </div>
 
-      <!-- Variants -->
       {hasVariants && (
-        <div>
-          <label class="block text-sm font-semibold text-[var(--color-text-primary)] mb-2">Vælg variant:</label>
-          <select
-            id="variant-select"
-            class="w-full rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg-page)]
-                   px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-          >
+        <div class="pd-variants">
+          <label class="pd-field-label" for="variant-select">Vælg variant:</label>
+          <select id="variant-select" class="pd-select">
             <option value="">Vælg...</option>
             {variants.filter(v => v.is_active).map(v => (
               <option
@@ -143,24 +129,19 @@ const stockStatusText = isOut
         </div>
       )}
 
-      <!-- Quantity -->
-      <div class="flex items-center gap-3">
-        <label class="text-sm font-semibold text-[var(--color-text-primary)]" for="qty-input">Antal:</label>
-        <div class="flex items-center border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden">
-          <button type="button" id="qty-minus" class="px-3 py-2 hover:bg-[var(--color-neutral-100)] text-lg leading-none" aria-label="Minimer antal">−</button>
-          <input id="qty-input" type="number" value="1" min="1" max="99"
-                 class="w-14 text-center border-0 py-2 text-sm focus:outline-none bg-transparent" />
-          <button type="button" id="qty-plus" class="px-3 py-2 hover:bg-[var(--color-neutral-100)] text-lg leading-none" aria-label="Forøg antal">+</button>
+      <div class="pd-qty-row">
+        <label class="pd-field-label" for="qty-input">Antal:</label>
+        <div class="pd-qty-control">
+          <button type="button" id="qty-minus" class="pd-qty-btn" aria-label="Minimer antal">−</button>
+          <input id="qty-input" type="number" value="1" min="1" max="99" class="pd-qty-input" />
+          <button type="button" id="qty-plus" class="pd-qty-btn" aria-label="Forøg antal">+</button>
         </div>
       </div>
 
-      <!-- Add to cart -->
       <button
         type="button"
         id="add-to-cart-detail"
-        class="w-full rounded-[var(--radius-full)] btn-gradient px-6 py-4 text-base font-semibold
-               text-[var(--color-text-on-primary)] shadow-[var(--shadow-sm)] transition-opacity hover:opacity-90
-               disabled:opacity-40"
+        class="pd-add-btn"
         disabled={isOut}
         data-product-id={id}
         data-product-name={name}
@@ -169,17 +150,175 @@ const stockStatusText = isOut
         {isOut ? 'Udsolgt' : 'Tilføj til kurv'}
       </button>
 
-      <!-- Description -->
       {description && (
-        <div class="pt-4 border-t border-[var(--color-border)]">
-          <h2 class="text-base font-semibold text-[var(--color-text-primary)] mb-2">Beskrivelse</h2>
-          <div class="prose prose-sm text-[var(--color-text-secondary)] max-w-none"
-               set:html={description} />
+        <div class="pd-description">
+          <h2 class="pd-desc-title">Beskrivelse</h2>
+          <div class="pd-desc-body" set:html={description} />
         </div>
       )}
     </div>
   </div>
 </article>
+
+<style>
+.product-detail {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding-x);
+}
+.pd-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.pd-breadcrumb-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 150ms;
+}
+.pd-breadcrumb-link:hover { color: var(--color-primary); }
+.pd-breadcrumb-sep { margin: 0 8px; }
+.pd-breadcrumb-current { color: var(--color-text-primary); }
+.pd-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+}
+@media (min-width: 1024px) {
+  .pd-layout { grid-template-columns: 1fr 1fr; }
+}
+.pd-main-img-wrap {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--color-neutral-100);
+  margin-bottom: 12px;
+}
+.pd-main-img { width: 100%; height: 100%; object-fit: cover; }
+.pd-thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.pd-thumb {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  transition: border-color 150ms;
+}
+.pd-thumb:hover { border-color: var(--color-primary); }
+.pd-thumb-img { width: 100%; height: 100%; object-fit: cover; }
+.pd-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.pd-name {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+.pd-short-desc {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+}
+.pd-price-row {
+  padding: 12px 0;
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+}
+.pd-stock { font-size: 0.875rem; font-weight: 500; }
+.pd-stock-in { color: #16a34a; }
+.pd-stock-out { color: #dc2626; }
+.pd-field-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+.pd-select {
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.pd-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+.pd-qty-row { display: flex; align-items: center; gap: 12px; }
+.pd-qty-control {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.pd-qty-btn {
+  padding: 8px 12px;
+  font-size: 1.125rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: background 150ms;
+}
+.pd-qty-btn:hover { background: var(--color-neutral-100); }
+.pd-qty-input {
+  width: 56px;
+  text-align: center;
+  border: none;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  outline: none;
+  background: transparent;
+}
+.pd-add-btn {
+  width: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  padding: 16px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: opacity 150ms;
+}
+.pd-add-btn:hover:not(:disabled) { opacity: 0.9; }
+.pd-add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pd-description {
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+.pd-desc-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 8px;
+}
+.pd-desc-body {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+</style>
 
 <script>
   import { addToCart } from '../scripts/cart.js';
@@ -191,7 +330,6 @@ const stockStatusText = isOut
   const qtyPlus = document.getElementById('qty-plus');
   const mainImg = document.getElementById('main-product-image') as HTMLImageElement | null;
 
-  // Thumbnail swap
   document.querySelectorAll('.product-thumb').forEach(thumb => {
     thumb.addEventListener('click', () => {
       const src = (thumb as HTMLElement).dataset.src;
@@ -200,7 +338,6 @@ const stockStatusText = isOut
     });
   });
 
-  // Qty buttons
   qtyMinus?.addEventListener('click', () => {
     if (!qtyInput) return;
     const v = parseInt(qtyInput.value) || 1;
@@ -212,7 +349,6 @@ const stockStatusText = isOut
     if (v < 99) qtyInput.value = String(v + 1);
   });
 
-  // Variant select: update stock status + price
   variantSelect?.addEventListener('change', () => {
     const opt = variantSelect.selectedOptions[0];
     const stockEl = document.getElementById('stock-status');
@@ -223,20 +359,20 @@ const stockStatusText = isOut
         stockEl.textContent = '';
       } else if (variantStock === 0) {
         stockEl.textContent = 'Udsolgt';
-        stockEl.className = 'text-sm font-medium text-red-600';
+        stockEl.className = 'pd-stock pd-stock-out';
       } else if (variantStock <= 5) {
         stockEl.textContent = `Kun ${variantStock} tilbage`;
-        stockEl.className = 'text-sm font-medium text-orange-500';
+        stockEl.className = 'pd-stock';
+        (stockEl as HTMLElement).style.color = '#ea580c';
       } else {
         stockEl.textContent = 'På lager';
-        stockEl.className = 'text-sm font-medium text-green-600';
+        stockEl.className = 'pd-stock pd-stock-in';
       }
     }
 
     if (btn) btn.disabled = variantStock === 0 || !opt?.value;
   });
 
-  // Add to cart
   btn?.addEventListener('click', () => {
     const productId = parseInt(btn.dataset.productId || '0');
     const name = btn.dataset.productName || '';

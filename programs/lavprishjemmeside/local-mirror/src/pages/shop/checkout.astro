@@ -4,28 +4,25 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <Layout title="Checkout — Shop — Lavprishjemmeside.dk" description="Udfyld din leveringsadresse og betal sikkert.">
-  <main class="mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)] py-12">
+  <main class="checkout-page">
 
-    <!-- Cancelled notice -->
-    <div id="cancelled-notice" class="hidden mb-6 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800" role="alert">
+    <div id="cancelled-notice" class="checkout-notice checkout-notice-warning" style="display:none" role="alert">
       Betalingen blev annulleret. Du kan prøve igen nedenfor.
     </div>
 
-    <h1 class="text-3xl font-extrabold text-[var(--color-text-primary)] mb-8">Checkout</h1>
+    <h1 class="checkout-title">Checkout</h1>
 
-    <div id="checkout-empty" class="hidden text-center py-16 text-[var(--color-text-secondary)]">
-      <p class="mb-2">Kurven er tom.</p>
-      <a href="/shop/" class="text-[var(--color-primary)] hover:underline">Gå til shoppen</a>
+    <div id="checkout-empty" class="checkout-empty" style="display:none">
+      <p class="checkout-empty-text">Kurven er tom.</p>
+      <a href="/shop/" class="checkout-empty-link">Gå til shoppen</a>
     </div>
 
-    <div id="checkout-content" class="hidden grid grid-cols-1 lg:grid-cols-5 gap-10">
-      <!-- Form (3 cols) -->
-      <div class="lg:col-span-3">
-        <form id="checkout-form" novalidate class="space-y-8">
-          <!-- Contact -->
-          <section>
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4">Kontaktoplysninger</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div id="checkout-content" class="checkout-layout" style="display:none">
+      <div class="checkout-form-col">
+        <form id="checkout-form" novalidate class="checkout-form">
+          <section class="checkout-section">
+            <h2 class="checkout-section-title">Kontaktoplysninger</h2>
+            <div class="checkout-grid">
               <div>
                 <label class="form-label" for="first_name">Fornavn *</label>
                 <input id="first_name" name="first_name" type="text" required autocomplete="given-name" class="form-input" />
@@ -34,7 +31,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
                 <label class="form-label" for="last_name">Efternavn *</label>
                 <input id="last_name" name="last_name" type="text" required autocomplete="family-name" class="form-input" />
               </div>
-              <div class="sm:col-span-2">
+              <div class="checkout-col-span-2">
                 <label class="form-label" for="email">E-mail *</label>
                 <input id="email" name="email" type="email" required autocomplete="email" class="form-input" />
               </div>
@@ -45,15 +42,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
             </div>
           </section>
 
-          <!-- Delivery address -->
-          <section>
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4">Leveringsadresse</h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div class="sm:col-span-2">
+          <section class="checkout-section">
+            <h2 class="checkout-section-title">Leveringsadresse</h2>
+            <div class="checkout-grid">
+              <div class="checkout-col-span-2">
                 <label class="form-label" for="address1">Adresse *</label>
                 <input id="address1" name="address1" type="text" required autocomplete="street-address" class="form-input" />
               </div>
-              <div class="sm:col-span-2">
+              <div class="checkout-col-span-2">
                 <label class="form-label" for="address2">Adresse 2 (etage, lejlighedsnr.)</label>
                 <input id="address2" name="address2" type="text" autocomplete="address-line2" class="form-input" />
               </div>
@@ -68,65 +64,52 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
             </div>
           </section>
 
-          <!-- Shipping -->
-          <section>
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4">Forsendelse</h2>
-            <div id="shipping-methods" class="space-y-3">
-              <p class="text-sm text-[var(--color-text-secondary)]">Henter forsendelsesmetoder...</p>
+          <section class="checkout-section">
+            <h2 class="checkout-section-title">Forsendelse</h2>
+            <div id="shipping-methods" class="checkout-shipping-methods">
+              <p class="checkout-loading-text">Henter forsendelsesmetoder...</p>
             </div>
           </section>
 
-          <!-- Discount code -->
-          <section>
-            <h2 class="text-lg font-bold text-[var(--color-text-primary)] mb-4">Rabatkode</h2>
-            <div class="flex gap-2">
-              <input id="discount-input" type="text" placeholder="Indtast kode" class="form-input flex-1" />
-              <button type="button" id="discount-btn" class="px-4 py-2 rounded-[var(--radius-md)] border border-[var(--color-border)] text-sm font-medium hover:bg-[var(--color-neutral-100)] transition-colors">
-                Anvend
-              </button>
+          <section class="checkout-section">
+            <h2 class="checkout-section-title">Rabatkode</h2>
+            <div class="checkout-discount-row">
+              <input id="discount-input" type="text" placeholder="Indtast kode" class="form-input checkout-discount-input" />
+              <button type="button" id="discount-btn" class="checkout-discount-btn">Anvend</button>
             </div>
-            <p id="discount-msg" class="mt-2 text-sm hidden"></p>
+            <p id="discount-msg" class="checkout-discount-msg" style="display:none"></p>
           </section>
 
-          <!-- Error -->
-          <div id="checkout-error" class="hidden rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700" role="alert"></div>
+          <div id="checkout-error" class="checkout-notice checkout-notice-error" style="display:none" role="alert"></div>
 
-          <!-- Submit -->
-          <button
-            type="submit"
-            id="pay-btn"
-            class="w-full rounded-[var(--radius-full)] btn-gradient px-6 py-4 text-base font-semibold
-                   text-[var(--color-text-on-primary)] shadow-[var(--shadow-sm)] transition-opacity hover:opacity-90
-                   disabled:opacity-50"
-          >
+          <button type="submit" id="pay-btn" class="checkout-pay-btn">
             Betal sikkert med Flatpay
           </button>
-          <p class="text-xs text-center text-[var(--color-text-secondary)]">
+          <p class="checkout-pay-note">
             Du sendes videre til en sikker betalingsside (Visa, Mastercard, MobilePay).
           </p>
         </form>
       </div>
 
-      <!-- Order summary (2 cols) -->
-      <div class="lg:col-span-2">
-        <div class="rounded-[var(--radius-lg)] border border-[var(--color-border)] p-6 space-y-4">
-          <h2 class="text-lg font-bold text-[var(--color-text-primary)]">Din ordre</h2>
-          <ul id="summary-items" class="space-y-3 text-sm"></ul>
-          <div class="border-t border-[var(--color-border)] pt-3 space-y-1 text-sm">
-            <div class="flex justify-between">
-              <span class="text-[var(--color-text-secondary)]">Subtotal</span>
+      <div class="checkout-summary-col">
+        <div class="checkout-summary-box">
+          <h2 class="checkout-summary-title">Din ordre</h2>
+          <ul id="summary-items" class="checkout-summary-items"></ul>
+          <div class="checkout-summary-totals">
+            <div class="checkout-summary-row">
+              <span class="checkout-summary-label">Subtotal</span>
               <span id="sum-subtotal">—</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--color-text-secondary)]">Fragt</span>
+            <div class="checkout-summary-row">
+              <span class="checkout-summary-label">Fragt</span>
               <span id="sum-shipping">Vælg forsendelse</span>
             </div>
-            <div id="sum-discount-row" class="hidden flex justify-between text-green-600">
+            <div id="sum-discount-row" class="checkout-summary-row checkout-summary-discount" style="display:none">
               <span>Rabat</span>
               <span id="sum-discount">—</span>
             </div>
           </div>
-          <div class="border-t border-[var(--color-border)] pt-3 flex justify-between font-bold">
+          <div class="checkout-summary-grand-total">
             <span>Total inkl. moms</span>
             <span id="sum-total">—</span>
           </div>
@@ -137,33 +120,210 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 </Layout>
 
 <style>
+.checkout-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding-x);
+}
+.checkout-notice {
+  margin-bottom: 24px;
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  font-size: 0.875rem;
+}
+.checkout-notice-warning {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  color: #92400e;
+}
+.checkout-notice-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+}
+.checkout-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 32px;
+}
+.checkout-empty {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--color-text-secondary);
+}
+.checkout-empty-text { margin: 0 0 8px; }
+.checkout-empty-link { color: var(--color-primary); text-decoration: none; }
+.checkout-empty-link:hover { text-decoration: underline; }
+
+.checkout-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .checkout-layout { grid-template-columns: 3fr 2fr; }
+}
+
+.checkout-form { display: flex; flex-direction: column; gap: 32px; }
+.checkout-section { display: flex; flex-direction: column; gap: 16px; }
+.checkout-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.checkout-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+@media (min-width: 640px) {
+  .checkout-grid { grid-template-columns: 1fr 1fr; }
+}
+.checkout-col-span-2 { grid-column: 1 / -1; }
+
 .form-label {
   display: block;
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 4px;
 }
 .form-input {
   width: 100%;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   background: var(--color-bg-page);
-  padding: 0.5rem 0.75rem;
+  padding: 8px 12px;
   font-size: 0.875rem;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 150ms;
 }
 .form-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
+
+.checkout-shipping-methods { display: flex; flex-direction: column; gap: 12px; }
+.checkout-loading-text { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; }
+.checkout-shipping-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  padding: 12px;
+  transition: border-color 150ms;
+}
+.checkout-shipping-label:hover { border-color: var(--color-primary); }
+.checkout-shipping-label.is-selected {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.checkout-discount-row { display: flex; gap: 8px; }
+.checkout-discount-input { flex: 1; }
+.checkout-discount-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  font-weight: 500;
+  background: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms;
+}
+.checkout-discount-btn:hover { background: var(--color-neutral-100); }
+.checkout-discount-msg { margin: 8px 0 0; font-size: 0.875rem; }
+.checkout-discount-msg.is-success { color: #16a34a; }
+.checkout-discount-msg.is-error { color: #dc2626; }
+
+.checkout-pay-btn {
+  width: 100%;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  padding: 16px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+  border: none;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.checkout-pay-btn:hover:not(:disabled) { opacity: 0.9; }
+.checkout-pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.checkout-pay-note {
+  font-size: 0.75rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.checkout-summary-box {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.checkout-summary-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.checkout-summary-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.checkout-summary-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+.checkout-summary-item-name {
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
+}
+.checkout-summary-item-price { font-weight: 500; white-space: nowrap; }
+.checkout-summary-totals {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+.checkout-summary-row { display: flex; justify-content: space-between; }
+.checkout-summary-label { color: var(--color-text-secondary); }
+.checkout-summary-discount { color: #16a34a; }
+.checkout-summary-grand-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
 </style>
 
 <script define:vars={{ apiUrl }}>
-  // Detect cancelled payment
   if (new URLSearchParams(window.location.search).get('cancelled')) {
-    document.getElementById('cancelled-notice')?.classList.remove('hidden');
+    const el = document.getElementById('cancelled-notice');
+    if (el) el.style.display = 'block';
   }
 
   let shippingMethods = [];
@@ -173,7 +333,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   function fmt(ore) { return (ore / 100).toFixed(2).replace('.', ',') + ' kr.'; }
 
   async function init() {
-    // Lazy-load cart module
     const cart = await import('/src/scripts/cart.js');
     const { getCart, getCartTotal, validateCart } = cart;
 
@@ -182,18 +341,16 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     const emptyEl = document.getElementById('checkout-empty');
 
     if (items.length === 0) {
-      emptyEl?.classList.remove('hidden');
+      if (emptyEl) emptyEl.style.display = 'block';
       return;
     }
-    contentEl?.classList.remove('hidden');
+    if (contentEl) contentEl.style.display = 'grid';
 
-    // Validate cart
     await validateCart(apiUrl);
 
     renderSummary(getCart, getCartTotal);
     await loadShipping(getCart, getCartTotal);
 
-    // Discount
     document.getElementById('discount-btn')?.addEventListener('click', async () => {
       const code = document.getElementById('discount-input').value.trim();
       const msgEl = document.getElementById('discount-msg');
@@ -209,33 +366,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         const data = await res.json();
         if (!res.ok) {
           msgEl.textContent = data.error || 'Ugyldig kode';
-          msgEl.className = 'mt-2 text-sm text-red-600';
-          msgEl.classList.remove('hidden');
+          msgEl.className = 'checkout-discount-msg is-error';
+          msgEl.style.display = 'block';
           appliedDiscount = null;
         } else {
           appliedDiscount = data;
           msgEl.textContent = `Kode "${data.code}" anvendt — -${fmt(data.discount_ore)}`;
-          msgEl.className = 'mt-2 text-sm text-green-600';
-          msgEl.classList.remove('hidden');
+          msgEl.className = 'checkout-discount-msg is-success';
+          msgEl.style.display = 'block';
         }
       } catch {
         msgEl.textContent = 'Kunne ikke validere kode';
-        msgEl.className = 'mt-2 text-sm text-red-600';
-        msgEl.classList.remove('hidden');
+        msgEl.className = 'checkout-discount-msg is-error';
+        msgEl.style.display = 'block';
       }
       updateTotals(getCartTotal);
     });
 
-    // Form submit
     document.getElementById('checkout-form')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('pay-btn');
       const errEl = document.getElementById('checkout-error');
-      errEl?.classList.add('hidden');
+      if (errEl) errEl.style.display = 'none';
 
       if (!selectedShipping) {
         errEl.textContent = 'Vælg en forsendelsesmetode';
-        errEl.classList.remove('hidden');
+        errEl.style.display = 'block';
         return;
       }
 
@@ -271,17 +427,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         const data = await res.json();
         if (!res.ok) {
           errEl.textContent = data.error || 'Ordren kunne ikke oprettes';
-          errEl.classList.remove('hidden');
+          errEl.style.display = 'block';
           btn.disabled = false;
           btn.textContent = 'Betal sikkert med Flatpay';
           return;
         }
 
-        // Launch Frisbii Checkout
         if (typeof window.Frisbii !== 'undefined') {
           window.Frisbii.open(data.frisbii_session_id);
         } else {
-          // Fallback: load SDK dynamically
           btn.textContent = 'Åbner betalingsvindue...';
           const script = document.createElement('script');
           script.src = 'https://checkout.frisbii.com/checkout.js';
@@ -289,7 +443,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
             if (typeof window.Frisbii !== 'undefined') {
               window.Frisbii.open(data.frisbii_session_id);
             } else {
-              // Last resort: store session and redirect
               window.location.href = `/shop/ordre/${data.order_token}/`;
             }
           };
@@ -301,7 +454,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
       } catch {
         errEl.textContent = 'Der opstod en fejl. Prøv igen.';
-        errEl.classList.remove('hidden');
+        errEl.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Betal sikkert med Flatpay';
       }
@@ -315,16 +468,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     listEl.innerHTML = '';
     items.forEach(item => {
       const li = document.createElement('li');
-      li.className = 'flex justify-between gap-2';
+      li.className = 'checkout-summary-item';
       li.innerHTML = `
-        <span class="text-[var(--color-text-primary)] truncate max-w-[60%]">
+        <span class="checkout-summary-item-name">
           ${item.name}${item.variant_name ? ` / ${item.variant_name}` : ''} × ${item.quantity}
         </span>
-        <span class="font-medium shrink-0">${fmt(item.price_ore * item.quantity)}</span>
+        <span class="checkout-summary-item-price">${fmt(item.price_ore * item.quantity)}</span>
       `;
       listEl.appendChild(li);
     });
-    document.getElementById('sum-subtotal').textContent = fmt(getCartTotal());
+    const el = document.getElementById('sum-subtotal');
+    if (el) el.textContent = fmt(getCartTotal());
     updateTotals(getCartTotal);
   }
 
@@ -338,10 +492,10 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     const discountRow = document.getElementById('sum-discount-row');
     const discountEl = document.getElementById('sum-discount');
     if (discountOre > 0) {
-      discountRow?.classList.remove('hidden');
+      if (discountRow) discountRow.style.display = 'flex';
       if (discountEl) discountEl.textContent = `−${fmt(discountOre)}`;
     } else {
-      discountRow?.classList.add('hidden');
+      if (discountRow) discountRow.style.display = 'none';
     }
 
     const shippingEl = document.getElementById('sum-shipping');
@@ -373,14 +527,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       const isFree = method.free_above_ore !== null && subtotal >= method.free_above_ore;
       const displayPrice = isFree ? 'Gratis' : fmt(method.price_ore);
       const label = document.createElement('label');
-      label.className = 'flex items-center gap-3 cursor-pointer rounded-[var(--radius-md)] border border-[var(--color-border)] p-3 hover:border-[var(--color-primary)] transition-colors has-[:checked]:border-[var(--color-primary)] has-[:checked]:bg-[var(--color-primary)]/5';
+      label.className = 'checkout-shipping-label' + (i === 0 ? ' is-selected' : '');
       label.innerHTML = `
-        <input type="radio" name="shipping_method" value="${method.id}" class="accent-[var(--color-primary)]" ${i === 0 ? 'checked' : ''} />
-        <div class="flex-1">
-          <p class="font-medium text-sm">${method.name}</p>
-          <p class="text-xs text-[var(--color-text-secondary)]">${method.est_days_min}–${method.est_days_max} hverdage</p>
+        <input type="radio" name="shipping_method" value="${method.id}" style="accent-color:var(--color-primary)" ${i === 0 ? 'checked' : ''} />
+        <div style="flex:1">
+          <p style="font-weight:500;font-size:0.875rem;margin:0">${method.name}</p>
+          <p style="font-size:0.75rem;color:var(--color-text-secondary);margin:0">${method.est_days_min}–${method.est_days_max} hverdage</p>
         </div>
-        <span class="font-semibold text-sm">${displayPrice}</span>
+        <span style="font-weight:600;font-size:0.875rem">${displayPrice}</span>
       `;
       container.appendChild(label);
 
@@ -393,6 +547,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     container.addEventListener('change', (e) => {
       const val = parseInt(e.target.value);
       selectedShipping = shippingMethods.find(m => m.id === val) || null;
+      container.querySelectorAll('.checkout-shipping-label').forEach(l => l.classList.remove('is-selected'));
+      e.target.closest('.checkout-shipping-label')?.classList.add('is-selected');
       updateTotals(getCartTotal);
     });
   }

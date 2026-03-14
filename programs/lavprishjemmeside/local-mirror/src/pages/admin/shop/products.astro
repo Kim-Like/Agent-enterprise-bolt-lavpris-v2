@@ -4,17 +4,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <AdminLayout title="Produkter">
-  <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold">Produkter</h1>
-      <button id="new-product-btn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg text-sm">
-        + Nyt produkt
-      </button>
+  <div class="admin-shop-products">
+    <div class="asp-header">
+      <h1 class="asp-title">Produkter</h1>
+      <button id="new-product-btn" class="asp-btn-primary">+ Nyt produkt</button>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-3">
-      <input id="search-input" type="search" placeholder="Søg produkt eller SKU..." class="admin-input w-full sm:w-64" />
+    <div class="asp-filters">
+      <input id="search-input" type="search" placeholder="Søg produkt eller SKU..." class="admin-input asp-search" />
       <select id="status-filter" class="admin-input">
         <option value="">Alle statuser</option>
         <option value="1">Aktive</option>
@@ -22,86 +19,84 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       </select>
     </div>
 
-    <div id="loading" class="text-center py-8 text-gray-500">Henter produkter...</div>
-    <div id="error" class="hidden text-red-600 py-4"></div>
+    <div id="loading" class="asp-loading">Henter produkter...</div>
+    <div id="error" class="asp-error" style="display:none"></div>
 
-    <!-- Table -->
-    <div id="products-table-wrap" class="hidden overflow-x-auto rounded-lg border border-gray-200">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
+    <div id="products-table-wrap" class="asp-table-wrap" style="display:none">
+      <table class="asp-table">
+        <thead>
           <tr>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Produkt</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Pris</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Lager</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Handling</th>
+            <th class="asp-th">Produkt</th>
+            <th class="asp-th">Pris</th>
+            <th class="asp-th">Lager</th>
+            <th class="asp-th">Status</th>
+            <th class="asp-th">Handling</th>
           </tr>
         </thead>
-        <tbody id="products-tbody" class="divide-y divide-gray-100 bg-white"></tbody>
+        <tbody id="products-tbody" class="asp-tbody"></tbody>
       </table>
     </div>
-    <div id="pagination" class="hidden flex items-center justify-between text-sm text-gray-500 pt-2"></div>
+    <div id="pagination" class="asp-pagination" style="display:none"></div>
   </div>
 
-  <!-- Product modal -->
-  <div id="product-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto py-8 px-4">
-    <div class="w-full max-w-xl bg-white rounded-xl shadow-xl">
-      <div class="flex items-center justify-between px-6 py-4 border-b">
-        <h2 id="modal-title" class="text-lg font-bold">Nyt produkt</h2>
-        <button id="modal-close" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+  <div id="product-modal" class="asp-modal-backdrop" style="display:none">
+    <div class="asp-modal">
+      <div class="asp-modal-header">
+        <h2 id="modal-title" class="asp-modal-title">Nyt produkt</h2>
+        <button id="modal-close" class="asp-modal-close">&times;</button>
       </div>
-      <form id="product-form" class="p-6 space-y-4">
+      <form id="product-form" class="asp-modal-body">
         <input type="hidden" id="product-id" value="" />
-        <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-2">
+        <div class="asp-grid">
+          <div class="asp-col-2">
             <label class="admin-label" for="p-name">Navn *</label>
-            <input id="p-name" name="name" class="admin-input w-full" required />
+            <input id="p-name" name="name" class="admin-input asp-full" required />
           </div>
-          <div class="col-span-2">
+          <div class="asp-col-2">
             <label class="admin-label" for="p-slug">Slug *</label>
-            <input id="p-slug" name="slug" class="admin-input w-full" required />
+            <input id="p-slug" name="slug" class="admin-input asp-full" required />
           </div>
           <div>
             <label class="admin-label" for="p-price">Pris (øre, f.eks. 9995) *</label>
-            <input id="p-price" name="price_ore" type="number" min="0" class="admin-input w-full" required />
+            <input id="p-price" name="price_ore" type="number" min="0" class="admin-input asp-full" required />
           </div>
           <div>
             <label class="admin-label" for="p-compare">Sammenligningspris (øre)</label>
-            <input id="p-compare" name="compare_ore" type="number" min="0" class="admin-input w-full" />
+            <input id="p-compare" name="compare_ore" type="number" min="0" class="admin-input asp-full" />
           </div>
           <div>
             <label class="admin-label" for="p-sku">SKU</label>
-            <input id="p-sku" name="sku" class="admin-input w-full" />
+            <input id="p-sku" name="sku" class="admin-input asp-full" />
           </div>
           <div>
             <label class="admin-label" for="p-stock">Lager</label>
-            <input id="p-stock" name="stock" type="number" min="0" class="admin-input w-full" />
+            <input id="p-stock" name="stock" type="number" min="0" class="admin-input asp-full" />
           </div>
-          <div class="col-span-2">
+          <div class="asp-col-2">
             <label class="admin-label" for="p-short-desc">Kort beskrivelse</label>
-            <textarea id="p-short-desc" name="short_desc" rows="2" class="admin-input w-full"></textarea>
+            <textarea id="p-short-desc" name="short_desc" rows="2" class="admin-input asp-full"></textarea>
           </div>
-          <div class="col-span-2">
+          <div class="asp-col-2">
             <label class="admin-label" for="p-desc">Beskrivelse (HTML tilladt)</label>
-            <textarea id="p-desc" name="description" rows="4" class="admin-input w-full"></textarea>
+            <textarea id="p-desc" name="description" rows="4" class="admin-input asp-full"></textarea>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="asp-checkbox-row">
             <input id="p-active" name="is_active" type="checkbox" checked />
-            <label for="p-active" class="text-sm font-medium text-gray-700">Aktiv</label>
+            <label for="p-active" class="asp-checkbox-label">Aktiv</label>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="asp-checkbox-row">
             <input id="p-featured" name="is_featured" type="checkbox" />
-            <label for="p-featured" class="text-sm font-medium text-gray-700">Anbefalet</label>
+            <label for="p-featured" class="asp-checkbox-label">Anbefalet</label>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="asp-checkbox-row">
             <input id="p-track-stock" name="track_stock" type="checkbox" checked />
-            <label for="p-track-stock" class="text-sm font-medium text-gray-700">Spor lager</label>
+            <label for="p-track-stock" class="asp-checkbox-label">Spor lager</label>
           </div>
         </div>
-        <div id="form-error" class="hidden rounded bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-600"></div>
-        <div class="flex justify-end gap-3 pt-2">
-          <button type="button" id="form-cancel" class="px-4 py-2 border border-gray-300 rounded-lg text-sm">Annuller</button>
-          <button type="submit" id="form-save" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium">Gem</button>
+        <div id="form-error" class="asp-form-error" style="display:none"></div>
+        <div class="asp-modal-footer">
+          <button type="button" id="form-cancel" class="asp-btn-secondary">Annuller</button>
+          <button type="submit" id="form-save" class="asp-btn-primary">Gem</button>
         </div>
       </form>
     </div>
@@ -109,9 +104,107 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 </AdminLayout>
 
 <style>
-.admin-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.375rem 0.625rem; font-size: 0.875rem; outline: none; }
-.admin-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
-.admin-label { display: block; font-size: 0.75rem; font-weight: 600; color: #4b5563; margin-bottom: 0.25rem; }
+.admin-shop-products { display: flex; flex-direction: column; gap: 24px; }
+.asp-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.asp-title { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.asp-filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.asp-search { width: 100%; }
+@media (min-width: 640px) { .asp-search { width: 16rem; } }
+.asp-loading { text-align: center; padding: 32px 0; color: var(--color-text-secondary); }
+.asp-error { color: #dc2626; padding: 16px 0; }
+.asp-table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+.asp-table { min-width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.asp-table thead { background: var(--color-neutral-100); }
+.asp-th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+.asp-tbody tr { border-top: 1px solid var(--color-border); }
+.asp-tbody tr:hover { background: var(--color-neutral-100); }
+.asp-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  padding-top: 8px;
+}
+.asp-td { padding: 12px 16px; }
+.asp-product-cell { display: flex; align-items: center; gap: 12px; }
+.asp-product-thumb { width: 40px; height: 40px; border-radius: var(--radius-sm, 4px); object-fit: cover; }
+.asp-product-thumb-empty { width: 40px; height: 40px; border-radius: var(--radius-sm, 4px); background: var(--color-neutral-100); flex-shrink: 0; }
+.asp-product-name { font-weight: 500; color: var(--color-text-primary); margin: 0; }
+.asp-product-sku { font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; }
+.asp-status-badge { display: inline-block; border-radius: 9999px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.asp-status-active { background: #dcfce7; color: #166534; }
+.asp-status-inactive { background: var(--color-neutral-100); color: var(--color-text-secondary); }
+.asp-action-btn { font-size: 0.75rem; padding: 0; border: none; background: none; cursor: pointer; }
+.asp-edit-btn { color: var(--color-primary); }
+.asp-edit-btn:hover { text-decoration: underline; }
+.asp-delete-btn { color: #ef4444; }
+.asp-delete-btn:hover { text-decoration: underline; }
+.asp-pag-btn { padding: 4px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm, 4px); font-size: 0.75rem; cursor: pointer; background: none; }
+
+.asp-modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 32px 16px;
+}
+.asp-modal { width: 100%; max-width: 36rem; background: white; border-radius: var(--radius-xl, 12px); box-shadow: var(--shadow-xl); }
+.asp-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--color-border); }
+.asp-modal-title { font-size: 1.125rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.asp-modal-close { font-size: 1.25rem; line-height: 1; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); }
+.asp-modal-close:hover { color: var(--color-text-primary); }
+.asp-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.asp-modal-footer { display: flex; justify-content: flex-end; gap: 12px; padding-top: 8px; }
+.asp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.asp-col-2 { grid-column: 1 / -1; }
+.asp-full { width: 100%; box-sizing: border-box; }
+.asp-checkbox-row { display: flex; align-items: center; gap: 8px; }
+.asp-checkbox-label { font-size: 0.875rem; font-weight: 500; color: var(--color-text-primary); }
+.asp-form-error { border-radius: var(--radius-sm); background: #fef2f2; border: 1px solid #fca5a5; padding: 8px 12px; font-size: 0.875rem; color: #b91c1c; }
+
+.admin-input {
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-md, 0.375rem);
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  outline: none;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+.admin-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+.admin-label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--color-text-secondary); margin-bottom: 4px; }
+.asp-btn-primary {
+  padding: 8px 16px;
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.asp-btn-primary:hover:not(:disabled) { opacity: 0.9; }
+.asp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.asp-btn-secondary {
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+.asp-btn-secondary:hover { background: var(--color-neutral-100); }
 </style>
 
 <script define:vars={{ apiUrl }}>
@@ -130,55 +223,57 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       const res = await fetch(`${apiUrl}/shop/admin/products?${params}`, { headers: headers() });
       const data = await res.json();
       document.getElementById('loading')?.classList.add('hidden');
-      document.getElementById('products-table-wrap')?.classList.remove('hidden');
+      const tableWrap = document.getElementById('products-table-wrap');
+      if (tableWrap) tableWrap.style.display = 'block';
 
       const tbody = document.getElementById('products-tbody');
       tbody.innerHTML = '';
       (data.products || []).forEach(p => {
         const tr = document.createElement('tr');
+        const statusCls = p.is_active ? 'asp-status-active' : 'asp-status-inactive';
+        const statusLabel = p.is_active ? 'Aktiv' : 'Inaktiv';
         tr.innerHTML = `
-          <td class="px-4 py-3">
-            <div class="flex items-center gap-3">
-              ${p.primary_image ? `<img src="${p.primary_image}" class="w-10 h-10 rounded object-cover" loading="lazy"/>` : '<div class="w-10 h-10 rounded bg-gray-100"></div>'}
+          <td class="asp-td">
+            <div class="asp-product-cell">
+              ${p.primary_image ? `<img src="${p.primary_image}" class="asp-product-thumb" loading="lazy"/>` : '<div class="asp-product-thumb-empty"></div>'}
               <div>
-                <p class="font-medium text-gray-900">${p.name}</p>
-                <p class="text-xs text-gray-400">${p.sku || '—'}</p>
+                <p class="asp-product-name">${p.name}</p>
+                <p class="asp-product-sku">${p.sku || '—'}</p>
               </div>
             </div>
           </td>
-          <td class="px-4 py-3">${(p.price_ore / 100).toFixed(2).replace('.', ',')} kr.</td>
-          <td class="px-4 py-3">${p.track_stock ? p.stock : '∞'}</td>
-          <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${p.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
-              ${p.is_active ? 'Aktiv' : 'Inaktiv'}
-            </span>
+          <td class="asp-td">${(p.price_ore / 100).toFixed(2).replace('.', ',')} kr.</td>
+          <td class="asp-td">${p.track_stock ? p.stock : '∞'}</td>
+          <td class="asp-td">
+            <span class="asp-status-badge ${statusCls}">${statusLabel}</span>
           </td>
-          <td class="px-4 py-3 flex gap-2">
-            <button class="edit-btn text-blue-600 hover:underline text-xs" data-id="${p.id}">Rediger</button>
-            <button class="delete-btn text-red-500 hover:underline text-xs" data-id="${p.id}" data-name="${p.name}">Slet</button>
+          <td class="asp-td" style="display:flex;gap:8px;align-items:center">
+            <button class="asp-action-btn asp-edit-btn edit-btn" data-id="${p.id}">Rediger</button>
+            <button class="asp-action-btn asp-delete-btn delete-btn" data-id="${p.id}" data-name="${p.name}">Slet</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
 
       const pag = document.getElementById('pagination');
-      pag.classList.remove('hidden');
-      pag.innerHTML = `<span>Side ${currentPage} · ${data.total} produkter i alt</span>
-        <div class="flex gap-2">
-          ${currentPage > 1 ? '<button id="prev-page" class="px-3 py-1 border rounded text-xs">← Forrige</button>' : ''}
-          ${data.total > currentPage * 25 ? '<button id="next-page" class="px-3 py-1 border rounded text-xs">Næste →</button>' : ''}
-        </div>`;
-
-      document.getElementById('prev-page')?.addEventListener('click', () => { currentPage--; loadProducts(); });
-      document.getElementById('next-page')?.addEventListener('click', () => { currentPage++; loadProducts(); });
+      if (pag) {
+        pag.style.display = 'flex';
+        pag.innerHTML = `<span>Side ${currentPage} · ${data.total} produkter i alt</span>
+          <div style="display:flex;gap:8px">
+            ${currentPage > 1 ? '<button id="prev-page" class="asp-pag-btn">← Forrige</button>' : ''}
+            ${data.total > currentPage * 25 ? '<button id="next-page" class="asp-pag-btn">Næste →</button>' : ''}
+          </div>`;
+        document.getElementById('prev-page')?.addEventListener('click', () => { currentPage--; loadProducts(); });
+        document.getElementById('next-page')?.addEventListener('click', () => { currentPage++; loadProducts(); });
+      }
     } catch (e) {
       document.getElementById('loading')?.classList.add('hidden');
-      document.getElementById('error').textContent = 'Fejl ved hentning af produkter: ' + e.message;
-      document.getElementById('error').classList.remove('hidden');
+      const errEl = document.getElementById('error');
+      errEl.textContent = 'Fejl ved hentning af produkter: ' + e.message;
+      errEl.style.display = 'block';
     }
   }
 
-  // Delegated events on table
   document.getElementById('products-tbody')?.addEventListener('click', async (e) => {
     if (e.target.classList.contains('edit-btn')) {
       await openEdit(parseInt(e.target.dataset.id));
@@ -190,7 +285,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     }
   });
 
-  // Search / filter
   let searchTimer;
   document.getElementById('search-input')?.addEventListener('input', () => {
     clearTimeout(searchTimer);
@@ -198,7 +292,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   });
   document.getElementById('status-filter')?.addEventListener('change', () => { currentPage = 1; loadProducts(); });
 
-  // Open edit modal
   async function openEdit(id) {
     const res = await fetch(`${apiUrl}/shop/admin/products/${id}`, { headers: headers() });
     const p = await res.json();
@@ -216,7 +309,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     document.getElementById('p-active').checked = !!p.is_active;
     document.getElementById('p-featured').checked = !!p.is_featured;
     document.getElementById('p-track-stock').checked = !!p.track_stock;
-    document.getElementById('product-modal').classList.remove('hidden');
+    document.getElementById('product-modal').style.display = 'flex';
   }
 
   function openNew() {
@@ -226,14 +319,15 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     document.getElementById('product-id').value = '';
     document.getElementById('p-active').checked = true;
     document.getElementById('p-track-stock').checked = true;
-    document.getElementById('form-error').classList.add('hidden');
-    document.getElementById('product-modal').classList.remove('hidden');
+    const formErr = document.getElementById('form-error');
+    if (formErr) formErr.style.display = 'none';
+    document.getElementById('product-modal').style.display = 'flex';
   }
 
   document.getElementById('new-product-btn')?.addEventListener('click', openNew);
   document.getElementById('modal-close')?.addEventListener('click', closeModal);
   document.getElementById('form-cancel')?.addEventListener('click', closeModal);
-  function closeModal() { document.getElementById('product-modal').classList.add('hidden'); }
+  function closeModal() { document.getElementById('product-modal').style.display = 'none'; }
 
   document.getElementById('product-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -261,23 +355,24 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     try {
       const res = await fetch(url, { method, headers: headers(), body: JSON.stringify(body) });
       const data = await res.json();
+      const formErr = document.getElementById('form-error');
       if (!res.ok) {
-        document.getElementById('form-error').textContent = data.error || 'Fejl';
-        document.getElementById('form-error').classList.remove('hidden');
+        formErr.textContent = data.error || 'Fejl';
+        formErr.style.display = 'block';
       } else {
         closeModal();
         loadProducts();
       }
     } catch (e) {
-      document.getElementById('form-error').textContent = e.message;
-      document.getElementById('form-error').classList.remove('hidden');
+      const formErr = document.getElementById('form-error');
+      formErr.textContent = e.message;
+      formErr.style.display = 'block';
     } finally {
       btn.disabled = false;
       btn.textContent = 'Gem';
     }
   });
 
-  // Auto-generate slug from name
   document.getElementById('p-name')?.addEventListener('input', () => {
     if (editingId) return;
     const slug = document.getElementById('p-name').value

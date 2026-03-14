@@ -29,52 +29,27 @@ const {
 } = Astro.props;
 ---
 
-<section class="shop-hero relative overflow-hidden bg-[var(--color-bg-subtle,var(--color-neutral-100))]">
-  <div class="mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)]
-              py-16 md:py-24 flex flex-col md:flex-row items-center gap-12">
+<section class="shop-hero">
+  <div class="shop-hero-inner">
 
-    <!-- Text content -->
-    <div class="flex-1 text-center md:text-left" data-reveal>
+    <div class="shop-hero-text" data-reveal>
       {badge && (
-        <span class="inline-block mb-4 rounded-full border border-[var(--color-primary)] px-4 py-1
-                     text-sm font-medium text-[var(--color-primary)]">
-          {badge}
-        </span>
+        <span class="shop-hero-badge">{badge}</span>
       )}
-      <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight text-[var(--color-text-primary)]">
-        {heading}
-      </h1>
+      <h1 class="shop-hero-heading">{heading}</h1>
       {subheading && (
-        <p class="mt-4 text-lg md:text-xl text-[var(--color-text-secondary)] max-w-lg mx-auto md:mx-0">
-          {subheading}
-        </p>
+        <p class="shop-hero-subheading">{subheading}</p>
       )}
-      <div class="mt-8 flex flex-wrap gap-4 justify-center md:justify-start">
-        <a
-          href={ctaHref}
-          class="focus-modern inline-flex min-h-[48px] items-center rounded-[var(--radius-full)]
-                 btn-gradient px-6 py-3 text-base font-semibold text-[var(--color-text-on-primary)]
-                 shadow-[var(--shadow-sm)] transition-opacity hover:opacity-90"
-        >
-          {ctaLabel}
-        </a>
+      <div class="shop-hero-actions">
+        <a href={ctaHref} class="shop-hero-cta-primary">{ctaLabel}</a>
         {secondaryLabel && secondaryHref && (
-          <a
-            href={secondaryHref}
-            class="focus-modern inline-flex min-h-[48px] items-center rounded-[var(--radius-full)]
-                   border border-[var(--color-border)] bg-[var(--color-bg-page)]
-                   px-6 py-3 text-base font-semibold text-[var(--color-text-primary)]
-                   transition-colors hover:bg-[var(--color-neutral-100)]"
-          >
-            {secondaryLabel}
-          </a>
+          <a href={secondaryHref} class="shop-hero-cta-secondary">{secondaryLabel}</a>
         )}
       </div>
     </div>
 
-    <!-- Image -->
     {imageUrl && (
-      <div class="flex-1 w-full max-w-lg" data-reveal>
+      <div class="shop-hero-img-wrap" data-reveal>
         <img
           src={imageUrl}
           alt={imageAlt}
@@ -82,10 +57,121 @@ const {
           height="500"
           loading="eager"
           decoding="async"
-          class="w-full h-auto rounded-[var(--radius-xl,var(--radius-lg))] shadow-[var(--shadow-lg)]
-                 object-cover aspect-[6/5]"
+          class="shop-hero-img"
         />
       </div>
     )}
   </div>
 </section>
+
+<style>
+.shop-hero {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-subtle, var(--color-neutral-100));
+}
+.shop-hero-inner {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 64px var(--container-padding-x);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 48px;
+}
+@media (min-width: 768px) {
+  .shop-hero-inner {
+    flex-direction: row;
+    padding-top: 96px;
+    padding-bottom: 96px;
+  }
+}
+.shop-hero-text {
+  flex: 1;
+  text-align: center;
+}
+@media (min-width: 768px) {
+  .shop-hero-text { text-align: left; }
+}
+.shop-hero-badge {
+  display: inline-block;
+  margin-bottom: 16px;
+  border-radius: 9999px;
+  border: 1px solid var(--color-primary);
+  padding: 4px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+.shop-hero-heading {
+  font-size: clamp(2rem, 5vw, 3.75rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.shop-hero-subheading {
+  margin: 16px 0 0;
+  font-size: 1.125rem;
+  color: var(--color-text-secondary);
+  max-width: 32rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+@media (min-width: 768px) {
+  .shop-hero-subheading { margin-left: 0; margin-right: 0; }
+}
+.shop-hero-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+}
+@media (min-width: 768px) {
+  .shop-hero-actions { justify-content: flex-start; }
+}
+.shop-hero-cta-primary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: opacity 150ms;
+}
+.shop-hero-cta-primary:hover { opacity: 0.9; }
+.shop-hero-cta-secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+  padding: 12px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  transition: background 150ms;
+}
+.shop-hero-cta-secondary:hover { background: var(--color-neutral-100); }
+.shop-hero-img-wrap {
+  flex: 1;
+  width: 100%;
+  max-width: 32rem;
+}
+.shop-hero-img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl, var(--radius-lg));
+  box-shadow: var(--shadow-lg);
+  object-fit: cover;
+  aspect-ratio: 6 / 5;
+}
+</style>

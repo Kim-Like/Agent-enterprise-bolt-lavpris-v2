@@ -37,24 +37,18 @@ const {
   showEmpty = true,
   emptyText = 'Ingen produkter fundet.',
 } = Astro.props;
-
-const colClass = {
-  2: 'grid-cols-1 sm:grid-cols-2',
-  3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  4: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
-}[columns];
 ---
 
 <section class="product-grid-section">
   {(title || description) && (
-    <div class="mb-8 text-center">
-      {title && <h2 class="text-2xl font-bold text-[var(--color-text-primary)]">{title}</h2>}
-      {description && <p class="mt-2 text-[var(--color-text-secondary)]">{description}</p>}
+    <div class="product-grid-header">
+      {title && <h2 class="product-grid-title">{title}</h2>}
+      {description && <p class="product-grid-desc">{description}</p>}
     </div>
   )}
 
   {products.length > 0 ? (
-    <ul class:list={['grid gap-6', colClass]} role="list">
+    <ul class:list={['product-grid', `product-grid-cols-${columns}`]} role="list">
       {products.map(product => (
         <li>
           <ProductCard {...product} />
@@ -62,9 +56,9 @@ const colClass = {
       ))}
     </ul>
   ) : showEmpty ? (
-    <div class="flex flex-col items-center justify-center py-20 text-[var(--color-text-secondary)]">
+    <div class="product-grid-empty">
       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="1.5" class="mb-4 opacity-40" aria-hidden="true">
+           stroke="currentColor" stroke-width="1.5" aria-hidden="true">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
       <p>{emptyText}</p>
@@ -72,8 +66,58 @@ const colClass = {
   ) : null}
 </section>
 
+<style>
+.product-grid-header {
+  margin-bottom: 32px;
+  text-align: center;
+}
+.product-grid-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.product-grid-desc {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+}
+.product-grid {
+  display: grid;
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.product-grid-cols-2 { grid-template-columns: repeat(1, 1fr); }
+.product-grid-cols-3 { grid-template-columns: repeat(1, 1fr); }
+.product-grid-cols-4 { grid-template-columns: repeat(1, 1fr); }
+@media (min-width: 640px) {
+  .product-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid-cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .product-grid-cols-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .product-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .product-grid-cols-4 { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  .product-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+}
+.product-grid-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  color: var(--color-text-secondary);
+}
+.product-grid-empty svg {
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+</style>
+
 <script>
-  // Global "add to cart" handler for ProductCard buttons
   import { addToCart } from '../scripts/cart.js';
 
   document.addEventListener('click', (e) => {
@@ -88,7 +132,6 @@ const colClass = {
 
     addToCart({ product_id: productId, name, price_ore: priceOre, quantity: 1 });
 
-    // Visual feedback
     const orig = btn.textContent;
     btn.textContent = 'Tilføjet ✓';
     btn.setAttribute('disabled', '');

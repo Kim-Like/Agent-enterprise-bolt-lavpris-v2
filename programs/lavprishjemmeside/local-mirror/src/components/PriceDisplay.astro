@@ -4,9 +4,9 @@
  * Prices stored as øre (integers). 9995 = 99,95 kr.
  */
 interface Props {
-  ore: number;           // Price in øre
-  compareOre?: number;   // "Was" price for strikethrough (optional)
-  showVat?: boolean;     // Append "inkl. moms" label
+  ore: number;
+  compareOre?: number;
+  showVat?: boolean;
   size?: 'sm' | 'md' | 'lg';
   class?: string;
 }
@@ -17,25 +17,49 @@ function formatDkk(ore: number): string {
   return (ore / 100).toFixed(2).replace('.', ',') + ' kr.';
 }
 
-const sizeClass = {
-  sm: 'text-sm',
-  md: 'text-base',
-  lg: 'text-2xl font-bold',
-}[size];
-
 const isDiscounted = compareOre && compareOre > ore;
 ---
 
-<span class:list={['price-display inline-flex flex-wrap items-baseline gap-2', sizeClass, cls]}>
-  <span class:list={['font-semibold', isDiscounted ? 'text-[var(--color-danger,#e53e3e)]' : 'text-[var(--color-text-primary)]']}>
+<span class:list={['price-display', `price-display--${size}`, cls]}>
+  <span class:list={['price-display__current', isDiscounted ? 'price-display__current--sale' : '']}>
     {formatDkk(ore)}
   </span>
   {isDiscounted && (
-    <span class="text-[var(--color-text-secondary)] line-through text-sm font-normal">
+    <span class="price-display__compare">
       {formatDkk(compareOre!)}
     </span>
   )}
   {showVat && (
-    <span class="text-[var(--color-text-secondary)] text-xs font-normal">inkl. moms</span>
+    <span class="price-display__vat">inkl. moms</span>
   )}
 </span>
+
+<style>
+.price-display {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.price-display__current {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+.price-display__current--sale {
+  color: var(--color-danger, #e53e3e);
+}
+.price-display__compare {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+  font-size: 0.875rem;
+  font-weight: 400;
+}
+.price-display__vat {
+  color: var(--color-text-secondary);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.price-display--sm { font-size: 0.875rem; }
+.price-display--md { font-size: 1rem; }
+.price-display--lg { font-size: 1.5rem; font-weight: 700; }
+</style>

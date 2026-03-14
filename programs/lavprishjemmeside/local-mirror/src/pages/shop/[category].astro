@@ -38,20 +38,19 @@ try {
   description={category.description || `Køb ${category.name} hos Lavprishjemmeside.dk`}
 >
   <main>
-    <div class="mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)] py-10">
-      <!-- Breadcrumb -->
-      <nav class="mb-6 text-sm text-[var(--color-text-secondary)]" aria-label="Brødkrumme">
-        <a href="/shop/" class="hover:text-[var(--color-primary)]">Shop</a>
-        <span class="mx-2">›</span>
-        <span class="text-[var(--color-text-primary)]">{category.name}</span>
+    <div class="cat-page">
+      <nav class="cat-breadcrumb" aria-label="Brødkrumme">
+        <a href="/shop/" class="cat-breadcrumb-link">Shop</a>
+        <span class="cat-breadcrumb-sep">›</span>
+        <span class="cat-breadcrumb-current">{category.name}</span>
       </nav>
 
-      <header class="mb-8">
-        <h1 class="text-3xl font-extrabold text-[var(--color-text-primary)]">{category.name}</h1>
+      <header class="cat-header">
+        <h1 class="cat-title">{category.name}</h1>
         {category.description && (
-          <p class="mt-2 text-[var(--color-text-secondary)]">{category.description}</p>
+          <p class="cat-desc">{category.description}</p>
         )}
-        <p class="mt-1 text-sm text-[var(--color-text-secondary)]">{total} produkt{total === 1 ? '' : 'er'}</p>
+        <p class="cat-count">{total} produkt{total === 1 ? '' : 'er'}</p>
       </header>
 
       <ProductGrid
@@ -62,3 +61,40 @@ try {
     </div>
   </main>
 </Layout>
+
+<style>
+.cat-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 40px var(--container-padding-x);
+}
+.cat-breadcrumb {
+  margin-bottom: 24px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+.cat-breadcrumb-link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 150ms;
+}
+.cat-breadcrumb-link:hover { color: var(--color-primary); }
+.cat-breadcrumb-sep { margin: 0 8px; }
+.cat-breadcrumb-current { color: var(--color-text-primary); }
+.cat-header { margin-bottom: 32px; }
+.cat-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.cat-desc {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+}
+.cat-count {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+</style>

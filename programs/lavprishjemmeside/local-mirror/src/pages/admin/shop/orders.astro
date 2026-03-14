@@ -4,34 +4,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <AdminLayout title="Ordrer">
-  <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-      <h1 class="text-2xl font-bold">Ordrer</h1>
+  <div class="admin-orders">
+    <div class="ao-header">
+      <h1 class="ao-title">Ordrer</h1>
     </div>
 
-    <!-- Stats row -->
-    <div id="stats-row" class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Omsætning (30d)</p>
-        <p id="stat-revenue" class="text-2xl font-bold text-gray-900 mt-1">—</p>
+    <div id="stats-row" class="ao-stats-grid">
+      <div class="ao-stat-card">
+        <p class="ao-stat-label">Omsætning (30d)</p>
+        <p id="stat-revenue" class="ao-stat-value">—</p>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Ordrer (30d)</p>
-        <p id="stat-orders" class="text-2xl font-bold text-gray-900 mt-1">—</p>
+      <div class="ao-stat-card">
+        <p class="ao-stat-label">Ordrer (30d)</p>
+        <p id="stat-orders" class="ao-stat-value">—</p>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Afventer betaling</p>
-        <p id="stat-pending" class="text-2xl font-bold text-amber-600 mt-1">—</p>
+      <div class="ao-stat-card">
+        <p class="ao-stat-label">Afventer betaling</p>
+        <p id="stat-pending" class="ao-stat-value ao-stat-warning">—</p>
       </div>
-      <div class="rounded-lg border border-gray-200 bg-white p-4">
-        <p class="text-xs text-gray-500 uppercase tracking-wider">Klar til afsendelse</p>
-        <p id="stat-to-ship" class="text-2xl font-bold text-blue-600 mt-1">—</p>
+      <div class="ao-stat-card">
+        <p class="ao-stat-label">Klar til afsendelse</p>
+        <p id="stat-to-ship" class="ao-stat-value ao-stat-info">—</p>
       </div>
     </div>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-3">
-      <input id="search-input" type="search" placeholder="Søg ordre, e-mail, navn..." class="admin-input w-full sm:w-64" />
+    <div class="ao-filters">
+      <input id="search-input" type="search" placeholder="Søg ordre, e-mail, navn..." class="admin-input ao-search" />
       <select id="status-filter" class="admin-input">
         <option value="">Alle statuser</option>
         <option value="pending_payment">Afventer betaling</option>
@@ -44,56 +42,125 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       </select>
     </div>
 
-    <div id="loading" class="text-center py-8 text-gray-500">Henter ordrer...</div>
+    <div id="loading" class="ao-loading">Henter ordrer...</div>
 
-    <div id="orders-table-wrap" class="hidden overflow-x-auto rounded-lg border border-gray-200">
-      <table class="min-w-full divide-y divide-gray-200 text-sm">
-        <thead class="bg-gray-50">
+    <div id="orders-table-wrap" class="ao-table-wrap" style="display:none">
+      <table class="ao-table">
+        <thead>
           <tr>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Ordre</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Kunde</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Total</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Dato</th>
-            <th class="px-4 py-3 text-left font-semibold text-gray-600">Handling</th>
+            <th class="ao-th">Ordre</th>
+            <th class="ao-th">Kunde</th>
+            <th class="ao-th">Total</th>
+            <th class="ao-th">Status</th>
+            <th class="ao-th">Dato</th>
+            <th class="ao-th">Handling</th>
           </tr>
         </thead>
-        <tbody id="orders-tbody" class="divide-y divide-gray-100 bg-white"></tbody>
+        <tbody id="orders-tbody" class="ao-tbody"></tbody>
       </table>
     </div>
 
-    <div id="pagination" class="hidden flex items-center justify-between text-sm text-gray-500 pt-2"></div>
+    <div id="pagination" class="ao-pagination" style="display:none"></div>
   </div>
 
-  <!-- Order detail modal -->
-  <div id="order-modal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-start justify-center overflow-y-auto py-8 px-4">
-    <div class="w-full max-w-2xl bg-white rounded-xl shadow-xl">
-      <div class="flex items-center justify-between px-6 py-4 border-b">
-        <h2 id="modal-order-title" class="text-lg font-bold">Ordredetaljer</h2>
-        <button id="modal-close" class="text-gray-400 hover:text-gray-700 text-xl">&times;</button>
+  <div id="order-modal" class="ao-modal-backdrop" style="display:none">
+    <div class="ao-modal">
+      <div class="ao-modal-header">
+        <h2 id="modal-order-title" class="ao-modal-title">Ordredetaljer</h2>
+        <button id="modal-close" class="ao-modal-close">&times;</button>
       </div>
-      <div id="modal-body" class="p-6 space-y-6"></div>
+      <div id="modal-body" class="ao-modal-body"></div>
     </div>
   </div>
 </AdminLayout>
 
 <style>
-.admin-input { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.375rem 0.625rem; font-size: 0.875rem; outline: none; }
-.admin-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+.admin-orders { display: flex; flex-direction: column; gap: 24px; }
+.ao-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.ao-title { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.ao-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (min-width: 768px) { .ao-stats-grid { grid-template-columns: repeat(4, 1fr); } }
+.ao-stat-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+  padding: 16px;
+}
+.ao-stat-label { font-size: 0.75rem; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.ao-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 4px 0 0; }
+.ao-stat-warning { color: #d97706; }
+.ao-stat-info { color: #2563eb; }
+.ao-filters { display: flex; flex-wrap: wrap; gap: 12px; }
+.ao-search { width: 100%; }
+@media (min-width: 640px) { .ao-search { width: 16rem; } }
+.ao-loading { text-align: center; padding: 32px 0; color: var(--color-text-secondary); }
+.ao-table-wrap { overflow-x: auto; border-radius: var(--radius-md); border: 1px solid var(--color-border); }
+.ao-table { min-width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.ao-table thead { background: var(--color-neutral-100); }
+.ao-th { padding: 12px 16px; text-align: left; font-weight: 600; color: var(--color-text-secondary); white-space: nowrap; }
+.ao-tbody tr { border-top: 1px solid var(--color-border); }
+.ao-tbody tr:hover { background: var(--color-neutral-100); }
+.ao-td { padding: 12px 16px; }
+.ao-customer-name { color: var(--color-text-primary); margin: 0; }
+.ao-customer-email { font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; }
+.ao-status-badge { display: inline-block; border-radius: 9999px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; }
+.ao-status-pending { background: #fef3c7; color: #92400e; }
+.ao-status-paid { background: #dcfce7; color: #166534; }
+.ao-status-processing { background: #dbeafe; color: #1e40af; }
+.ao-status-shipped { background: #dbeafe; color: #1e40af; }
+.ao-status-delivered { background: #dcfce7; color: #166534; }
+.ao-status-cancelled { background: #fee2e2; color: #991b1b; }
+.ao-status-refunded { background: var(--color-neutral-100); color: var(--color-text-secondary); }
+.ao-view-btn { font-size: 0.75rem; color: var(--color-primary); background: none; border: none; cursor: pointer; padding: 0; }
+.ao-view-btn:hover { text-decoration: underline; }
+.ao-pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.875rem; color: var(--color-text-secondary); padding-top: 8px;
+}
+.ao-pag-btn { padding: 4px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-sm, 4px); font-size: 0.75rem; cursor: pointer; background: none; }
+.ao-date { color: var(--color-text-secondary); }
+.ao-order-number { font-weight: 500; color: var(--color-text-primary); }
+
+.ao-modal-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 32px 16px;
+}
+.ao-modal { width: 100%; max-width: 42rem; background: white; border-radius: var(--radius-xl, 12px); box-shadow: var(--shadow-xl); }
+.ao-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 1px solid var(--color-border); }
+.ao-modal-title { font-size: 1.125rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.ao-modal-close { font-size: 1.25rem; background: none; border: none; cursor: pointer; color: var(--color-text-secondary); }
+.ao-modal-close:hover { color: var(--color-text-primary); }
+.ao-modal-body { padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+
+.admin-input {
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-md, 0.375rem);
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  outline: none;
+  background: var(--color-bg-page);
+  color: var(--color-text-primary);
+}
+.admin-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
 </style>
 
 <script define:vars={{ apiUrl }}>
   const token = () => localStorage.getItem('admin_token');
   const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` });
 
-  const statusLabels = {
-    pending_payment: ['Afventer betaling', 'bg-amber-100 text-amber-700'],
-    paid: ['Betalt', 'bg-green-100 text-green-700'],
-    processing: ['Under behandling', 'bg-blue-100 text-blue-700'],
-    shipped: ['Afsendt', 'bg-blue-100 text-blue-700'],
-    delivered: ['Leveret', 'bg-green-100 text-green-700'],
-    cancelled: ['Annulleret', 'bg-red-100 text-red-700'],
-    refunded: ['Refunderet', 'bg-gray-100 text-gray-600'],
+  const statusMap = {
+    pending_payment: ['Afventer betaling', 'ao-status-pending'],
+    paid: ['Betalt', 'ao-status-paid'],
+    processing: ['Under behandling', 'ao-status-processing'],
+    shipped: ['Afsendt', 'ao-status-shipped'],
+    delivered: ['Leveret', 'ao-status-delivered'],
+    cancelled: ['Annulleret', 'ao-status-cancelled'],
+    refunded: ['Refunderet', 'ao-status-refunded'],
   };
 
   function fmt(ore) { return (ore / 100).toFixed(2).replace('.', ',') + ' kr.'; }
@@ -123,44 +190,44 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       const res = await fetch(`${apiUrl}/shop/admin/orders?${params}`, { headers: headers() });
       const data = await res.json();
       document.getElementById('loading')?.classList.add('hidden');
-      document.getElementById('orders-table-wrap')?.classList.remove('hidden');
+      const tableWrap = document.getElementById('orders-table-wrap');
+      if (tableWrap) tableWrap.style.display = 'block';
 
       const tbody = document.getElementById('orders-tbody');
       tbody.innerHTML = '';
       (data.orders || []).forEach(o => {
-        const [label, cls] = statusLabels[o.status] || [o.status, 'bg-gray-100 text-gray-600'];
+        const [label, cls] = statusMap[o.status] || [o.status, 'ao-status-refunded'];
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td class="px-4 py-3 font-medium text-gray-900">${o.order_number}</td>
-          <td class="px-4 py-3">
-            <p class="text-gray-900">${o.ship_first_name} ${o.ship_last_name}</p>
-            <p class="text-xs text-gray-400">${o.ship_email}</p>
+          <td class="ao-td ao-order-number">${o.order_number}</td>
+          <td class="ao-td">
+            <p class="ao-customer-name">${o.ship_first_name} ${o.ship_last_name}</p>
+            <p class="ao-customer-email">${o.ship_email}</p>
           </td>
-          <td class="px-4 py-3 font-medium">${fmt(o.total_ore)}</td>
-          <td class="px-4 py-3">
-            <span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>
+          <td class="ao-td" style="font-weight:500">${fmt(o.total_ore)}</td>
+          <td class="ao-td">
+            <span class="ao-status-badge ${cls}">${label}</span>
           </td>
-          <td class="px-4 py-3 text-gray-500">${fmtDate(o.created_at)}</td>
-          <td class="px-4 py-3">
-            <button class="view-btn text-blue-600 hover:underline text-xs" data-id="${o.id}">Se detaljer</button>
+          <td class="ao-td ao-date">${fmtDate(o.created_at)}</td>
+          <td class="ao-td">
+            <button class="ao-view-btn view-btn" data-id="${o.id}">Se detaljer</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
 
       const pag = document.getElementById('pagination');
-      pag.classList.remove('hidden');
-      pag.innerHTML = `<span>Side ${currentPage} · ${data.total} ordrer i alt</span>
-        <div class="flex gap-2">
-          ${currentPage > 1 ? '<button id="prev-page" class="px-3 py-1 border rounded text-xs">← Forrige</button>' : ''}
-          ${data.total > currentPage * 25 ? '<button id="next-page" class="px-3 py-1 border rounded text-xs">Næste →</button>' : ''}
-        </div>`;
-
-      document.getElementById('prev-page')?.addEventListener('click', () => { currentPage--; loadOrders(); });
-      document.getElementById('next-page')?.addEventListener('click', () => { currentPage++; loadOrders(); });
-    } catch (e) {
-      document.getElementById('loading')?.classList.add('hidden');
-    }
+      if (pag) {
+        pag.style.display = 'flex';
+        pag.innerHTML = `<span>Side ${currentPage} · ${data.total} ordrer i alt</span>
+          <div style="display:flex;gap:8px">
+            ${currentPage > 1 ? '<button id="prev-page" class="ao-pag-btn">← Forrige</button>' : ''}
+            ${data.total > currentPage * 25 ? '<button id="next-page" class="ao-pag-btn">Næste →</button>' : ''}
+          </div>`;
+        document.getElementById('prev-page')?.addEventListener('click', () => { currentPage--; loadOrders(); });
+        document.getElementById('next-page')?.addEventListener('click', () => { currentPage++; loadOrders(); });
+      }
+    } catch {}
   }
 
   document.getElementById('orders-tbody')?.addEventListener('click', async (e) => {
@@ -171,63 +238,63 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     const res = await fetch(`${apiUrl}/shop/admin/orders/${id}`, { headers: headers() });
     const o = await res.json();
 
-    const [label, cls] = statusLabels[o.status] || [o.status, 'bg-gray-100 text-gray-600'];
+    const [label, cls] = statusMap[o.status] || [o.status, 'ao-status-refunded'];
 
     document.getElementById('modal-order-title').textContent = `Ordre ${o.order_number}`;
     document.getElementById('modal-body').innerHTML = `
-      <div class="grid grid-cols-2 gap-4 text-sm">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:0.875rem">
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase">Status</p>
-          <span class="inline-block mt-1 rounded-full px-2 py-0.5 text-xs font-semibold ${cls}">${label}</span>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Status</p>
+          <span class="ao-status-badge ${cls}" style="margin-top:4px;display:inline-block">${label}</span>
         </div>
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase">Total</p>
-          <p class="font-bold mt-1">${fmt(o.total_ore)}</p>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Total</p>
+          <p style="font-weight:700;margin:4px 0 0">${fmt(o.total_ore)}</p>
         </div>
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase">Kunde</p>
-          <p class="mt-1">${o.ship_first_name} ${o.ship_last_name}<br><a href="mailto:${o.ship_email}" class="text-blue-600">${o.ship_email}</a></p>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Kunde</p>
+          <p style="margin:4px 0 0">${o.ship_first_name} ${o.ship_last_name}<br><a href="mailto:${o.ship_email}" style="color:var(--color-primary)">${o.ship_email}</a></p>
         </div>
         <div>
-          <p class="text-xs font-semibold text-gray-500 uppercase">Adresse</p>
-          <p class="mt-1">${o.ship_address1}, ${o.ship_zip} ${o.ship_city}</p>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Adresse</p>
+          <p style="margin:4px 0 0">${o.ship_address1}, ${o.ship_zip} ${o.ship_city}</p>
         </div>
       </div>
 
       <div>
-        <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Produkter</p>
-        <ul class="space-y-1 text-sm">
+        <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Produkter</p>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:0.875rem">
           ${(o.items || []).map(i => `
-            <li class="flex justify-between">
+            <li style="display:flex;justify-content:space-between">
               <span>${i.product_name}${i.variant_name ? ' / ' + i.variant_name : ''} × ${i.quantity}</span>
-              <span class="font-medium">${fmt(i.total_price_ore)}</span>
+              <span style="font-weight:500">${fmt(i.total_price_ore)}</span>
             </li>
           `).join('')}
         </ul>
       </div>
 
-      <div class="border-t pt-4">
-        <p class="text-xs font-semibold text-gray-500 uppercase mb-3">Opdater status</p>
-        <div class="flex flex-wrap gap-2">
+      <div style="border-top:1px solid var(--color-border);padding-top:16px">
+        <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 12px">Opdater status</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
           ${['paid','processing','shipped','delivered','cancelled','refunded'].map(s => {
-            const [sl] = statusLabels[s] || [s];
-            return `<button class="status-update-btn px-3 py-1 text-xs border rounded-full hover:bg-gray-50 font-medium ${o.status === s ? 'bg-gray-100' : ''}" data-order-id="${o.id}" data-status="${s}">${sl}</button>`;
+            const [sl] = statusMap[s] || [s, ''];
+            return `<button class="status-update-btn" data-order-id="${o.id}" data-status="${s}" style="padding:4px 12px;font-size:0.75rem;border:1px solid var(--color-border);border-radius:9999px;cursor:pointer;font-weight:500;background:${o.status === s ? 'var(--color-neutral-100)' : 'none'}">${sl}</button>`;
           }).join('')}
         </div>
       </div>
 
-      <div class="border-t pt-4">
-        <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Sporings-id</p>
-        <div class="flex gap-2">
-          <input id="tracking-number" type="text" value="${o.tracking_number || ''}" placeholder="Sporings-id" class="admin-input flex-1" />
-          <input id="tracking-carrier" type="text" value="${o.tracking_carrier || ''}" placeholder="Fragtfirma" class="admin-input w-28" />
-          <button id="save-tracking-btn" data-order-id="${o.id}" class="px-3 py-1 bg-gray-800 text-white rounded text-xs">Gem</button>
+      <div style="border-top:1px solid var(--color-border);padding-top:16px">
+        <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Sporings-id</p>
+        <div style="display:flex;gap:8px">
+          <input id="tracking-number" type="text" value="${o.tracking_number || ''}" placeholder="Sporings-id" class="admin-input" style="flex:1" />
+          <input id="tracking-carrier" type="text" value="${o.tracking_carrier || ''}" placeholder="Fragtfirma" class="admin-input" style="width:7rem" />
+          <button id="save-tracking-btn" data-order-id="${o.id}" style="padding:4px 12px;background:var(--color-text-primary);color:white;border:none;border-radius:var(--radius-sm,4px);font-size:0.75rem;cursor:pointer">Gem</button>
         </div>
       </div>
 
-      <div class="border-t pt-4">
-        <p class="text-xs font-semibold text-gray-500 uppercase mb-2">Hændelseslog</p>
-        <ul class="space-y-1 text-xs text-gray-500">
+      <div style="border-top:1px solid var(--color-border);padding-top:16px">
+        <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Hændelseslog</p>
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:0.75rem;color:var(--color-text-secondary)">
           ${(o.events || []).slice(0, 10).map(ev => `
             <li>${new Date(ev.created_at).toLocaleString('da-DK')} · <strong>${ev.event_type}</strong>${ev.message ? ' — ' + ev.message : ''}</li>
           `).join('')}
@@ -241,7 +308,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           method: 'POST', headers: headers(),
           body: JSON.stringify({ status: btn.dataset.status })
         });
-        document.getElementById('order-modal').classList.add('hidden');
+        document.getElementById('order-modal').style.display = 'none';
         loadOrders();
         loadDashboard();
       });
@@ -257,11 +324,11 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       });
     });
 
-    document.getElementById('order-modal').classList.remove('hidden');
+    document.getElementById('order-modal').style.display = 'flex';
   }
 
   document.getElementById('modal-close')?.addEventListener('click', () => {
-    document.getElementById('order-modal').classList.add('hidden');
+    document.getElementById('order-modal').style.display = 'none';
   });
 
   let searchTimer;

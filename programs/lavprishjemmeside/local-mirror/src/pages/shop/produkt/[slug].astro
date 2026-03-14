@@ -68,12 +68,12 @@ const schemaMarkup = [{
           if (fresh.track_stock) {
             if (fresh.stock === 0 && !fresh.variants?.length) {
               stockEl.textContent = 'Udsolgt';
-              stockEl.className = 'text-sm font-medium text-red-600';
+              stockEl.style.cssText = 'font-size:0.875rem;font-weight:500;color:#dc2626';
               const addBtn = document.getElementById('add-to-cart-detail');
               if (addBtn) { addBtn.disabled = true; addBtn.textContent = 'Udsolgt'; }
             } else if (fresh.stock <= 5) {
               stockEl.textContent = `Kun ${fresh.stock} tilbage på lager`;
-              stockEl.className = 'text-sm font-medium text-orange-500';
+              stockEl.style.cssText = 'font-size:0.875rem;font-weight:500;color:#f97316';
             }
           }
 

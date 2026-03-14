@@ -4,63 +4,200 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <Layout title="Kurv — Shop — Lavprishjemmeside.dk" description="Se din indkøbskurv og gå til betaling.">
-  <main class="mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)] py-12">
-    <h1 class="text-3xl font-extrabold text-[var(--color-text-primary)] mb-8">Din kurv</h1>
+  <main class="kurv-page">
+    <h1 class="kurv-title">Din kurv</h1>
 
-    <div id="cart-loading" class="text-center py-16 text-[var(--color-text-secondary)]">Henter kurv...</div>
+    <div id="cart-loading" class="kurv-loading">Henter kurv...</div>
 
-    <div id="cart-page-content" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <!-- Items -->
-        <div class="lg:col-span-2">
-          <div id="cart-empty-msg" class="hidden text-center py-16 text-[var(--color-text-secondary)]">
-            <p class="text-lg font-medium mb-2">Kurven er tom</p>
-            <a href="/shop/" class="text-[var(--color-primary)] hover:underline">Gå til shoppen</a>
+    <div id="cart-page-content" style="display:none">
+      <div class="kurv-layout">
+        <div class="kurv-items-col">
+          <div id="cart-empty-msg" class="kurv-empty" style="display:none">
+            <p class="kurv-empty-text">Kurven er tom</p>
+            <a href="/shop/" class="kurv-empty-link">Gå til shoppen</a>
           </div>
-          <ul id="kurv-items" class="divide-y divide-[var(--color-border)]"></ul>
+          <ul id="kurv-items" class="kurv-list"></ul>
         </div>
 
-        <!-- Summary -->
-        <div id="cart-summary" class="hidden rounded-[var(--radius-lg)] border border-[var(--color-border)] p-6 h-fit space-y-4">
-          <h2 class="text-lg font-bold text-[var(--color-text-primary)]">Oversigt</h2>
-          <div class="space-y-2 text-sm">
-            <div class="flex justify-between">
-              <span class="text-[var(--color-text-secondary)]">Subtotal</span>
-              <span id="summary-subtotal" class="font-medium">—</span>
+        <div id="cart-summary" class="kurv-summary" style="display:none">
+          <h2 class="kurv-summary-title">Oversigt</h2>
+          <div class="kurv-summary-rows">
+            <div class="kurv-summary-row">
+              <span class="kurv-summary-label">Subtotal</span>
+              <span id="summary-subtotal" class="kurv-summary-value">—</span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-[var(--color-text-secondary)]">Fragt</span>
-              <span class="text-[var(--color-text-secondary)]">Beregnes ved checkout</span>
+            <div class="kurv-summary-row">
+              <span class="kurv-summary-label">Fragt</span>
+              <span class="kurv-summary-label">Beregnes ved checkout</span>
             </div>
           </div>
-          <div class="border-t border-[var(--color-border)] pt-3 flex justify-between font-bold">
+          <div class="kurv-summary-total-row">
             <span>Total (ex. fragt)</span>
             <span id="summary-total">—</span>
           </div>
-          <p class="text-xs text-[var(--color-text-secondary)]">Inkl. 25% moms.</p>
-          <a
-            href="/shop/checkout/"
-            class="block w-full text-center rounded-[var(--radius-full)] btn-gradient
-                   px-6 py-3 font-semibold text-[var(--color-text-on-primary)]
-                   shadow-[var(--shadow-sm)] transition-opacity hover:opacity-90"
-          >
-            Til betaling
-          </a>
-          <a href="/shop/" class="block text-center text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-primary)]">
-            Fortsæt med at handle
-          </a>
+          <p class="kurv-vat-note">Inkl. 25% moms.</p>
+          <a href="/shop/checkout/" class="kurv-checkout-btn">Til betaling</a>
+          <a href="/shop/" class="kurv-continue-link">Fortsæt med at handle</a>
         </div>
       </div>
     </div>
   </main>
 </Layout>
 
+<style>
+.kurv-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding-x);
+}
+.kurv-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0 0 32px;
+}
+.kurv-loading {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--color-text-secondary);
+}
+.kurv-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+@media (min-width: 1024px) {
+  .kurv-layout { grid-template-columns: 2fr 1fr; }
+}
+.kurv-empty {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--color-text-secondary);
+}
+.kurv-empty-text { font-size: 1.125rem; font-weight: 500; margin: 0 0 8px; }
+.kurv-empty-link { color: var(--color-primary); text-decoration: none; }
+.kurv-empty-link:hover { text-decoration: underline; }
+.kurv-list { list-style: none; margin: 0; padding: 0; }
+.kurv-item {
+  display: flex;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.kurv-item-img-wrap {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-neutral-100);
+}
+.kurv-item-img { width: 100%; height: 100%; object-fit: cover; }
+.kurv-item-body { flex: 1; min-width: 0; }
+.kurv-item-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.kurv-item-name { font-weight: 600; color: var(--color-text-primary); margin: 0; }
+.kurv-item-total { font-weight: 700; color: var(--color-text-primary); white-space: nowrap; }
+.kurv-item-variant { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; }
+.kurv-item-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.kurv-qty-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.kurv-qty-btn {
+  padding: 6px 12px;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: background 150ms;
+}
+.kurv-qty-btn:hover { background: var(--color-neutral-100); }
+.kurv-qty-count { font-size: 0.875rem; width: 32px; text-align: center; }
+.kurv-item-unit { font-size: 0.875rem; color: var(--color-text-secondary); }
+.kurv-remove-btn {
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: #ef4444;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.kurv-remove-btn:hover { text-decoration: underline; }
+.kurv-summary {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.kurv-summary-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.kurv-summary-rows { display: flex; flex-direction: column; gap: 8px; }
+.kurv-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+.kurv-summary-label { color: var(--color-text-secondary); }
+.kurv-summary-value { font-weight: 500; }
+.kurv-summary-total-row {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-border);
+}
+.kurv-vat-note { font-size: 0.75rem; color: var(--color-text-secondary); margin: 0; }
+.kurv-checkout-btn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  padding: 12px 24px;
+  font-weight: 600;
+  color: var(--color-text-on-primary);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: opacity 150ms;
+}
+.kurv-checkout-btn:hover { opacity: 0.9; }
+.kurv-continue-link {
+  display: block;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+.kurv-continue-link:hover { color: var(--color-primary); }
+</style>
+
 <script define:vars={{ apiUrl }}>
   import('/shop/../scripts/cart.js').then(({ getCart, setQuantity, removeFromCart, getCartTotal, validateCart }) => {
     init(getCart, setQuantity, removeFromCart, getCartTotal, validateCart);
-  }).catch(() => {
-    // Fallback: load from window module
-  });
+  }).catch(() => {});
 
   async function init(getCart, setQuantity, removeFromCart, getCartTotal, validateCart) {
     const loadingEl = document.getElementById('cart-loading');
@@ -77,43 +214,43 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     function render() {
       const { items } = getCart();
-      loadingEl?.classList.add('hidden');
-      contentEl?.classList.remove('hidden');
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (contentEl) contentEl.style.display = 'block';
 
       if (items.length === 0) {
-        emptyMsg?.classList.remove('hidden');
-        summaryEl?.classList.add('hidden');
+        if (emptyMsg) emptyMsg.style.display = 'block';
+        if (summaryEl) summaryEl.style.display = 'none';
         itemsList.innerHTML = '';
         return;
       }
 
-      emptyMsg?.classList.add('hidden');
-      summaryEl?.classList.remove('hidden');
+      if (emptyMsg) emptyMsg.style.display = 'none';
+      if (summaryEl) summaryEl.style.display = 'flex';
 
       itemsList.innerHTML = '';
       items.forEach(item => {
         const li = document.createElement('li');
-        li.className = 'py-5 flex gap-4';
+        li.className = 'kurv-item';
         li.innerHTML = `
-          <div class="shrink-0 w-20 h-20 rounded-[var(--radius-md)] overflow-hidden bg-[var(--color-neutral-100)]">
-            <img src="${item.image_url || '/favicon.svg'}" alt="${item.name}" width="80" height="80" class="w-full h-full object-cover" loading="lazy"/>
+          <div class="kurv-item-img-wrap">
+            <img src="${item.image_url || '/favicon.svg'}" alt="${item.name}" width="80" height="80" class="kurv-item-img" loading="lazy"/>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex justify-between gap-2">
+          <div class="kurv-item-body">
+            <div class="kurv-item-top">
               <div>
-                <p class="font-semibold text-[var(--color-text-primary)]">${item.name}</p>
-                ${item.variant_name ? `<p class="text-sm text-[var(--color-text-secondary)]">${item.variant_name}</p>` : ''}
+                <p class="kurv-item-name">${item.name}</p>
+                ${item.variant_name ? `<p class="kurv-item-variant">${item.variant_name}</p>` : ''}
               </div>
-              <p class="font-bold text-[var(--color-text-primary)] shrink-0">${fmt(item.price_ore * item.quantity)}</p>
+              <p class="kurv-item-total">${fmt(item.price_ore * item.quantity)}</p>
             </div>
-            <div class="flex items-center gap-3 mt-3">
-              <div class="flex items-center border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden">
-                <button class="qty-minus px-3 py-1.5 hover:bg-[var(--color-neutral-100)] text-sm" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">−</button>
-                <span class="text-sm w-8 text-center">${item.quantity}</span>
-                <button class="qty-plus px-3 py-1.5 hover:bg-[var(--color-neutral-100)] text-sm" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">+</button>
+            <div class="kurv-item-controls">
+              <div class="kurv-qty-wrap">
+                <button class="kurv-qty-btn qty-minus" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">−</button>
+                <span class="kurv-qty-count">${item.quantity}</span>
+                <button class="kurv-qty-btn qty-plus" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">+</button>
               </div>
-              <span class="text-sm text-[var(--color-text-secondary)]">${fmt(item.price_ore)} / stk</span>
-              <button class="remove-item ml-auto text-sm text-red-500 hover:underline" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">Fjern</button>
+              <span class="kurv-item-unit">${fmt(item.price_ore)} / stk</span>
+              <button class="kurv-remove-btn remove-item" data-pid="${item.product_id}" data-vid="${item.variant_id ?? ''}">Fjern</button>
             </div>
           </div>
         `;
@@ -125,7 +262,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       if (totalEl) totalEl.textContent = fmt(total);
     }
 
-    // Event delegation
     itemsList?.addEventListener('click', e => {
       const t = e.target;
       const pid = parseInt(t.dataset.pid || '0');
@@ -140,7 +276,6 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     window.addEventListener('cart:updated', render);
 
-    // Validate cart stock on load
     await validateCart(apiUrl);
     render();
   }

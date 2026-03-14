@@ -9,143 +9,263 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <Layout title="Ordrebekræftelse — Shop — Lavprishjemmeside.dk" description="Tak for din ordre!">
-  <main class="mx-auto max-w-[var(--container-max-width)] px-[var(--container-padding-x)] py-12">
-    <div id="order-loading" class="text-center py-16 text-[var(--color-text-secondary)]">Henter ordre...</div>
-    <div id="order-error" class="hidden text-center py-16 text-[var(--color-text-secondary)]">
-      <p class="mb-2">Ordre ikke fundet.</p>
-      <a href="/shop/" class="text-[var(--color-primary)] hover:underline">Gå til shoppen</a>
+  <main class="ordre-page">
+    <div id="order-loading" class="ordre-loading">Henter ordre...</div>
+    <div id="order-error" class="ordre-error" style="display:none">
+      <p class="ordre-error-text">Ordre ikke fundet.</p>
+      <a href="/shop/" class="ordre-link">Gå til shoppen</a>
     </div>
-    <div id="order-content" class="hidden max-w-2xl mx-auto">
-      <!-- Success header -->
-      <div id="order-success-header" class="hidden text-center mb-10">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+    <div id="order-content" class="ordre-content" style="display:none">
+      <div id="order-success-header" class="ordre-header" style="display:none">
+        <div class="ordre-success-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
         </div>
-        <h1 class="text-3xl font-extrabold text-[var(--color-text-primary)]">Tak for din ordre!</h1>
-        <p class="mt-2 text-[var(--color-text-secondary)]">Du modtager en ordrebekræftelse på e-mail.</p>
+        <h1 class="ordre-title">Tak for din ordre!</h1>
+        <p class="ordre-subtitle">Du modtager en ordrebekræftelse på e-mail.</p>
       </div>
 
-      <div id="order-pending-header" class="hidden text-center mb-10">
-        <h1 class="text-2xl font-bold text-[var(--color-text-primary)]">Vi venter på betalingsbekræftelse</h1>
-        <p class="mt-2 text-[var(--color-text-secondary)]">Din ordre er oprettet og betaling behandles. Opdater siden om lidt.</p>
+      <div id="order-pending-header" class="ordre-header" style="display:none">
+        <h1 class="ordre-title ordre-title-md">Vi venter på betalingsbekræftelse</h1>
+        <p class="ordre-subtitle">Din ordre er oprettet og betaling behandles. Opdater siden om lidt.</p>
       </div>
 
-      <!-- Order details -->
-      <div class="rounded-[var(--radius-lg)] border border-[var(--color-border)] overflow-hidden">
-        <div class="bg-[var(--color-neutral-100)] px-6 py-4 flex justify-between items-center">
+      <div class="ordre-card">
+        <div class="ordre-card-header">
           <div>
-            <p class="text-sm text-[var(--color-text-secondary)]">Ordrenummer</p>
-            <p id="ord-number" class="font-bold text-[var(--color-text-primary)]">—</p>
+            <p class="ordre-meta-label">Ordrenummer</p>
+            <p id="ord-number" class="ordre-meta-value">—</p>
           </div>
-          <div class="text-right">
-            <p class="text-sm text-[var(--color-text-secondary)]">Status</p>
-            <span id="ord-status-badge" class="inline-block rounded-full px-3 py-0.5 text-sm font-semibold">—</span>
-          </div>
-        </div>
-
-        <!-- Items -->
-        <div class="px-6 py-4 border-b border-[var(--color-border)]">
-          <h2 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-3">Produkter</h2>
-          <ul id="ord-items" class="space-y-3"></ul>
-        </div>
-
-        <!-- Totals -->
-        <div class="px-6 py-4 border-b border-[var(--color-border)] space-y-1 text-sm">
-          <div class="flex justify-between">
-            <span class="text-[var(--color-text-secondary)]">Subtotal</span>
-            <span id="ord-subtotal">—</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-[var(--color-text-secondary)]">Fragt</span>
-            <span id="ord-shipping">—</span>
-          </div>
-          <div id="ord-discount-row" class="hidden flex justify-between text-green-600">
-            <span>Rabat</span>
-            <span id="ord-discount">—</span>
-          </div>
-          <div class="flex justify-between font-bold pt-2 border-t border-[var(--color-border)]">
-            <span>Total inkl. moms</span>
-            <span id="ord-total">—</span>
+          <div class="ordre-card-header-right">
+            <p class="ordre-meta-label">Status</p>
+            <span id="ord-status-badge" class="ordre-status-badge">—</span>
           </div>
         </div>
 
-        <!-- Delivery address -->
-        <div class="px-6 py-4">
-          <h2 class="text-sm font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Levering</h2>
-          <p id="ord-address" class="text-sm text-[var(--color-text-primary)] leading-relaxed"></p>
+        <div class="ordre-card-section">
+          <h2 class="ordre-section-label">Produkter</h2>
+          <ul id="ord-items" class="ordre-items"></ul>
+        </div>
+
+        <div class="ordre-card-section">
+          <div class="ordre-totals">
+            <div class="ordre-total-row">
+              <span class="ordre-total-label">Subtotal</span>
+              <span id="ord-subtotal">—</span>
+            </div>
+            <div class="ordre-total-row">
+              <span class="ordre-total-label">Fragt</span>
+              <span id="ord-shipping">—</span>
+            </div>
+            <div id="ord-discount-row" class="ordre-total-row ordre-discount-row" style="display:none">
+              <span>Rabat</span>
+              <span id="ord-discount">—</span>
+            </div>
+            <div class="ordre-total-row ordre-grand-total">
+              <span>Total inkl. moms</span>
+              <span id="ord-total">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ordre-card-section ordre-card-section-last">
+          <h2 class="ordre-section-label">Levering</h2>
+          <p id="ord-address" class="ordre-address"></p>
         </div>
       </div>
 
-      <div class="mt-8 text-center">
-        <a href="/shop/" class="text-[var(--color-primary)] hover:underline text-sm">Fortsæt med at handle</a>
+      <div class="ordre-footer">
+        <a href="/shop/" class="ordre-link">Fortsæt med at handle</a>
       </div>
     </div>
   </main>
 </Layout>
 
+<style>
+.ordre-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding-x);
+}
+.ordre-loading,
+.ordre-error {
+  text-align: center;
+  padding: 64px 0;
+  color: var(--color-text-secondary);
+}
+.ordre-error-text { margin: 0 0 8px; }
+.ordre-link { color: var(--color-primary); text-decoration: none; font-size: 0.875rem; }
+.ordre-link:hover { text-decoration: underline; }
+.ordre-content { max-width: 42rem; margin: 0 auto; }
+.ordre-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.ordre-success-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 9999px;
+  background: #dcfce7;
+  color: #16a34a;
+  margin-bottom: 16px;
+}
+.ordre-title {
+  font-size: 1.875rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.ordre-title-md { font-size: 1.5rem; }
+.ordre-subtitle {
+  margin: 8px 0 0;
+  color: var(--color-text-secondary);
+}
+.ordre-card {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.ordre-card-header {
+  background: var(--color-neutral-100);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ordre-card-header-right { text-align: right; }
+.ordre-meta-label {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+.ordre-meta-value {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+.ordre-status-badge {
+  display: inline-block;
+  border-radius: 9999px;
+  padding: 2px 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.ordre-status-pending { background: #fef3c7; color: #92400e; }
+.ordre-status-paid { background: #dcfce7; color: #166534; }
+.ordre-status-processing { background: #dbeafe; color: #1e40af; }
+.ordre-status-shipped { background: #dbeafe; color: #1e40af; }
+.ordre-status-delivered { background: #dcfce7; color: #166534; }
+.ordre-status-cancelled { background: #fee2e2; color: #991b1b; }
+.ordre-status-refunded { background: var(--color-neutral-100); color: var(--color-text-secondary); }
+.ordre-card-section {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--color-border);
+}
+.ordre-card-section-last { border-bottom: none; }
+.ordre-section-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px;
+}
+.ordre-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ordre-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+.ordre-item-name { color: var(--color-text-primary); }
+.ordre-item-price { font-weight: 500; white-space: nowrap; }
+.ordre-totals { display: flex; flex-direction: column; gap: 4px; font-size: 0.875rem; }
+.ordre-total-row { display: flex; justify-content: space-between; }
+.ordre-total-label { color: var(--color-text-secondary); }
+.ordre-discount-row { color: #16a34a; }
+.ordre-grand-total {
+  font-weight: 700;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+  margin-top: 4px;
+}
+.ordre-address {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  margin: 0;
+}
+.ordre-footer { margin-top: 32px; text-align: center; }
+</style>
+
 <script define:vars={{ apiUrl }}>
   function fmt(ore) { return (ore / 100).toFixed(2).replace('.', ',') + ' kr.'; }
 
-  const statusLabels = {
-    pending_payment: ['Afventer betaling', 'bg-amber-100 text-amber-700'],
-    paid: ['Betalt', 'bg-green-100 text-green-700'],
-    processing: ['Under behandling', 'bg-blue-100 text-blue-700'],
-    shipped: ['Afsendt', 'bg-blue-100 text-blue-700'],
-    delivered: ['Leveret', 'bg-green-100 text-green-700'],
-    cancelled: ['Annulleret', 'bg-red-100 text-red-700'],
-    refunded: ['Refunderet', 'bg-gray-100 text-gray-700'],
+  const statusMap = {
+    pending_payment: ['Afventer betaling', 'ordre-status-pending'],
+    paid: ['Betalt', 'ordre-status-paid'],
+    processing: ['Under behandling', 'ordre-status-processing'],
+    shipped: ['Afsendt', 'ordre-status-shipped'],
+    delivered: ['Leveret', 'ordre-status-delivered'],
+    cancelled: ['Annulleret', 'ordre-status-cancelled'],
+    refunded: ['Refunderet', 'ordre-status-refunded'],
   };
 
   async function load() {
-    // Token is the last path segment
     const token = window.location.pathname.split('/').filter(Boolean).pop();
     if (!token || token === '_') {
-      document.getElementById('order-loading')?.classList.add('hidden');
-      document.getElementById('order-error')?.classList.remove('hidden');
+      document.getElementById('order-loading').style.display = 'none';
+      document.getElementById('order-error').style.display = 'block';
       return;
     }
 
     try {
       const res = await fetch(`${apiUrl}/shop/orders/${token}`);
-      document.getElementById('order-loading')?.classList.add('hidden');
+      document.getElementById('order-loading').style.display = 'none';
 
       if (!res.ok) {
-        document.getElementById('order-error')?.classList.remove('hidden');
+        document.getElementById('order-error').style.display = 'block';
         return;
       }
 
       const order = await res.json();
-      document.getElementById('order-content')?.classList.remove('hidden');
+      document.getElementById('order-content').style.display = 'block';
 
-      // Success / pending header
       if (['paid','processing','shipped','delivered'].includes(order.status)) {
-        document.getElementById('order-success-header')?.classList.remove('hidden');
-        // Clear cart on success
+        document.getElementById('order-success-header').style.display = 'block';
         const cart = await import('/src/scripts/cart.js').catch(() => null);
         if (cart) cart.clearCart();
       } else {
-        document.getElementById('order-pending-header')?.classList.remove('hidden');
+        document.getElementById('order-pending-header').style.display = 'block';
       }
 
       document.getElementById('ord-number').textContent = order.order_number;
 
-      const [label, cls] = statusLabels[order.status] || [order.status, 'bg-gray-100 text-gray-700'];
+      const [label, cls] = statusMap[order.status] || [order.status, 'ordre-status-refunded'];
       const badge = document.getElementById('ord-status-badge');
       badge.textContent = label;
-      badge.className = `inline-block rounded-full px-3 py-0.5 text-sm font-semibold ${cls}`;
+      badge.className = `ordre-status-badge ${cls}`;
 
-      // Items
       const itemsEl = document.getElementById('ord-items');
       (order.items || []).forEach(item => {
         const li = document.createElement('li');
-        li.className = 'flex justify-between gap-2 text-sm';
+        li.className = 'ordre-item';
         li.innerHTML = `
-          <span class="text-[var(--color-text-primary)]">
+          <span class="ordre-item-name">
             ${item.product_name}${item.variant_name ? ` / ${item.variant_name}` : ''} × ${item.quantity}
           </span>
-          <span class="font-medium shrink-0">${fmt(item.total_price_ore)}</span>
+          <span class="ordre-item-price">${fmt(item.total_price_ore)}</span>
         `;
         itemsEl.appendChild(li);
       });
@@ -155,11 +275,10 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       document.getElementById('ord-total').textContent = fmt(order.total_ore);
 
       if (order.discount_ore > 0) {
-        document.getElementById('ord-discount-row')?.classList.remove('hidden');
+        document.getElementById('ord-discount-row').style.display = 'flex';
         document.getElementById('ord-discount').textContent = `−${fmt(order.discount_ore)}`;
       }
 
-      // Address
       document.getElementById('ord-address').innerHTML = [
         `${order.ship_first_name} ${order.ship_last_name}`,
         order.ship_address1,
@@ -169,8 +288,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       ].filter(Boolean).join('<br>');
 
     } catch {
-      document.getElementById('order-loading')?.classList.add('hidden');
-      document.getElementById('order-error')?.classList.remove('hidden');
+      document.getElementById('order-loading').style.display = 'none';
+      document.getElementById('order-error').style.display = 'block';
     }
   }
 
