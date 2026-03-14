@@ -72,6 +72,33 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       <div id="modal-body" class="ao-modal-body"></div>
     </div>
   </div>
+
+  <div id="refund-modal" class="ao-modal-backdrop" style="display:none">
+    <div class="ao-modal" style="max-width:32rem">
+      <div class="ao-modal-header">
+        <h2 class="ao-modal-title">Refunder ordre</h2>
+        <button id="refund-modal-close" class="ao-modal-close">&times;</button>
+      </div>
+      <div class="ao-modal-body">
+        <div>
+          <label class="ao-field-label" for="refund-reason">Årsag (valgfri)</label>
+          <input id="refund-reason" type="text" class="admin-input" style="width:100%;margin-top:4px" placeholder="F.eks. kunden ønsker at annullere" />
+        </div>
+        <div>
+          <label class="ao-field-label">Gendan lagerbeholdning?</label>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <input type="checkbox" id="refund-restore-stock" style="width:1rem;height:1rem;accent-color:var(--color-primary)" />
+            <label for="refund-restore-stock" style="font-size:0.875rem;color:var(--color-text-primary)">Ja, gendan lager for alle varer</label>
+          </div>
+        </div>
+        <div id="refund-error" class="ao-notice ao-notice-error" style="display:none"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button id="refund-cancel-btn" class="ao-cancel-btn">Annuller</button>
+          <button id="refund-confirm-btn" class="ao-danger-btn">Bekræft refundering</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </AdminLayout>
 
 <style>
@@ -146,6 +173,78 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 .admin-input:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+.ao-field-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.ao-notice {
+  border-radius: var(--radius-md, 6px);
+  padding: 10px 14px;
+  font-size: 0.875rem;
+}
+.ao-notice-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+}
+.ao-cancel-btn {
+  padding: 6px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md, 6px);
+  font-size: 0.875rem;
+  background: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+}
+.ao-cancel-btn:hover { background: var(--color-neutral-100); }
+.ao-danger-btn {
+  padding: 6px 16px;
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: #dc2626;
+  color: #fff;
+  cursor: pointer;
+}
+.ao-danger-btn:hover { background: #b91c1c; }
+.ao-danger-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.ao-refund-btn {
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  border: 1px solid #fca5a5;
+  border-radius: 9999px;
+  cursor: pointer;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-weight: 500;
+}
+.ao-refund-btn:hover { background: #fee2e2; }
+.ao-note-row { display: flex; gap: 8px; }
+.ao-note-input { flex: 1; }
+.ao-save-note-btn {
+  padding: 4px 14px;
+  background: var(--color-text-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  font-size: 0.75rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ao-save-note-btn:hover { opacity: 0.85; }
+.ao-event-internal { color: var(--color-text-primary); font-style: italic; }
+.ao-customer-note-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm, 4px);
+  padding: 8px 12px;
+  font-size: 0.875rem;
+  color: #78350f;
 }
 </style>
 
@@ -234,18 +333,26 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     if (e.target.classList.contains('view-btn')) openOrder(parseInt(e.target.dataset.id));
   });
 
+  let currentOrderId = null;
+
   async function openOrder(id) {
     const res = await fetch(`${apiUrl}/shop/admin/orders/${id}`, { headers: headers() });
     const o = await res.json();
+    currentOrderId = o.id;
 
     const [label, cls] = statusMap[o.status] || [o.status, 'ao-status-refunded'];
+    const refundableStatuses = ['paid', 'processing', 'shipped', 'delivered'];
+    const canRefund = refundableStatuses.includes(o.status);
 
     document.getElementById('modal-order-title').textContent = `Ordre ${o.order_number}`;
     document.getElementById('modal-body').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:0.875rem">
         <div>
           <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Status</p>
-          <span class="ao-status-badge ${cls}" style="margin-top:4px;display:inline-block">${label}</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap">
+            <span class="ao-status-badge ${cls}">${label}</span>
+            ${canRefund ? `<button class="ao-refund-btn" id="open-refund-modal-btn">Refunder</button>` : ''}
+          </div>
         </div>
         <div>
           <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0">Total</p>
@@ -260,6 +367,13 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           <p style="margin:4px 0 0">${o.ship_address1}, ${o.ship_zip} ${o.ship_city}</p>
         </div>
       </div>
+
+      ${o.customer_note ? `
+        <div>
+          <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 6px">Note fra kunde</p>
+          <div class="ao-customer-note-box">${o.customer_note}</div>
+        </div>
+      ` : ''}
 
       <div>
         <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Produkter</p>
@@ -276,7 +390,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       <div style="border-top:1px solid var(--color-border);padding-top:16px">
         <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 12px">Opdater status</p>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
-          ${['paid','processing','shipped','delivered','cancelled','refunded'].map(s => {
+          ${['paid','processing','shipped','delivered','cancelled'].map(s => {
             const [sl] = statusMap[s] || [s, ''];
             return `<button class="status-update-btn" data-order-id="${o.id}" data-status="${s}" style="padding:4px 12px;font-size:0.75rem;border:1px solid var(--color-border);border-radius:9999px;cursor:pointer;font-weight:500;background:${o.status === s ? 'var(--color-neutral-100)' : 'none'}">${sl}</button>`;
           }).join('')}
@@ -293,11 +407,22 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       </div>
 
       <div style="border-top:1px solid var(--color-border);padding-top:16px">
+        <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Intern note</p>
+        <div class="ao-note-row">
+          <input id="internal-note-input" type="text" class="admin-input ao-note-input" placeholder="Tilføj intern note..." />
+          <button id="save-note-btn" class="ao-save-note-btn" data-order-id="${o.id}">Gem</button>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--color-border);padding-top:16px">
         <p style="font-size:0.75rem;font-weight:600;color:var(--color-text-secondary);text-transform:uppercase;margin:0 0 8px">Hændelseslog</p>
-        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:0.75rem;color:var(--color-text-secondary)">
-          ${(o.events || []).slice(0, 10).map(ev => `
-            <li>${new Date(ev.created_at).toLocaleString('da-DK')} · <strong>${ev.event_type}</strong>${ev.message ? ' — ' + ev.message : ''}</li>
-          `).join('')}
+        <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:0.75rem">
+          ${(o.events || []).map(ev => {
+            const isNote = ev.event_type === 'internal_note';
+            const style = isNote ? 'color:var(--color-text-primary);' : 'color:var(--color-text-secondary);';
+            const prefix = isNote ? '📝 Intern note' : `<strong>${ev.event_type}</strong>`;
+            return `<li style="${style}">${new Date(ev.created_at).toLocaleString('da-DK')} · ${prefix}${ev.message ? ' — ' + ev.message : ''}</li>`;
+          }).join('')}
         </ul>
       </div>
     `;
@@ -324,8 +449,73 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       });
     });
 
+    document.getElementById('save-note-btn')?.addEventListener('click', async (e) => {
+      const noteInput = document.getElementById('internal-note-input');
+      const note = noteInput?.value?.trim();
+      if (!note) return;
+      const ordId = parseInt(e.target.dataset.orderId);
+      const saveRes = await fetch(`${apiUrl}/shop/admin/orders/${ordId}/note`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ note }),
+      });
+      if (saveRes.ok) {
+        noteInput.value = '';
+        openOrder(ordId);
+      }
+    });
+
+    document.getElementById('open-refund-modal-btn')?.addEventListener('click', () => {
+      document.getElementById('order-modal').style.display = 'none';
+      document.getElementById('refund-reason').value = '';
+      document.getElementById('refund-restore-stock').checked = false;
+      document.getElementById('refund-error').style.display = 'none';
+      document.getElementById('refund-modal').style.display = 'flex';
+    });
+
     document.getElementById('order-modal').style.display = 'flex';
   }
+
+  document.getElementById('refund-modal-close')?.addEventListener('click', () => {
+    document.getElementById('refund-modal').style.display = 'none';
+  });
+
+  document.getElementById('refund-cancel-btn')?.addEventListener('click', () => {
+    document.getElementById('refund-modal').style.display = 'none';
+  });
+
+  document.getElementById('refund-confirm-btn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('refund-confirm-btn');
+    const errEl = document.getElementById('refund-error');
+    const reason = document.getElementById('refund-reason').value.trim();
+    const restoreStock = document.getElementById('refund-restore-stock').checked;
+
+    btn.disabled = true;
+    btn.textContent = 'Refunderer...';
+    errEl.style.display = 'none';
+
+    try {
+      const res = await fetch(`${apiUrl}/shop/admin/orders/${currentOrderId}/refund`, {
+        method: 'POST', headers: headers(),
+        body: JSON.stringify({ reason: reason || null, restore_stock: restoreStock }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errEl.textContent = data.error || 'Refundering fejlede';
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Bekræft refundering';
+        return;
+      }
+      document.getElementById('refund-modal').style.display = 'none';
+      loadOrders();
+      loadDashboard();
+    } catch {
+      errEl.textContent = 'Der opstod en fejl. Prøv igen.';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Bekræft refundering';
+    }
+  });
 
   document.getElementById('modal-close')?.addEventListener('click', () => {
     document.getElementById('order-modal').style.display = 'none';

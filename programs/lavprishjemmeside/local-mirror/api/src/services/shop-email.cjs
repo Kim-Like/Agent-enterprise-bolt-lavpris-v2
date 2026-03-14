@@ -3,9 +3,25 @@
 /**
  * Shop email templates — Danish
  * Uses the existing sendEmail service (Resend/SMTP).
+ * Templates can be overridden via the email_templates DB table.
+ * If no DB override exists, hardcoded defaults are used.
  */
 
 const { sendEmail } = require('./email');
+const pool = require('../db');
+
+/** Load a template from DB. Returns { subject, html_body } or null. */
+async function loadTemplate(slug) {
+  try {
+    const [[row]] = await pool.query('SELECT subject, html_body FROM email_templates WHERE slug = ?', [slug]);
+    return row || null;
+  } catch { return null; }
+}
+
+/** Replace {{variable}} tokens in a template string. */
+function renderTemplate(tmpl, vars) {
+  return tmpl.replace(/\{\{(\w+)\}\}/g, (_, key) => vars[key] !== undefined ? String(vars[key]) : '');
+}
 
 /** Format øre to Danish price string: 9995 → "99,95 kr. inkl. moms" */
 function formatPrice(ore) {
@@ -76,6 +92,19 @@ function baseEmailHtml(title, bodyHtml) {
  */
 async function sendOrderConfirmation({ order, items, siteUrl }) {
   const orderUrl = `${siteUrl || 'https://lavprishjemmeside.dk'}/shop/ordre/${order.token}`;
+  const dbTmpl = await loadTemplate('order_confirmation');
+  if (dbTmpl) {
+    const vars = {
+      order_number: order.order_number,
+      first_name: order.ship_first_name || 'der',
+      total: formatPrice(order.total_ore),
+      order_url: orderUrl,
+    };
+    const html = renderTemplate(dbTmpl.html_body, vars);
+    const subject = renderTemplate(dbTmpl.subject, vars);
+    await sendEmail({ to: order.ship_email, subject, html, text: `Ordrebekræftelse #${order.order_number}\n\nSe ordren her: ${orderUrl}` });
+    return;
+  }
   const subject = `Ordrebekræftelse #${order.order_number} — Lavprishjemmeside.dk`;
 
   const itemsHtml = orderItemsHtml(items);
@@ -151,6 +180,20 @@ async function sendOrderConfirmation({ order, items, siteUrl }) {
  */
 async function sendShippingNotification({ order, siteUrl }) {
   const orderUrl = `${siteUrl || 'https://lavprishjemmeside.dk'}/shop/ordre/${order.token}`;
+  const dbTmpl = await loadTemplate('order_shipped');
+  if (dbTmpl) {
+    const vars = {
+      order_number: order.order_number,
+      first_name: order.ship_first_name || 'der',
+      tracking_number: order.tracking_number || '',
+      tracking_carrier: order.tracking_carrier || '',
+      order_url: orderUrl,
+    };
+    const html = renderTemplate(dbTmpl.html_body, vars);
+    const subject = renderTemplate(dbTmpl.subject, vars);
+    await sendEmail({ to: order.ship_email, subject, html, text: `Din ordre #${order.order_number} er afsendt!\n\nSe ordren her: ${orderUrl}` });
+    return;
+  }
   const subject = `Din ordre #${order.order_number} er afsendt`;
 
   const trackingHtml = (order.tracking_number && order.tracking_carrier)
@@ -210,8 +253,52 @@ async function sendAdminOrderNotification({ order, items, adminEmail }) {
   });
 }
 
+/**
+ * Send refund confirmation email to customer.
+ */
+async function sendRefundConfirmation({ order, reason, siteUrl }) {
+  const orderUrl = `${siteUrl || 'https://lavprishjemmeside.dk'}/shop/ordre/${order.token}`;
+  const dbTmpl = await loadTemplate('refund_confirmation');
+  if (dbTmpl) {
+    const vars = {
+      order_number: order.order_number,
+      first_name: order.ship_first_name || 'der',
+      reason: reason || '',
+      order_url: orderUrl,
+    };
+    const html = renderTemplate(dbTmpl.html_body, vars);
+    const subject = renderTemplate(dbTmpl.subject, vars);
+    await sendEmail({ to: order.ship_email, subject, html, text: `Din ordre #${order.order_number} er refunderet.\n\nSe ordren: ${orderUrl}` });
+    return;
+  }
+  const subject = `Refundering bekræftet — Ordre #${order.order_number}`;
+
+  const bodyHtml = `
+    <p style="color:#333;">Hej ${order.ship_first_name || 'der'},</p>
+    <p style="color:#333;">Din ordre <strong>#${order.order_number}</strong> er nu refunderet.</p>
+    ${reason ? `<p style="color:#333;"><strong>Årsag:</strong> ${reason}</p>` : ''}
+    <p style="color:#333;">Beløbet vil blive tilbageført til din originale betalingsmetode inden for 3–5 hverdage.</p>
+    <div style="margin-top:24px;">
+      <a href="${orderUrl}" style="display:inline-block;background:#1a1a2e;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-weight:bold;">
+        Se ordredetaljer
+      </a>
+    </div>
+    <p style="margin-top:24px;font-size:13px;color:#888;">
+      Spørgsmål? Skriv til os på <a href="mailto:info@lavprishjemmeside.dk" style="color:#1a1a2e;">info@lavprishjemmeside.dk</a>
+    </p>
+  `;
+
+  await sendEmail({
+    to: order.ship_email,
+    subject,
+    html: baseEmailHtml(`Refundering — Ordre #${order.order_number}`, bodyHtml),
+    text: `Din ordre #${order.order_number} er refunderet.\n\nSe ordren: ${orderUrl}`,
+  });
+}
+
 module.exports = {
   sendOrderConfirmation,
   sendShippingNotification,
   sendAdminOrderNotification,
+  sendRefundConfirmation,
 };

@@ -1,0 +1,357 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+
+const DEFAULT_TEMPLATES = [
+  { slug: 'order_confirmation', label: 'Ordrebekræftelse', subject: 'Ordrebekræftelse #{{order_number}} — Lavprishjemmeside.dk', tokens: ['order_number','first_name','total','order_url'] },
+  { slug: 'order_shipped', label: 'Forsendelsesnotifikation', subject: 'Din ordre #{{order_number}} er afsendt', tokens: ['order_number','first_name','tracking_number','tracking_carrier','order_url'] },
+  { slug: 'refund_confirmation', label: 'Refunderingsbekræftelse', subject: 'Refundering bekræftet — Ordre #{{order_number}}', tokens: ['order_number','first_name','reason','order_url'] },
+  { slug: 'admin_new_order', label: 'Admin: Ny ordre (intern)', subject: 'Ny ordre #{{order_number}} — {{total}}', tokens: ['order_number','total','customer_email','items'] },
+];
+---
+
+<AdminLayout title="E-mailskabeloner — Shop">
+  <div class="et-page">
+    <div class="et-header">
+      <div>
+        <h1 class="et-title">E-mailskabeloner</h1>
+        <p class="et-sub">Tilpas transaktionelle e-mails til kunder. Brug <code>{{'{{'}}variabel{{'}}'}}</code> til dynamisk indhold.</p>
+      </div>
+    </div>
+
+    <div class="et-layout">
+      <aside class="et-sidebar">
+        {DEFAULT_TEMPLATES.map((t) => (
+          <button class="et-tmpl-btn" data-slug={t.slug} data-label={t.label} data-subject={t.subject} data-tokens={JSON.stringify(t.tokens)}>
+            {t.label}
+          </button>
+        ))}
+      </aside>
+
+      <div class="et-editor-panel">
+        <div id="et-placeholder" class="et-placeholder">
+          Vælg en e-mailskabelon til venstre for at redigere.
+        </div>
+
+        <div id="et-editor" style="display:none;">
+          <div class="et-editor-header">
+            <h2 id="et-editor-title" class="et-editor-title"></h2>
+            <div class="et-tokens" id="et-tokens-list"></div>
+          </div>
+
+          <div id="et-save-msg" class="et-save-msg" style="display:none;"></div>
+
+          <div class="et-field">
+            <label class="et-label" for="et-subject">Emne</label>
+            <input type="text" id="et-subject" class="et-input" placeholder="E-mail emne…">
+          </div>
+
+          <div class="et-field">
+            <label class="et-label" for="et-body">HTML-indhold</label>
+            <textarea id="et-body" class="et-textarea" rows="20" placeholder="HTML e-mailindhold…"></textarea>
+          </div>
+
+          <div class="et-actions">
+            <button id="et-save-btn" class="et-btn-primary">Gem skabelon</button>
+            <button id="et-reset-btn" class="et-btn-secondary">Nulstil til standard</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+.et-page {
+  max-width: 1100px;
+}
+.et-header {
+  margin-bottom: 28px;
+}
+.et-title {
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: #111827;
+  margin: 0 0 4px;
+}
+.et-sub {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+.et-sub code {
+  background: #f3f4f6;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  color: #374151;
+}
+.et-layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+.et-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 8px;
+}
+.et-tmpl-btn {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  background: none;
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.et-tmpl-btn:hover { background: #f3f4f6; }
+.et-tmpl-btn.active { background: #eff6ff; color: #1d4ed8; font-weight: 600; }
+.et-editor-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 28px;
+}
+.et-placeholder {
+  color: #9ca3af;
+  font-size: 0.9375rem;
+  padding: 40px 0;
+  text-align: center;
+}
+.et-editor-header { margin-bottom: 20px; }
+.et-editor-title { font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0 0 10px; }
+.et-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+.et-token-pill {
+  font-size: 0.75rem;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  font-family: monospace;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.et-token-pill:hover { background: #dcfce7; }
+.et-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+.et-label { font-size: 0.875rem; font-weight: 600; color: #374151; }
+.et-input {
+  padding: 9px 13px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.9375rem;
+  color: #111827;
+  outline: none;
+  transition: border-color 150ms;
+}
+.et-input:focus { border-color: #3b82f6; }
+.et-textarea {
+  padding: 10px 13px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.8125rem;
+  font-family: 'Courier New', monospace;
+  color: #111827;
+  outline: none;
+  resize: vertical;
+  transition: border-color 150ms;
+  min-height: 320px;
+}
+.et-textarea:focus { border-color: #3b82f6; }
+.et-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.et-btn-primary {
+  padding: 10px 22px;
+  background: #1d4ed8;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.et-btn-primary:hover { opacity: 0.88; }
+.et-btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.et-btn-secondary {
+  padding: 10px 20px;
+  background: none;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  color: #6b7280;
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms;
+}
+.et-btn-secondary:hover { border-color: #9ca3af; color: #374151; }
+.et-save-msg {
+  padding: 10px 16px;
+  border-radius: 7px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+.et-save-msg.success { background: #f0fdf4; border: 1px solid #86efac; color: #166534; }
+.et-save-msg.error { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+@media (max-width: 768px) {
+  .et-layout { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+const apiUrl = (window as any).PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+const adminToken = localStorage.getItem('admin_token') || '';
+
+const DEFAULT_TEMPLATES = {
+  order_confirmation: {
+    subject: 'Ordrebekræftelse #{{order_number}} — Lavprishjemmeside.dk',
+    html_body: `<p>Hej {{first_name}},</p>
+<p>Tak for din ordre! Ordrenummer: <strong>#{{order_number}}</strong></p>
+<p>I alt: <strong>{{total}}</strong></p>
+<p><a href="{{order_url}}">Se din ordre her</a></p>
+<p>Hilsen Lavprishjemmeside.dk</p>`,
+  },
+  order_shipped: {
+    subject: 'Din ordre #{{order_number}} er afsendt',
+    html_body: `<p>Hej {{first_name}},</p>
+<p>Din ordre <strong>#{{order_number}}</strong> er nu afsendt!</p>
+{{#if tracking_number}}<p>Sporings-id: <strong>{{tracking_number}}</strong> ({{tracking_carrier}})</p>{{/if}}
+<p><a href="{{order_url}}">Se din ordre her</a></p>
+<p>Hilsen Lavprishjemmeside.dk</p>`,
+  },
+  refund_confirmation: {
+    subject: 'Refundering bekræftet — Ordre #{{order_number}}',
+    html_body: `<p>Hej {{first_name}},</p>
+<p>Din ordre <strong>#{{order_number}}</strong> er nu refunderet.</p>
+{{#if reason}}<p>Årsag: {{reason}}</p>{{/if}}
+<p>Beløbet tilbageføres inden for 3–5 hverdage.</p>
+<p><a href="{{order_url}}">Se ordredetaljer</a></p>
+<p>Hilsen Lavprishjemmeside.dk</p>`,
+  },
+  admin_new_order: {
+    subject: 'Ny ordre #{{order_number}} — {{total}}',
+    html_body: `<p>Ny betalt ordre modtaget.</p>
+<p><strong>Ordre:</strong> #{{order_number}}<br>
+<strong>Kunde:</strong> {{customer_email}}<br>
+<strong>Total:</strong> {{total}}</p>
+<p><strong>Produkter:</strong><br>{{items}}</p>`,
+  },
+};
+
+let currentSlug: string | null = null;
+
+const buttons = document.querySelectorAll('.et-tmpl-btn');
+const editor = document.getElementById('et-editor')!;
+const placeholder = document.getElementById('et-placeholder')!;
+const titleEl = document.getElementById('et-editor-title')!;
+const subjectEl = document.getElementById('et-subject') as HTMLInputElement;
+const bodyEl = document.getElementById('et-body') as HTMLTextAreaElement;
+const tokensEl = document.getElementById('et-tokens-list')!;
+const saveBtn = document.getElementById('et-save-btn') as HTMLButtonElement;
+const resetBtn = document.getElementById('et-reset-btn') as HTMLButtonElement;
+const saveMsg = document.getElementById('et-save-msg')!;
+
+function showMsg(msg: string, type: 'success' | 'error') {
+  saveMsg.textContent = msg;
+  saveMsg.className = `et-save-msg ${type}`;
+  saveMsg.style.display = 'block';
+  setTimeout(() => { saveMsg.style.display = 'none'; }, 4000);
+}
+
+async function loadTemplate(slug: string, label: string, tokens: string[], defaultSubject: string) {
+  currentSlug = slug;
+  buttons.forEach(b => b.classList.toggle('active', b.getAttribute('data-slug') === slug));
+  placeholder.style.display = 'none';
+  editor.style.display = 'block';
+  titleEl.textContent = label;
+
+  tokensEl.innerHTML = tokens.map(t => `<button class="et-token-pill" data-token="${t}">{{${t}}}</button>`).join('');
+  tokensEl.querySelectorAll('.et-token-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const token = pill.getAttribute('data-token')!;
+      const pos = bodyEl.selectionStart;
+      const val = bodyEl.value;
+      bodyEl.value = val.substring(0, pos) + `{{${token}}}` + val.substring(pos);
+      bodyEl.focus();
+      bodyEl.selectionStart = bodyEl.selectionEnd = pos + token.length + 4;
+    });
+  });
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/admin/emails/${slug}`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      subjectEl.value = data.subject;
+      bodyEl.value = data.html_body;
+    } else {
+      const def = (DEFAULT_TEMPLATES as any)[slug];
+      subjectEl.value = def?.subject || defaultSubject;
+      bodyEl.value = def?.html_body || '';
+    }
+  } catch {
+    const def = (DEFAULT_TEMPLATES as any)[slug];
+    subjectEl.value = def?.subject || defaultSubject;
+    bodyEl.value = def?.html_body || '';
+  }
+}
+
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const slug = btn.getAttribute('data-slug')!;
+    const label = btn.getAttribute('data-label')!;
+    const tokens = JSON.parse(btn.getAttribute('data-tokens') || '[]');
+    const subject = btn.getAttribute('data-subject')!;
+    loadTemplate(slug, label, tokens, subject);
+  });
+});
+
+saveBtn.addEventListener('click', async () => {
+  if (!currentSlug) return;
+  const subject = subjectEl.value.trim();
+  const html_body = bodyEl.value.trim();
+  if (!subject || !html_body) { showMsg('Udfyld emne og HTML-indhold', 'error'); return; }
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Gemmer…';
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/admin/emails/${currentSlug}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${adminToken}` },
+      body: JSON.stringify({ subject, html_body }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Gem fejlede');
+    showMsg('Skabelon gemt!', 'success');
+  } catch (err: any) {
+    showMsg(err.message, 'error');
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Gem skabelon';
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  if (!currentSlug) return;
+  const def = (DEFAULT_TEMPLATES as any)[currentSlug];
+  if (def) {
+    subjectEl.value = def.subject;
+    bodyEl.value = def.html_body;
+    showMsg('Standard indhold gendannet — husk at gemme.', 'success');
+  }
+});
+</script>

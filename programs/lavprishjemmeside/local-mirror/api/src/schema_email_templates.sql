@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS email_templates (
+  id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  slug        VARCHAR(100) NOT NULL UNIQUE,
+  label       VARCHAR(200) NOT NULL,
+  subject     VARCHAR(300) NOT NULL,
+  html_body   MEDIUMTEXT NOT NULL,
+  updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_email_templates_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

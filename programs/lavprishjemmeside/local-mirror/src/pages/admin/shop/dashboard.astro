@@ -1,0 +1,261 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+---
+
+<AdminLayout title="Shop-overblik">
+  <div class="shop-dash">
+    <div class="sd-header">
+      <h1 class="sd-title">Shop-overblik</h1>
+      <a href="/admin/shop/orders/" class="sd-orders-link">Se alle ordrer →</a>
+    </div>
+
+    <div id="sd-kpis" class="sd-kpi-grid">
+      <div class="sd-kpi-card">
+        <p class="sd-kpi-label">Omsætning (30d)</p>
+        <p id="kpi-revenue" class="sd-kpi-value">—</p>
+      </div>
+      <div class="sd-kpi-card">
+        <p class="sd-kpi-label">Ordrer (30d)</p>
+        <p id="kpi-orders" class="sd-kpi-value">—</p>
+      </div>
+      <div class="sd-kpi-card">
+        <p class="sd-kpi-label">Afventer betaling</p>
+        <p id="kpi-pending" class="sd-kpi-value sd-kpi-warning">—</p>
+      </div>
+      <div class="sd-kpi-card">
+        <p class="sd-kpi-label">Klar til afsendelse</p>
+        <p id="kpi-to-ship" class="sd-kpi-value sd-kpi-info">—</p>
+      </div>
+    </div>
+
+    <div class="sd-two-col">
+      <div class="sd-card">
+        <h2 class="sd-card-title">Daglige ordrer (14d)</h2>
+        <div id="sd-chart" class="sd-chart-wrap">
+          <div class="sd-chart-loading">Henter data...</div>
+        </div>
+      </div>
+
+      <div class="sd-card">
+        <h2 class="sd-card-title">Top 5 produkter</h2>
+        <ul id="sd-top-products" class="sd-list sd-list-loading">Henter...</ul>
+      </div>
+    </div>
+
+    <div class="sd-two-col">
+      <div class="sd-card">
+        <h2 class="sd-card-title">Seneste ordrer</h2>
+        <div id="sd-recent-orders" class="sd-table-wrap">
+          <div class="sd-list-loading">Henter...</div>
+        </div>
+      </div>
+
+      <div class="sd-card">
+        <h2 class="sd-card-title sd-card-title-warning">Lavt lagerbeholdning</h2>
+        <ul id="sd-low-stock" class="sd-list sd-list-loading">Henter...</ul>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+.shop-dash { display: flex; flex-direction: column; gap: 24px; }
+.sd-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.sd-title { font-size: 1.5rem; font-weight: 700; color: var(--color-text-primary); margin: 0; }
+.sd-orders-link { font-size: 0.875rem; color: var(--color-primary, #2563eb); text-decoration: none; font-weight: 500; }
+.sd-orders-link:hover { text-decoration: underline; }
+
+.sd-kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+@media (min-width: 768px) { .sd-kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+.sd-kpi-card {
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-page, #fff);
+  padding: 16px;
+}
+.sd-kpi-label { font-size: 0.75rem; color: var(--color-text-secondary, #6b7280); text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.sd-kpi-value { font-size: 1.75rem; font-weight: 700; color: var(--color-text-primary, #111); margin: 4px 0 0; }
+.sd-kpi-warning { color: #d97706; }
+.sd-kpi-info { color: #2563eb; }
+
+.sd-two-col { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 768px) { .sd-two-col { grid-template-columns: 1fr 1fr; } }
+
+.sd-card {
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-page, #fff);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.sd-card-title { font-size: 0.9375rem; font-weight: 700; color: var(--color-text-primary, #111); margin: 0; }
+.sd-card-title-warning { color: #b45309; }
+
+.sd-chart-wrap { min-height: 120px; display: flex; flex-direction: column; justify-content: flex-end; }
+.sd-chart-loading { font-size: 0.875rem; color: var(--color-text-secondary, #6b7280); }
+.sd-chart-bars { display: flex; align-items: flex-end; gap: 4px; height: 100px; }
+.sd-chart-bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.sd-chart-bar {
+  width: 100%;
+  background: var(--color-primary, #2563eb);
+  border-radius: 3px 3px 0 0;
+  opacity: 0.8;
+  min-height: 3px;
+  transition: opacity 100ms;
+}
+.sd-chart-bar:hover { opacity: 1; }
+.sd-chart-label { font-size: 0.6rem; color: var(--color-text-secondary, #9ca3af); white-space: nowrap; overflow: hidden; width: 100%; text-align: center; text-overflow: ellipsis; }
+
+.sd-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.sd-list-loading { font-size: 0.875rem; color: var(--color-text-secondary, #6b7280); }
+.sd-list-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.875rem; }
+.sd-list-item-name { color: var(--color-text-primary, #111); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.sd-list-item-meta { color: var(--color-text-secondary, #6b7280); white-space: nowrap; font-size: 0.8125rem; flex-shrink: 0; }
+.sd-list-item-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 24px; height: 20px;
+  border-radius: 9999px;
+  font-size: 0.6875rem; font-weight: 700;
+  padding: 0 6px;
+  background: #fef2f2; color: #b91c1c;
+  flex-shrink: 0;
+}
+.sd-list-item-badge.low { background: #fff7ed; color: #c2410c; }
+.sd-list-item-badge.critical { background: #fef2f2; color: #b91c1c; }
+
+.sd-table-wrap { overflow-x: auto; }
+.sd-table { min-width: 100%; border-collapse: collapse; font-size: 0.8125rem; }
+.sd-table th { padding: 6px 10px; text-align: left; font-weight: 600; color: var(--color-text-secondary, #6b7280); border-bottom: 1px solid var(--color-border, #e5e7eb); white-space: nowrap; }
+.sd-table td { padding: 8px 10px; border-bottom: 1px solid var(--color-border, #f3f4f6); }
+.sd-table tr:last-child td { border-bottom: none; }
+.sd-status-badge { display: inline-block; border-radius: 9999px; padding: 2px 7px; font-size: 0.7rem; font-weight: 600; }
+.sd-status-pending { background: #fef3c7; color: #92400e; }
+.sd-status-paid { background: #dcfce7; color: #166534; }
+.sd-status-processing { background: #dbeafe; color: #1e40af; }
+.sd-status-shipped { background: #dbeafe; color: #1e40af; }
+.sd-status-delivered { background: #dcfce7; color: #166534; }
+.sd-status-cancelled { background: #fee2e2; color: #991b1b; }
+.sd-status-refunded { background: var(--color-neutral-100, #f3f4f6); color: var(--color-text-secondary, #6b7280); }
+</style>
+
+<script define:vars={{ apiUrl }}>
+  const token = () => localStorage.getItem('admin_token');
+  const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token()}` });
+
+  function fmt(ore) { return (ore / 100).toFixed(2).replace('.', ',') + ' kr.'; }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('da-DK', { day: '2-digit', month: 'short' });
+  }
+
+  const statusMap = {
+    pending_payment: ['Afventer', 'sd-status-pending'],
+    paid: ['Betalt', 'sd-status-paid'],
+    processing: ['Behandling', 'sd-status-processing'],
+    shipped: ['Afsendt', 'sd-status-shipped'],
+    delivered: ['Leveret', 'sd-status-delivered'],
+    cancelled: ['Annulleret', 'sd-status-cancelled'],
+    refunded: ['Refunderet', 'sd-status-refunded'],
+  };
+
+  async function load() {
+    try {
+      const res = await fetch(`${apiUrl}/shop/admin/dashboard`, { headers: headers() });
+      if (!res.ok) return;
+      const d = await res.json();
+
+      // KPIs
+      if (d.revenue) {
+        document.getElementById('kpi-revenue').textContent = fmt(d.revenue.revenue_30d_ore || 0);
+        document.getElementById('kpi-orders').textContent = d.revenue.orders_30d || 0;
+        document.getElementById('kpi-pending').textContent = d.revenue.pending || 0;
+        document.getElementById('kpi-to-ship').textContent = d.revenue.to_ship || 0;
+      }
+
+      // Daily orders chart
+      const chartWrap = document.getElementById('sd-chart');
+      if (chartWrap && Array.isArray(d.daily_orders) && d.daily_orders.length > 0) {
+        const max = Math.max(...d.daily_orders.map(r => r.count), 1);
+        const barsHtml = d.daily_orders.map(r => {
+          const pct = Math.max(4, Math.round((r.count / max) * 100));
+          const day = new Date(r.day).toLocaleDateString('da-DK', { day: '2-digit', month: 'numeric' });
+          return `<div class="sd-chart-bar-col" title="${day}: ${r.count} ordrer">
+            <div class="sd-chart-bar" style="height:${pct}%;"></div>
+            <span class="sd-chart-label">${day}</span>
+          </div>`;
+        }).join('');
+        chartWrap.innerHTML = `<div class="sd-chart-bars">${barsHtml}</div>`;
+      } else if (chartWrap) {
+        chartWrap.innerHTML = '<p style="font-size:0.875rem;color:var(--color-text-secondary)">Ingen ordredata de seneste 14 dage.</p>';
+      }
+
+      // Top products
+      const topList = document.getElementById('sd-top-products');
+      if (topList) {
+        const products = d.top_products || [];
+        if (products.length === 0) {
+          topList.innerHTML = '<li style="font-size:0.875rem;color:var(--color-text-secondary)">Ingen solgte produkter endnu.</li>';
+        } else {
+          topList.innerHTML = products.map((p, i) => `
+            <li class="sd-list-item">
+              <span class="sd-list-item-name"><strong>${i + 1}.</strong> ${p.product_name}</span>
+              <span class="sd-list-item-meta">${p.qty_sold} stk · ${fmt(p.revenue_ore)}</span>
+            </li>
+          `).join('');
+        }
+      }
+
+      // Recent orders
+      const recentWrap = document.getElementById('sd-recent-orders');
+      if (recentWrap) {
+        const orders = d.recent_orders || [];
+        if (orders.length === 0) {
+          recentWrap.innerHTML = '<p style="font-size:0.875rem;color:var(--color-text-secondary)">Ingen ordrer endnu.</p>';
+        } else {
+          const rows = orders.map(o => {
+            const [label, cls] = statusMap[o.status] || [o.status, 'sd-status-refunded'];
+            return `<tr>
+              <td style="font-weight:500">${o.order_number}</td>
+              <td>${o.ship_first_name} ${o.ship_last_name}</td>
+              <td><span class="sd-status-badge ${cls}">${label}</span></td>
+              <td style="font-weight:500">${fmt(o.total_ore)}</td>
+              <td style="color:var(--color-text-secondary)">${fmtDate(o.created_at)}</td>
+            </tr>`;
+          }).join('');
+          recentWrap.innerHTML = `
+            <table class="sd-table">
+              <thead><tr>
+                <th>Ordre</th><th>Kunde</th><th>Status</th><th>Total</th><th>Dato</th>
+              </tr></thead>
+              <tbody>${rows}</tbody>
+            </table>`;
+        }
+      }
+
+      // Low stock
+      const lowList = document.getElementById('sd-low-stock');
+      if (lowList) {
+        const items = d.low_stock || [];
+        if (items.length === 0) {
+          lowList.innerHTML = '<li style="font-size:0.875rem;color:var(--color-text-secondary)">Ingen produkter med lavt lager.</li>';
+        } else {
+          lowList.innerHTML = items.map(p => {
+            const cls = p.stock === 0 ? 'critical' : 'low';
+            const label = p.stock === 0 ? '0' : String(p.stock);
+            return `<li class="sd-list-item">
+              <a href="/admin/shop/products/" class="sd-list-item-name" style="text-decoration:none;color:inherit;">${p.name}</a>
+              <span class="sd-list-item-badge ${cls}">${label} stk</span>
+            </li>`;
+          }).join('');
+        }
+      }
+    } catch (err) {
+      console.error('Shop dashboard load error:', err);
+    }
+  }
+
+  load();
+</script>

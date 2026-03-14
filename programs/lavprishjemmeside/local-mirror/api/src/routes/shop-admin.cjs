@@ -8,7 +8,7 @@
 const express = require('express');
 const pool = require('../db');
 const { requireAuth } = require('../middleware/auth');
-const { sendShippingNotification } = require('../services/shop-email.cjs');
+const { sendShippingNotification, sendRefundConfirmation } = require('../services/shop-email.cjs');
 
 const router = express.Router();
 
@@ -455,12 +455,13 @@ router.get('/shipping', async (req, res) => {
 
 router.post('/shipping', async (req, res) => {
   try {
-    const { name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order } = req.body;
+    const { name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order, countries } = req.body;
     if (!name) return res.status(400).json({ error: 'Navn er påkrævet' });
+    const countriesJson = Array.isArray(countries) && countries.length > 0 ? JSON.stringify(countries) : null;
     const [result] = await pool.query(
-      'INSERT INTO shipping_methods (name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order) VALUES (?,?,?,?,?,?,?,?)',
+      'INSERT INTO shipping_methods (name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order, countries) VALUES (?,?,?,?,?,?,?,?,?)',
       [name, carrier || null, parseInt(price_ore) || 0, free_above_ore ? parseInt(free_above_ore) : null,
-       parseInt(est_days_min) || 1, parseInt(est_days_max) || 5, is_active !== false ? 1 : 0, parseInt(sort_order) || 0]
+       parseInt(est_days_min) || 1, parseInt(est_days_max) || 5, is_active !== false ? 1 : 0, parseInt(sort_order) || 0, countriesJson]
     );
     res.status(201).json({ id: result.insertId });
   } catch (err) {
@@ -471,12 +472,13 @@ router.post('/shipping', async (req, res) => {
 
 router.put('/shipping/:id', async (req, res) => {
   try {
-    const { name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order } = req.body;
+    const { name, carrier, price_ore, free_above_ore, est_days_min, est_days_max, is_active, sort_order, countries } = req.body;
+    const countriesJson = Array.isArray(countries) && countries.length > 0 ? JSON.stringify(countries) : null;
     await pool.query(
-      'UPDATE shipping_methods SET name=?, carrier=?, price_ore=?, free_above_ore=?, est_days_min=?, est_days_max=?, is_active=?, sort_order=? WHERE id=?',
+      'UPDATE shipping_methods SET name=?, carrier=?, price_ore=?, free_above_ore=?, est_days_min=?, est_days_max=?, is_active=?, sort_order=?, countries=? WHERE id=?',
       [name, carrier || null, parseInt(price_ore) || 0, free_above_ore ? parseInt(free_above_ore) : null,
        parseInt(est_days_min) || 1, parseInt(est_days_max) || 5, is_active !== false ? 1 : 0,
-       parseInt(sort_order) || 0, parseInt(req.params.id)]
+       parseInt(sort_order) || 0, countriesJson, parseInt(req.params.id)]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -615,6 +617,123 @@ router.post('/settings', async (req, res) => {
   }
 });
 
+// ─── REFUND ───────────────────────────────────────────────────────────────────
+
+// POST /shop/admin/orders/:id/refund
+router.post('/orders/:id/refund', async (req, res) => {
+  const conn = await pool.getConnection();
+  try {
+    const { reason, restore_stock, line_items } = req.body;
+    const orderId = parseInt(req.params.id);
+
+    const [[order]] = await conn.query('SELECT * FROM orders WHERE id = ?', [orderId]);
+    if (!order) {
+      conn.release();
+      return res.status(404).json({ error: 'Ordre ikke fundet' });
+    }
+
+    const refundableStatuses = ['paid', 'processing', 'shipped', 'delivered'];
+    if (!refundableStatuses.includes(order.status)) {
+      conn.release();
+      return res.status(400).json({ error: `Ordre kan ikke refunderes med status "${order.status}"` });
+    }
+
+    await conn.beginTransaction();
+
+    // Restore stock for specified line items if requested
+    const itemsRefunded = [];
+    if (restore_stock && Array.isArray(line_items) && line_items.length > 0) {
+      for (const li of line_items) {
+        const itemId = parseInt(li.order_item_id);
+        const refundQty = Math.max(1, parseInt(li.quantity) || 1);
+
+        const [[item]] = await conn.query(
+          'SELECT * FROM order_items WHERE id = ? AND order_id = ?',
+          [itemId, orderId]
+        );
+        if (!item) continue;
+
+        if (item.variant_id) {
+          await conn.query(
+            'UPDATE product_variants SET stock = stock + ? WHERE id = ?',
+            [refundQty, item.variant_id]
+          );
+        } else if (item.product_id) {
+          await conn.query(
+            'UPDATE products SET stock = stock + ? WHERE id = ? AND track_stock = 1',
+            [refundQty, item.product_id]
+          );
+        }
+        itemsRefunded.push({ order_item_id: itemId, quantity: refundQty, product_name: item.product_name });
+      }
+    }
+
+    // Update order status
+    await conn.query(
+      'UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?',
+      ['refunded', orderId]
+    );
+
+    // Record audit event
+    await conn.query(
+      `INSERT INTO order_events (order_id, event_type, old_status, new_status, message)
+       VALUES (?, 'refund_processed', ?, 'refunded', ?)`,
+      [orderId, order.status, JSON.stringify({ reason: reason || null, items_refunded: itemsRefunded, stock_restored: !!restore_stock })]
+    );
+
+    await conn.commit();
+    conn.release();
+
+    // Send refund confirmation email (best-effort)
+    if (order.ship_email) {
+      const siteUrl = process.env.FLATPAY_ACCEPT_URL
+        ? process.env.FLATPAY_ACCEPT_URL.replace('/shop/ordre', '')
+        : 'https://lavprishjemmeside.dk';
+      sendRefundConfirmation({ order: { ...order, status: 'refunded' }, reason, siteUrl })
+        .catch((e) => console.error('Refund confirmation email failed:', e.message));
+
+      await pool.query(
+        'INSERT INTO order_events (order_id, event_type, message) VALUES (?,?,?)',
+        [orderId, 'email_sent', 'Refunderingsbekræftelse sendt til kunde']
+      );
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    await conn.rollback();
+    conn.release();
+    console.error('POST /shop/admin/orders/:id/refund:', err.message);
+    res.status(500).json({ error: 'Refundering fejlede' });
+  }
+});
+
+// ─── ORDER NOTES ──────────────────────────────────────────────────────────────
+
+// POST /shop/admin/orders/:id/note
+router.post('/orders/:id/note', async (req, res) => {
+  try {
+    const { note } = req.body;
+    const orderId = parseInt(req.params.id);
+
+    if (!note || !note.trim()) {
+      return res.status(400).json({ error: 'Note må ikke være tom' });
+    }
+
+    const [[order]] = await pool.query('SELECT id FROM orders WHERE id = ?', [orderId]);
+    if (!order) return res.status(404).json({ error: 'Ordre ikke fundet' });
+
+    await pool.query(
+      `INSERT INTO order_events (order_id, event_type, message) VALUES (?, 'internal_note', ?)`,
+      [orderId, note.trim().substring(0, 2000)]
+    );
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('POST /shop/admin/orders/:id/note:', err.message);
+    res.status(500).json({ error: 'Kunne ikke gemme note' });
+  }
+});
+
 // ─── DASHBOARD ────────────────────────────────────────────────────────────────
 
 router.get('/dashboard', async (req, res) => {
@@ -645,10 +764,75 @@ router.get('/dashboard', async (req, res) => {
       LIMIT 5
     `);
 
-    res.json({ revenue, recent_orders: recentOrders, top_products: topProducts });
+    const [lowStock] = await pool.query(`
+      SELECT id, name, slug, stock FROM products
+      WHERE track_stock = 1 AND is_active = 1 AND stock <= 5
+      ORDER BY stock ASC
+      LIMIT 10
+    `);
+
+    const [dailyOrders] = await pool.query(`
+      SELECT DATE(created_at) AS day, COUNT(*) AS count
+      FROM orders
+      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 14 DAY)
+      GROUP BY DATE(created_at)
+      ORDER BY day ASC
+    `);
+
+    res.json({ revenue, recent_orders: recentOrders, top_products: topProducts, low_stock: lowStock, daily_orders: dailyOrders });
   } catch (err) {
     console.error('GET /shop/admin/dashboard:', err.message);
     res.status(500).json({ error: 'Kunne ikke hente dashboard' });
+  }
+});
+
+// ─── EMAIL TEMPLATES ──────────────────────────────────────────────────────────
+
+// GET /shop/admin/emails
+router.get('/emails', async (req, res) => {
+  try {
+    const [rows] = await pool.query('SELECT id, slug, label, subject, updated_at FROM email_templates ORDER BY slug');
+    res.json(rows);
+  } catch (err) {
+    console.error('GET /shop/admin/emails:', err.message);
+    res.status(500).json({ error: 'Kunne ikke hente e-mailskabeloner' });
+  }
+});
+
+// GET /shop/admin/emails/:slug
+router.get('/emails/:slug', async (req, res) => {
+  try {
+    const [[row]] = await pool.query('SELECT * FROM email_templates WHERE slug = ?', [req.params.slug]);
+    if (!row) return res.status(404).json({ error: 'Skabelon ikke fundet' });
+    res.json(row);
+  } catch (err) {
+    console.error('GET /shop/admin/emails/:slug:', err.message);
+    res.status(500).json({ error: 'Kunne ikke hente skabelon' });
+  }
+});
+
+// PUT /shop/admin/emails/:slug
+router.put('/emails/:slug', async (req, res) => {
+  try {
+    const { subject, html_body, label } = req.body;
+    if (!subject || !html_body) return res.status(400).json({ error: 'Emne og HTML-indhold er påkrævet' });
+
+    const [[existing]] = await pool.query('SELECT id FROM email_templates WHERE slug = ?', [req.params.slug]);
+    if (existing) {
+      await pool.query(
+        'UPDATE email_templates SET subject=?, html_body=?, label=?, updated_at=NOW() WHERE slug=?',
+        [subject, html_body, label || subject, req.params.slug]
+      );
+    } else {
+      await pool.query(
+        'INSERT INTO email_templates (slug, label, subject, html_body) VALUES (?,?,?,?)',
+        [req.params.slug, label || subject, subject, html_body]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('PUT /shop/admin/emails/:slug:', err.message);
+    res.status(500).json({ error: 'Kunne ikke gemme skabelon' });
   }
 });
 

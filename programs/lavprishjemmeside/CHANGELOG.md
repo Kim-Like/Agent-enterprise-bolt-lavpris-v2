@@ -27,6 +27,75 @@ Change discipline:
 ### Planned
 - Phase 4.1 planning complete: scoped Ecommerce Functional Depth sprint covering admin shop dashboard, inventory reservation at checkout, storefront product search, refund/return workflow, and order notes as Tier 1 blockers; shipping zones, customer accounts, product filters, and email template customization as Tier 2 differentiators; back-in-stock notifications, abandoned cart recovery, product reviews, and bulk import/export as Tier 3. Full implementation plan in `PHASE4.1_HANDOFF.md`. No code changes in this entry.
 
+### Phase 4.1 — Ecommerce Functional Depth (Tier 1 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_stock_reservations.sql` — `stock_reservations` table: session-scoped inventory reservations with `product_id`, `variant_id`, `quantity`, `session_token`, `expires_at`; indexed on product, token, and expiry for efficient lazy sweeps.
+- `schema_order_notes.sql` — additive `ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_note TEXT NULL` for buyer-supplied order notes.
+
+**New API endpoints:**
+- `GET /shop/search?q=&limit=` — MySQL FULLTEXT search across `products.name` and `products.short_desc` with wildcard prefix matching; returns matching products with primary image and price.
+- `POST /shop/cart/reserve` — atomic inventory reservation: sweeps expired rows, checks available stock (stock minus active reservations), creates a 15-minute session-scoped reservation row; returns HTTP 409 on insufficient stock.
+- `POST /shop/admin/orders/:id/refund` — marks order `refunded`, optionally restores stock per line item, records `order_events` audit row, sends refund confirmation email best-effort.
+- `POST /shop/admin/orders/:id/note` — appends an internal admin note as an `order_events` row with `event_type: internal_note`.
+- Extended `GET /shop/admin/dashboard` to include `low_stock` (products with `stock ≤ 5` and `track_stock = 1`) and `daily_orders` (14-day daily order counts).
+
+**New pages and components:**
+- `src/pages/admin/shop/dashboard.astro` — admin shop overview with 4 KPI cards (revenue 30d, orders 30d, pending payment, ready to ship), pure-CSS 14-day daily orders bar chart, top 5 products list, recent orders table, and low-stock alert list.
+- `src/components/SearchBar.astro` — reusable search input with debounced fetch (280ms), results dropdown, thumbnail/placeholder, price display, clear button, keyboard Escape dismiss, and outside-click close.
+
+**Modified files:**
+- `src/pages/shop/checkout.astro` — added "Note til butikken" textarea; added session token generation via `sessionStorage` + `crypto.getRandomValues`; reserve call before order creation with 409 error surfacing.
+- `src/pages/admin/shop/orders.astro` — added refund modal (reason + restore-stock checkbox); internal note input section; customer note display box; full event timeline (no longer capped at 10); emoji prefix for internal note events.
+- `src/layouts/AdminLayout.astro` — added "Shop-overblik" nav link to `/admin/shop/dashboard/` in the Shop section.
+- `src/pages/shop/index.astro` — injected `SearchBar` above category grid.
+- `src/components/Header.astro` — injected `SearchBar` into regular and modern layout nav rail (before CartIcon).
+- `api/src/services/shop-email.cjs` — added `sendRefundConfirmation` email function.
+- `api/run-schema.cjs` — registered `schema_stock_reservations.sql` and `schema_order_notes.sql` in `SCHEMA_ORDER`.
+
+### Phase 4.1 — Ecommerce Functional Depth (Tier 2 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_shipping_zones.sql` — additive `ALTER TABLE shipping_methods ADD COLUMN IF NOT EXISTS countries JSON NULL` for per-method country targeting.
+- `schema_customer_accounts.sql` — additive columns on `customers` (`password_hash TEXT NULL`, `email_verified_at TIMESTAMP NULL`) plus new `customer_sessions` table (token, customer_id, expires_at) for light customer account sessions.
+- `schema_email_templates.sql` — new `email_templates` table (slug, label, subject, html_body, updated_at) for admin-editable transactional email templates with hardcoded fallback.
+
+**New API endpoints (public):**
+- `POST /shop/auth/register` — customer self-registration with bcrypt password hash; returns 30-day session token.
+- `POST /shop/auth/login` — customer login with bcrypt verify; returns session token.
+- `POST /shop/auth/logout` — invalidates session token row.
+- `GET /shop/auth/me` — returns current customer identity from session header.
+- `GET /shop/orders/my` — returns authenticated customer's order history (requires `X-Customer-Session` or `Authorization` header).
+- `GET /shop/products?min_price_ore=&max_price_ore=&in_stock_only=&sort=` — new optional filter params (price range, stock filter, sort order) added to existing products endpoint; fully backwards-compatible.
+- `GET /shop/shipping/methods?country=DK` — new optional `country` query param filters methods by `countries` JSON column; NULL = all countries (backwards-compatible).
+
+**New API endpoints (admin):**
+- `GET /shop/admin/emails` — list all email templates.
+- `GET /shop/admin/emails/:slug` — retrieve a single template by slug.
+- `PUT /shop/admin/emails/:slug` — create or update an email template; used by the admin editor page.
+- `PUT /shop/admin/shipping/:id` + `POST /shop/admin/shipping` — extended to accept optional `countries` array field.
+
+**New admin page:**
+- `src/pages/admin/shop/emails.astro` — email template editor with sidebar template list, subject and HTML body editor, `{{token}}` insertion pills, save button, and "reset to default" button. All four transactional templates (order confirmation, shipped, refund, admin new order) are editable.
+
+**New storefront pages:**
+- `src/pages/shop/konto/login.astro` — customer login form with session token storage in localStorage.
+- `src/pages/shop/konto/register.astro` — customer registration form with first/last name, email, password.
+- `src/pages/shop/konto/index.astro` — authenticated order history page with status badges and logout.
+
+**New component:**
+- `src/components/ProductFilters.astro` — filter sidebar with price range inputs, in-stock toggle, sort dropdown, apply button, reset button. Dispatches `pf:results` custom event with filtered product list.
+
+**Modified files:**
+- `src/pages/shop/[category].astro` — injected `ProductFilters` sidebar; switched to two-column layout; added `pf:results` event listener to re-render product grid without page reload.
+- `api/src/services/shop-email.cjs` — all four email functions now check `email_templates` DB table first; fall back to hardcoded HTML if no DB row exists. Added `loadTemplate()` and `renderTemplate()` helpers; added `pool` import.
+- `src/layouts/AdminLayout.astro` — added "E-mailskabeloner" nav link to `/admin/shop/emails/` in the Shop section.
+- `api/run-schema.cjs` — registered `schema_shipping_zones.sql`, `schema_customer_accounts.sql`, and `schema_email_templates.sql` in `SCHEMA_ORDER`.
+
+**Operator actions required at rollout:**
+1. Run `node api/run-schema.cjs` to apply the three new Tier 2 schema files.
+2. Trigger Astro build + deploy.
+
 ### Changed
 - Uplifted all shop storefront, cart, checkout, and admin pages from Tailwind utility classes to scoped `<style>` blocks using CSS design tokens: `shop/index.astro`, `shop/[category].astro`, `shop/produkt/[slug].astro`, `shop/kurv.astro`, `shop/checkout.astro`, `shop/ordre/[token].astro`, `admin/shop/products.astro`, `admin/shop/orders.astro`, `admin/shop/settings.astro`. All Tailwind `hidden` class toggles replaced with `element.style.display` or semantic `.is-open` class patterns. Status badge class assignments in JS template literals replaced with semantic BEM-style classes defined in scoped CSS. No JavaScript logic, API contracts, or schema changes.
 - Uplifted shop components (`ShopHero.astro`, `CartDrawer.astro`, `PriceDisplay.astro`) from Tailwind to scoped CSS. `CartDrawer` slide animation changed from `translate-x-full`/`translate-x-0` class toggling to `.is-open` CSS class with `transform: translateX()`. `PriceDisplay` size variants converted to `.price-display--sm/md/lg` modifier classes.

@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ProductGrid from '../../components/ProductGrid.astro';
+import ProductFilters from '../../components/ProductFilters.astro';
 
 export async function getStaticPaths() {
   const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
@@ -50,14 +51,22 @@ try {
         {category.description && (
           <p class="cat-desc">{category.description}</p>
         )}
-        <p class="cat-count">{total} produkt{total === 1 ? '' : 'er'}</p>
+        <p class="cat-count" id="cat-count">{total} produkt{total === 1 ? '' : 'er'}</p>
       </header>
 
-      <ProductGrid
-        products={products}
-        columns={4}
-        emptyText={`Ingen produkter fundet i "${category.name}".`}
-      />
+      <div class="cat-content">
+        <ProductFilters categorySlug={category.slug} />
+
+        <div class="cat-grid-col">
+          <div id="cat-products">
+            <ProductGrid
+              products={products}
+              columns={3}
+              emptyText={`Ingen produkter fundet i "${category.name}".`}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 </Layout>
@@ -81,7 +90,7 @@ try {
 .cat-breadcrumb-link:hover { color: var(--color-primary); }
 .cat-breadcrumb-sep { margin: 0 8px; }
 .cat-breadcrumb-current { color: var(--color-text-primary); }
-.cat-header { margin-bottom: 32px; }
+.cat-header { margin-bottom: 28px; }
 .cat-title {
   font-size: 1.875rem;
   font-weight: 800;
@@ -97,4 +106,52 @@ try {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
 }
+.cat-content {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+.cat-grid-col { min-width: 0; }
+@media (max-width: 768px) {
+  .cat-content { grid-template-columns: 1fr; }
+}
 </style>
+
+<script>
+window.addEventListener('pf:results', (e: Event) => {
+  const { products, total } = (e as CustomEvent).detail;
+  const countEl = document.getElementById('cat-count');
+  if (countEl) countEl.textContent = `${total} produkt${total === 1 ? '' : 'er'}`;
+
+  const container = document.getElementById('cat-products');
+  if (!container) return;
+
+  if (!products || products.length === 0) {
+    container.innerHTML = '<p style="color:var(--color-text-secondary);padding:24px 0;">Ingen produkter matcher filteret.</p>';
+    return;
+  }
+
+  function formatPrice(ore: number) {
+    return (ore / 100).toFixed(2).replace('.', ',') + ' kr.';
+  }
+
+  container.innerHTML = `
+    <div class="pg-grid pg-grid--3">
+      ${products.map((p: any) => `
+        <a href="/shop/produkt/${p.slug}/" class="pg-card">
+          <div class="pg-img-wrap">
+            ${p.primary_image
+              ? `<img src="${p.primary_image}" alt="${p.name}" class="pg-img" loading="lazy">`
+              : `<div class="pg-img-placeholder"></div>`}
+          </div>
+          <div class="pg-info">
+            <p class="pg-name">${p.name}</p>
+            <p class="pg-price">${formatPrice(p.price_ore)}</p>
+          </div>
+        </a>
+      `).join('')}
+    </div>
+  `;
+});
+</script>

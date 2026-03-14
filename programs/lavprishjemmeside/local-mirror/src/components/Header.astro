@@ -3,6 +3,7 @@ import designFeatures from '../data/design-features.json';
 import headerFooter from '../data/header-footer.json';
 import MegaMenu from './MegaMenu.astro';
 import CartIcon from './CartIcon.astro';
+import SearchBar from './SearchBar.astro';
 
 const stickyClass = designFeatures.stickyHeader ? 'sticky top-0 z-40' : '';
 const layout = headerFooter.header_layout || 'regular';
@@ -69,6 +70,7 @@ const megaMenu = headerFooter.header_mega_menu;
             </a>
           </li>
         ))}
+        <li><SearchBar /></li>
         <li><CartIcon /></li>
       </ul>
     </nav>
@@ -119,6 +121,7 @@ const megaMenu = headerFooter.header_mega_menu;
         </li>
       </ul>
       <ul class="hidden md:flex gap-4 shrink-0 items-center">
+        <li><SearchBar /></li>
         {menu2.map((link) => (
           <li>
             <a href={link.href} class="focus-modern inline-flex min-h-[44px] items-center rounded-[var(--radius-full)] btn-gradient px-5 py-2 text-sm font-semibold text-[var(--color-text-on-primary)] shadow-[var(--shadow-sm)] transition-opacity hover:opacity-90">

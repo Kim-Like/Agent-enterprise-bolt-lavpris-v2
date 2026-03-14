@@ -1,0 +1,208 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Min konto — Shop — Lavprishjemmeside.dk">
+  <main>
+    <div class="konto-page">
+      <div id="auth-gate" style="display:none;">
+        <p style="color:var(--color-text-secondary);">Omdirigerer til login…</p>
+      </div>
+
+      <div id="konto-content" style="display:none;">
+        <div class="konto-header">
+          <div>
+            <h1 class="konto-title">Min konto</h1>
+            <p id="konto-greeting" class="konto-sub"></p>
+          </div>
+          <button id="logout-btn" class="konto-logout-btn">Log ud</button>
+        </div>
+
+        <div id="orders-loading" class="konto-loading">Henter ordrer…</div>
+        <div id="orders-error" class="konto-error" style="display:none;"></div>
+
+        <div id="orders-section" style="display:none;">
+          <h2 class="konto-section-title">Dine ordrer</h2>
+          <div id="orders-empty" class="konto-empty" style="display:none;">
+            Du har ingen ordrer endnu. <a href="/shop/" class="konto-link">Gå til shop →</a>
+          </div>
+          <div id="orders-list" class="konto-orders"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+.konto-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 48px var(--container-padding-x);
+}
+.konto-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.konto-title { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 4px; }
+.konto-sub { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; }
+.konto-link { color: var(--color-primary); text-decoration: none; }
+.konto-link:hover { text-decoration: underline; }
+.konto-logout-btn {
+  padding: 8px 16px;
+  background: none;
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color 150ms, color 150ms;
+  white-space: nowrap;
+}
+.konto-logout-btn:hover { border-color: #ef4444; color: #ef4444; }
+.konto-section-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 16px;
+}
+.konto-loading { color: var(--color-text-secondary); font-size: 0.9375rem; }
+.konto-empty { color: var(--color-text-secondary); font-size: 0.9375rem; }
+.konto-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm, 6px);
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+.konto-orders { display: flex; flex-direction: column; gap: 12px; }
+.konto-order-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.konto-order-row:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.konto-order-num { font-weight: 700; color: var(--color-text-primary); font-size: 0.9375rem; }
+.konto-order-date { font-size: 0.8125rem; color: var(--color-text-secondary); margin-top: 2px; }
+.konto-order-total { font-weight: 600; color: var(--color-text-primary); font-size: 0.9375rem; }
+.konto-order-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.status-paid { background: #d1fae5; color: #065f46; }
+.status-processing { background: #dbeafe; color: #1e40af; }
+.status-shipped { background: #ede9fe; color: #4c1d95; }
+.status-delivered { background: #d1fae5; color: #065f46; }
+.status-pending_payment { background: #fef3c7; color: #92400e; }
+.status-refunded { background: #f3f4f6; color: #6b7280; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
+@media (max-width: 600px) {
+  .konto-order-row { grid-template-columns: 1fr auto; }
+  .konto-order-total { display: none; }
+}
+</style>
+
+<script>
+const apiUrl = (window as any).PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+
+const STATUS_LABELS: Record<string, string> = {
+  pending_payment: 'Afventer betaling',
+  paid: 'Betalt',
+  processing: 'Behandles',
+  shipped: 'Afsendt',
+  delivered: 'Leveret',
+  refunded: 'Refunderet',
+  cancelled: 'Annulleret',
+};
+
+function formatPrice(ore: number) {
+  return (ore / 100).toFixed(2).replace('.', ',') + ' kr.';
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('da-DK', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+(async function() {
+  const token = localStorage.getItem('customer_session');
+  if (!token) {
+    window.location.href = '/shop/konto/login/?redirect=/shop/konto/';
+    return;
+  }
+
+  document.getElementById('konto-content')!.style.display = 'block';
+
+  const firstName = localStorage.getItem('customer_first_name') || '';
+  const email = localStorage.getItem('customer_email') || '';
+  document.getElementById('konto-greeting')!.textContent = firstName ? `Hej, ${firstName}!` : email;
+
+  document.getElementById('logout-btn')!.addEventListener('click', async () => {
+    await fetch(`${apiUrl}/shop/auth/logout`, {
+      method: 'POST',
+      headers: { 'X-Customer-Session': token },
+    }).catch(() => {});
+    localStorage.removeItem('customer_session');
+    localStorage.removeItem('customer_email');
+    localStorage.removeItem('customer_first_name');
+    window.location.href = '/shop/konto/login/';
+  });
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/orders/my`, {
+      headers: { 'X-Customer-Session': token },
+    });
+    const data = await res.json();
+    document.getElementById('orders-loading')!.style.display = 'none';
+
+    if (!res.ok) throw new Error(data.error || 'Kunne ikke hente ordrer');
+
+    const { orders } = data;
+    document.getElementById('orders-section')!.style.display = 'block';
+
+    if (!orders || orders.length === 0) {
+      document.getElementById('orders-empty')!.style.display = 'block';
+      return;
+    }
+
+    const list = document.getElementById('orders-list')!;
+    list.innerHTML = orders.map((o: any) => {
+      const statusLabel = STATUS_LABELS[o.status] || o.status;
+      const statusClass = `status-${o.status}`;
+      return `
+        <a href="/shop/ordre/${o.token}/" class="konto-order-row">
+          <div>
+            <div class="konto-order-num">#${o.order_number}</div>
+            <div class="konto-order-date">${formatDate(o.created_at)}</div>
+          </div>
+          <div class="konto-order-total">${formatPrice(o.total_ore)}</div>
+          <span class="konto-order-status ${statusClass}">${statusLabel}</span>
+        </a>
+      `;
+    }).join('');
+  } catch (err: any) {
+    document.getElementById('orders-loading')!.style.display = 'none';
+    const errEl = document.getElementById('orders-error')!;
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  }
+})();
+</script>

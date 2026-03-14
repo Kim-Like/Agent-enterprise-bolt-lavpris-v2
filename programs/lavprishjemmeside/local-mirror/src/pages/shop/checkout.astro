@@ -72,6 +72,19 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           </section>
 
           <section class="checkout-section">
+            <h2 class="checkout-section-title">Note til butikken</h2>
+            <textarea
+              id="customer-note"
+              name="customer_note"
+              placeholder="Evt. særlige ønsker eller oplysninger til din ordre (valgfri)"
+              class="form-input"
+              rows="3"
+              style="resize:vertical"
+              maxlength="1000"
+            ></textarea>
+          </section>
+
+          <section class="checkout-section">
             <h2 class="checkout-section-title">Rabatkode</h2>
             <div class="checkout-discount-row">
               <input id="discount-input" type="text" placeholder="Indtast kode" class="form-input checkout-discount-input" />
@@ -330,6 +343,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
   let selectedShipping = null;
   let appliedDiscount = null;
 
+  // Session token for stock reservation — stable per browser session
+  const SESSION_TOKEN_KEY = 'shop_session_token';
+  function getSessionToken() {
+    let t = sessionStorage.getItem(SESSION_TOKEN_KEY);
+    if (!t) {
+      t = Array.from(crypto.getRandomValues(new Uint8Array(16))).map(b => b.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem(SESSION_TOKEN_KEY, t);
+    }
+    return t;
+  }
+
   function fmt(ore) { return (ore / 100).toFixed(2).replace('.', ',') + ' kr.'; }
 
   async function init() {
@@ -409,10 +433,34 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       };
 
       btn.disabled = true;
-      btn.textContent = 'Opretter ordre...';
+      btn.textContent = 'Reserverer varer...';
 
       try {
         const { items } = getCart();
+        const sessionToken = getSessionToken();
+
+        // Reserve stock before creating order
+        const reserveRes = await fetch(`${apiUrl}/shop/cart/reserve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            items: items.map(i => ({ product_id: i.product_id, variant_id: i.variant_id, quantity: i.quantity })),
+            session_token: sessionToken,
+          }),
+        });
+        if (!reserveRes.ok) {
+          const reserveData = await reserveRes.json();
+          errEl.textContent = reserveData.error || 'En vare er ikke tilgængelig i den ønskede mængde';
+          errEl.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Betal sikkert med Flatpay';
+          return;
+        }
+
+        btn.textContent = 'Opretter ordre...';
+
+        const customerNote = document.getElementById('customer-note')?.value?.trim() || null;
+
         const res = await fetch(`${apiUrl}/shop/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -421,6 +469,8 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
             customer,
             shipping_method_id: selectedShipping.id,
             discount_code: appliedDiscount?.code || null,
+            customer_note: customerNote,
+            session_token: sessionToken,
           }),
         });
 

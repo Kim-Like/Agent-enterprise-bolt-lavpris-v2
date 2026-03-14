@@ -1,0 +1,195 @@
+---
+interface Props {
+  categorySlug: string;
+}
+const { categorySlug } = Astro.props;
+---
+
+<aside class="pf-filters" id="product-filters" data-category={categorySlug}>
+  <div class="pf-header">
+    <span class="pf-title">Filtrér</span>
+    <button id="pf-reset" class="pf-reset-btn" style="display:none;">Nulstil</button>
+  </div>
+
+  <div class="pf-section">
+    <div class="pf-section-label">Pris (kr.)</div>
+    <div class="pf-price-row">
+      <input type="number" id="pf-min-price" class="pf-price-input" placeholder="Min" min="0">
+      <span class="pf-price-sep">–</span>
+      <input type="number" id="pf-max-price" class="pf-price-input" placeholder="Max" min="0">
+    </div>
+  </div>
+
+  <div class="pf-section">
+    <div class="pf-section-label">Tilgængelighed</div>
+    <label class="pf-check-label">
+      <input type="checkbox" id="pf-in-stock" class="pf-check">
+      <span>Kun på lager</span>
+    </label>
+  </div>
+
+  <div class="pf-section">
+    <div class="pf-section-label">Sortering</div>
+    <select id="pf-sort" class="pf-select">
+      <option value="">Standard</option>
+      <option value="price_asc">Pris: lavest først</option>
+      <option value="price_desc">Pris: højest først</option>
+      <option value="newest">Nyeste</option>
+      <option value="featured">Fremhævet</option>
+    </select>
+  </div>
+
+  <button id="pf-apply" class="pf-apply-btn">Anvend filter</button>
+</aside>
+
+<style>
+.pf-filters {
+  background: var(--color-surface, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-md, 10px);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 80px;
+  min-width: 200px;
+}
+.pf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.pf-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+.pf-reset-btn {
+  font-size: 0.8125rem;
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.pf-section { display: flex; flex-direction: column; gap: 8px; }
+.pf-section-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.pf-price-row { display: flex; align-items: center; gap: 8px; }
+.pf-price-input {
+  flex: 1;
+  padding: 7px 10px;
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg, #f8f9fc);
+  outline: none;
+  width: 0;
+  min-width: 0;
+  transition: border-color 150ms;
+}
+.pf-price-input:focus { border-color: var(--color-primary); background: #fff; }
+.pf-price-sep { font-size: 0.875rem; color: var(--color-text-secondary); flex-shrink: 0; }
+.pf-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+.pf-check { accent-color: var(--color-primary); width: 15px; height: 15px; cursor: pointer; }
+.pf-select {
+  padding: 8px 12px;
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: var(--color-bg, #f8f9fc);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 150ms;
+}
+.pf-select:focus { border-color: var(--color-primary); background: #fff; }
+.pf-apply-btn {
+  padding: 10px 16px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.pf-apply-btn:hover { opacity: 0.88; }
+</style>
+
+<script>
+const apiUrl = (window as any).PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+const filtersEl = document.getElementById('product-filters') as HTMLElement;
+const categorySlug = filtersEl?.dataset.category || '';
+
+const minPriceEl = document.getElementById('pf-min-price') as HTMLInputElement;
+const maxPriceEl = document.getElementById('pf-max-price') as HTMLInputElement;
+const inStockEl = document.getElementById('pf-in-stock') as HTMLInputElement;
+const sortEl = document.getElementById('pf-sort') as HTMLSelectElement;
+const applyBtn = document.getElementById('pf-apply') as HTMLButtonElement;
+const resetBtn = document.getElementById('pf-reset') as HTMLButtonElement;
+
+function hasActiveFilters() {
+  return minPriceEl.value || maxPriceEl.value || inStockEl.checked || sortEl.value;
+}
+
+function dispatchFilter(products: any[], total: number) {
+  window.dispatchEvent(new CustomEvent('pf:results', { detail: { products, total } }));
+}
+
+async function applyFilters() {
+  const params = new URLSearchParams();
+  if (categorySlug) params.set('category', categorySlug);
+  if (minPriceEl.value) params.set('min_price_ore', String(Math.round(parseFloat(minPriceEl.value) * 100)));
+  if (maxPriceEl.value) params.set('max_price_ore', String(Math.round(parseFloat(maxPriceEl.value) * 100)));
+  if (inStockEl.checked) params.set('in_stock_only', '1');
+  if (sortEl.value) params.set('sort', sortEl.value);
+  params.set('limit', '48');
+
+  resetBtn.style.display = hasActiveFilters() ? 'block' : 'none';
+
+  applyBtn.textContent = 'Henter…';
+  applyBtn.disabled = true;
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/products?${params.toString()}`);
+    if (!res.ok) throw new Error('Filterfetch fejlede');
+    const data = await res.json();
+    dispatchFilter(data.products || [], data.total || 0);
+  } catch (err) {
+    console.error('ProductFilters:', err);
+  } finally {
+    applyBtn.textContent = 'Anvend filter';
+    applyBtn.disabled = false;
+  }
+}
+
+applyBtn.addEventListener('click', applyFilters);
+
+resetBtn.addEventListener('click', () => {
+  minPriceEl.value = '';
+  maxPriceEl.value = '';
+  inStockEl.checked = false;
+  sortEl.value = '';
+  resetBtn.style.display = 'none';
+  applyFilters();
+});
+
+sortEl.addEventListener('change', applyFilters);
+</script>

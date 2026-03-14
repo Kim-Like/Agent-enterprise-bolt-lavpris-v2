@@ -1,0 +1,136 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+---
+
+<Layout title="Opret konto — Shop — Lavprishjemmeside.dk">
+  <main>
+    <div class="konto-page">
+      <div class="konto-card">
+        <h1 class="konto-title">Opret konto</h1>
+        <p class="konto-sub">Har du allerede en konto? <a href="/shop/konto/login/" class="konto-link">Log ind</a></p>
+
+        <div id="reg-error" class="konto-error" style="display:none;"></div>
+
+        <form id="reg-form" class="konto-form" novalidate>
+          <div class="konto-row">
+            <div class="konto-field">
+              <label for="first_name" class="konto-label">Fornavn</label>
+              <input type="text" id="first_name" name="first_name" class="konto-input" autocomplete="given-name" required>
+            </div>
+            <div class="konto-field">
+              <label for="last_name" class="konto-label">Efternavn</label>
+              <input type="text" id="last_name" name="last_name" class="konto-input" autocomplete="family-name" required>
+            </div>
+          </div>
+          <div class="konto-field">
+            <label for="email" class="konto-label">E-mail</label>
+            <input type="email" id="email" name="email" class="konto-input" autocomplete="email" required>
+          </div>
+          <div class="konto-field">
+            <label for="password" class="konto-label">Adgangskode <span class="konto-hint">(mindst 8 tegn)</span></label>
+            <input type="password" id="password" name="password" class="konto-input" autocomplete="new-password" minlength="8" required>
+          </div>
+          <button type="submit" id="reg-btn" class="konto-btn">Opret konto</button>
+        </form>
+
+        <p style="margin-top:1rem; font-size:0.875rem; color:var(--color-text-secondary);">
+          <a href="/shop/" class="konto-link">← Tilbage til shop</a>
+        </p>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+.konto-page {
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 60px var(--container-padding-x);
+  display: flex;
+  justify-content: center;
+}
+.konto-card { width: 100%; max-width: 480px; }
+.konto-title { font-size: 1.5rem; font-weight: 800; color: var(--color-text-primary); margin: 0 0 4px; }
+.konto-sub { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0 0 24px; }
+.konto-link { color: var(--color-primary); text-decoration: none; }
+.konto-link:hover { text-decoration: underline; }
+.konto-form { display: flex; flex-direction: column; gap: 16px; }
+.konto-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.konto-field { display: flex; flex-direction: column; gap: 6px; }
+.konto-label { font-size: 0.875rem; font-weight: 600; color: var(--color-text-primary); }
+.konto-hint { font-weight: 400; color: var(--color-text-secondary); }
+.konto-input {
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  background: var(--color-surface, #fff);
+  transition: border-color 150ms;
+  outline: none;
+}
+.konto-input:focus { border-color: var(--color-primary); }
+.konto-btn {
+  margin-top: 4px;
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 150ms;
+}
+.konto-btn:hover { opacity: 0.9; }
+.konto-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.konto-error {
+  padding: 12px 16px;
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: var(--radius-sm, 6px);
+  color: #dc2626;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+@media (max-width: 480px) {
+  .konto-row { grid-template-columns: 1fr; }
+}
+</style>
+
+<script>
+const apiUrl = (window as any).PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+
+document.getElementById('reg-form')!.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('reg-btn') as HTMLButtonElement;
+  const errEl = document.getElementById('reg-error')!;
+  errEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Opretter konto…';
+
+  const first_name = (document.getElementById('first_name') as HTMLInputElement).value.trim();
+  const last_name = (document.getElementById('last_name') as HTMLInputElement).value.trim();
+  const email = (document.getElementById('email') as HTMLInputElement).value.trim();
+  const password = (document.getElementById('password') as HTMLInputElement).value;
+
+  try {
+    const res = await fetch(`${apiUrl}/shop/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ first_name, last_name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registrering fejlede');
+    localStorage.setItem('customer_session', data.session_token);
+    localStorage.setItem('customer_email', data.email);
+    localStorage.setItem('customer_first_name', data.first_name);
+    window.location.href = '/shop/konto/';
+  } catch (err: any) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Opret konto';
+  }
+});
+</script>

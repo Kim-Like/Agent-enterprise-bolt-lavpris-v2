@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import ShopHero from '../../components/ShopHero.astro';
 import ProductGrid from '../../components/ProductGrid.astro';
+import SearchBar from '../../components/SearchBar.astro';
 
 const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
 
@@ -34,6 +35,10 @@ try {
       ctaHref="/shop/"
       badge="Officiel shop"
     />
+
+    <section class="shop-index-section shop-search-section">
+      <SearchBar />
+    </section>
 
     {categories.length > 0 && (
       <section class="shop-index-section">
@@ -78,6 +83,16 @@ try {
   max-width: var(--container-max-width);
   margin: 0 auto;
   padding: 48px var(--container-padding-x);
+}
+.shop-search-section {
+  padding-top: 24px;
+  padding-bottom: 0;
+  display: flex;
+  justify-content: center;
+}
+.shop-search-section :global(.search-bar) {
+  max-width: 28rem;
+  width: 100%;
 }
 .shop-index-section-title {
   font-size: 1.5rem;

@@ -1,0 +1,248 @@
+---
+const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
+---
+
+<div class="search-bar" id="shop-search-bar">
+  <div class="search-bar-inner">
+    <svg class="search-bar-icon" width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <circle cx="9" cy="9" r="6"/>
+      <path d="M13.5 13.5L18 18"/>
+    </svg>
+    <input
+      id="shop-search-input"
+      type="search"
+      placeholder="Søg produkter..."
+      class="search-bar-input"
+      autocomplete="off"
+      aria-label="Søg i shoppen"
+      aria-expanded="false"
+      aria-owns="search-results-list"
+    />
+    <button id="shop-search-clear" class="search-bar-clear" type="button" aria-label="Ryd søgning" style="display:none">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M15 5L5 15M5 5l10 10"/>
+      </svg>
+    </button>
+  </div>
+  <div id="search-results-dropdown" class="search-dropdown" style="display:none" role="listbox" id="search-results-list">
+    <ul id="search-results-list" class="search-results-list"></ul>
+  </div>
+</div>
+
+<style>
+.search-bar {
+  position: relative;
+  width: 100%;
+  max-width: 18rem;
+}
+.search-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border, #d1d5db);
+  border-radius: var(--radius-full, 9999px);
+  padding: 6px 12px;
+  background: var(--color-bg-page, #fff);
+  transition: border-color 150ms, box-shadow 150ms;
+}
+.search-bar-inner:focus-within {
+  border-color: var(--color-primary, #2563eb);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #2563eb) 18%, transparent);
+}
+.search-bar-icon {
+  color: var(--color-text-secondary, #6b7280);
+  flex-shrink: 0;
+}
+.search-bar-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--color-text-primary, #111);
+  min-width: 0;
+}
+.search-bar-input::placeholder {
+  color: var(--color-text-secondary, #9ca3af);
+}
+.search-bar-clear {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-secondary, #9ca3af);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  transition: color 100ms;
+}
+.search-bar-clear:hover { color: var(--color-text-primary, #111); }
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--color-bg-page, #fff);
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  overflow: hidden;
+}
+.search-results-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 360px;
+  overflow-y: auto;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  text-decoration: none;
+  color: var(--color-text-primary, #111);
+  transition: background 100ms;
+}
+.search-result-item:hover {
+  background: var(--color-neutral-100, #f3f4f6);
+}
+.search-result-img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: var(--radius-sm, 4px);
+  flex-shrink: 0;
+  background: var(--color-neutral-100, #f3f4f6);
+}
+.search-result-img-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm, 4px);
+  background: var(--color-neutral-100, #f3f4f6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary, #9ca3af);
+}
+.search-result-name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.search-result-price {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--color-primary, #2563eb);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.search-no-results {
+  padding: 16px 14px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+}
+.search-loading {
+  padding: 16px 14px;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  text-align: center;
+}
+</style>
+
+<script define:vars={{ apiUrl }}>
+  const input = document.getElementById('shop-search-input');
+  const dropdown = document.getElementById('search-results-dropdown');
+  const list = document.getElementById('search-results-list');
+  const clearBtn = document.getElementById('shop-search-clear');
+
+  if (!input || !dropdown || !list) {
+    // Component loaded but elements not ready — skip
+  } else {
+    let debounce;
+
+    function fmt(ore) {
+      return (ore / 100).toFixed(2).replace('.', ',') + ' kr.';
+    }
+
+    function close() {
+      dropdown.style.display = 'none';
+      input.setAttribute('aria-expanded', 'false');
+    }
+
+    function open() {
+      dropdown.style.display = 'block';
+      input.setAttribute('aria-expanded', 'true');
+    }
+
+    async function search(q) {
+      if (q.length < 2) { close(); return; }
+
+      list.innerHTML = `<li class="search-loading">Søger...</li>`;
+      open();
+
+      try {
+        const res = await fetch(`${apiUrl}/shop/search?q=${encodeURIComponent(q)}&limit=8`);
+        const data = await res.json();
+        const products = data.products || [];
+
+        if (products.length === 0) {
+          list.innerHTML = `<li class="search-no-results">Ingen produkter fundet for "${q}"</li>`;
+          return;
+        }
+
+        list.innerHTML = '';
+        products.forEach(p => {
+          const li = document.createElement('li');
+          const href = `/shop/produkt/${p.slug}/`;
+          const imgHtml = p.primary_image
+            ? `<img src="${p.primary_image}" alt="${p.name}" class="search-result-img" width="40" height="40" loading="lazy" />`
+            : `<div class="search-result-img-placeholder"><svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="16" height="12" rx="2"/><circle cx="7" cy="9" r="1.5"/><path d="M2 14l4-4 3 3 3-3 6 4"/></svg></div>`;
+
+          li.innerHTML = `
+            <a href="${href}" class="search-result-item">
+              ${imgHtml}
+              <span class="search-result-name">${p.name}</span>
+              <span class="search-result-price">${fmt(p.price_ore)}</span>
+            </a>
+          `;
+          list.appendChild(li);
+        });
+      } catch {
+        list.innerHTML = `<li class="search-no-results">Søgning fejlede — prøv igen</li>`;
+      }
+    }
+
+    input.addEventListener('input', (e) => {
+      const q = e.target.value.trim();
+      if (clearBtn) clearBtn.style.display = q.length > 0 ? 'flex' : 'none';
+      clearTimeout(debounce);
+      if (q.length === 0) { close(); return; }
+      debounce = setTimeout(() => search(q), 280);
+    });
+
+    clearBtn?.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      close();
+      input.focus();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('shop-search-bar')?.contains(e.target)) {
+        close();
+      }
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { close(); input.blur(); }
+    });
+  }
+</script>
