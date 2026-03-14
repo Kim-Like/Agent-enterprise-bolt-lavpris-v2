@@ -246,7 +246,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           window.location.href = '/admin/';
           throw new Error('Unauthorized');
         }
-        if (res.status === 503) throw new Error('503 Service Unavailable — API-serveren er utilgængelig. Genstart Node.js på serveren (touch api/tmp/restart.txt).');
+        if (res.status === 503) throw new Error('503 Service Unavailable — API-serveren er utilgængelig. Genstart Node.js-appen via cPanel › Setup Node.js App › Restart.');
         if (!res.ok) throw new Error('HTTP ' + res.status + ' — ' + res.statusText);
         return res.json();
       });

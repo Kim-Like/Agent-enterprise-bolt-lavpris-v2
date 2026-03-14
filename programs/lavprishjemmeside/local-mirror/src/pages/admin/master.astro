@@ -1012,7 +1012,7 @@ function ensureMasterStepUp() {
         body: JSON.stringify({ password: password })
       }).then(function(r) { return r.json(); }).then(function(j) {
         if (!j.ok || !j.token) {
-          alert(j.error || 'Step-up authentication failed');
+          if(window.toast){toast(j.error || 'Step-up authentication failed','error');}else{alert(j.error || 'Step-up authentication failed');}
           return false;
         }
         masterStepUpToken = j.token;
@@ -1153,11 +1153,11 @@ document.getElementById('add-site-form').addEventListener('submit', function(e) 
   fetch(API + '/master/sites', { method: 'POST', headers: authHeaders(), body: JSON.stringify(data) })
     .then(function(r) { return r.json(); })
     .then(function(res) {
-      if (res.error) { alert(res.error); return; }
+      if (res.error) { if(window.toast){toast(res.error,'error');}else{alert(res.error);} return; }
       e.target.reset();
       loadSites();
     })
-    .catch(function(e) { alert('Fejl: ' + e.message); });
+    .catch(function(e) { if(window.toast){toast('Fejl: ' + e.message,'error');}else{alert('Fejl: ' + e.message);} });
 });
 
 function renderMiniChart(usageRows) {
@@ -1557,7 +1557,7 @@ function createNewPlanMd() {
   var taskId = getSelectedTaskId();
   var repoEl = document.getElementById('claude-repo');
   if (!taskId || !repoEl || !repoEl.value) {
-    alert('Vælg repo og kanban task først');
+    if(window.toast){toast('Vælg repo og kanban task først','warning');}else{alert('Vælg repo og kanban task først');}
     return Promise.resolve(false);
   }
   return fetch(API + '/master/task-md-files', {
@@ -1567,7 +1567,7 @@ function createNewPlanMd() {
   }).then(function(r) { return r.json(); })
     .then(function(j) {
       if (!j.ok) {
-        alert(j.error || 'Kunne ikke oprette .md plan');
+        if(window.toast){toast(j.error || 'Kunne ikke oprette .md plan','error');}else{alert(j.error || 'Kunne ikke oprette .md plan');}
         return false;
       }
       return loadTaskMdFiles(), new Promise(function(resolve) {
@@ -1580,7 +1580,7 @@ function createNewPlanMd() {
       });
     })
     .catch(function(e) {
-      alert('Fejl: ' + e.message);
+      if(window.toast){toast('Fejl: ' + e.message,'error');}else{alert('Fejl: ' + e.message);}
       return false;
     });
 }
@@ -1679,7 +1679,7 @@ function runClaude() {
   var md_path = document.getElementById('claude-md-file').value;
 
   if (!repo || !task_id) {
-    alert('Vælg repository og kanban task først');
+    if(window.toast){toast('Vælg repository og kanban task først','warning');}else{alert('Vælg repository og kanban task først');}
     updateRunButtonState();
     return;
   }

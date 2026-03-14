@@ -19,60 +19,224 @@ Change discipline:
 
 ## [Unreleased]
 
+### Phase 7 — Final Handoff, Operator Packet Consolidation, and Rollback Gate (2026-03-14)
+
+- Produced `PHASE7_HANDOFF.md` with consolidated cPanel/operator rollout packet covering all Phase 4.1 and Phase 6 schema, env, and verification steps
+- Updated `local-mirror/docs/SCHEMA_OVERVIEW.md` to include Phase 4.1 shop extension schema files and Phase 6 master/email schema files
+- Added final blocker ledger and outside-folder follow-up ledger: email proxy routes, subscription snapshot cron, live billing integration, provider middleware, and release-health verification are explicitly handed off as outside-folder operator steps
+- Confirmed `ROLLBACK_AND_REPAIR.md` baseline is still current (`2026-03-14`, commit `f25e38320c2fcfebb1a79c0e3e1dcc2ca037a685`)
+- Sprint implementation complete within the in-folder boundary; no live rollout, cPanel execution, or release-health claimed complete
+- Correction pass applied: page-builder preview now uses `window.location.origin` as the safe same-install fallback (no longer defaults to `lavprishjemmeside.dk` on client installs); email admin page reframed as an operator-bound foundation (interactive mailbox UI removed, honest status screen rendered instead until routes are wired); both CHANGELOG copies now byte-identical so release-health SHA gate passes; `alert()` calls replaced with `window.toast()` on `dashboard.astro`, `pages.astro`, `ai-assemble.astro`, `header-footer.astro`, `master.astro`, `media.astro`, and `styling.astro`; stale `touch api/tmp/restart.txt` instruction replaced with the current cPanel restart contract in `dashboard.astro` and `INSTALL_OPERATOR_PACKET.md`
+
+---
+
+### Phase 6 — Master Console Uplift, Provider Switching, Subscriptions, Email Client Foundation (2026-03-14)
+
+#### 6.1 AI Usage Tab Uplift
+- Added fleet-level summary bar to Master Hub AI tab: total tokens, total cost, total requests, and active site count for the 30-day window
+- Per-site cards now show request count alongside token and cost totals
+- Stale activity signal: sites with no AI usage in the last 7+ days show an amber "Inaktiv Xd" pill
+- Last-active date label shown on non-stale sites
+- Activity chart date range labels added (first/last day of the 14-day window)
+- Bar tooltips include request count in addition to token count
+- DB-unavailable sites show a red "DB utilgængelig" error pill
+
+#### 6.2 Provider Switching Tab (Tab 4)
+- New "Provider" tab added to Master Hub (master-only, gated by existing master role check)
+- Visual radio-card selector: Anthropic Claude vs OpenAI/Codex
+- Provider choice loaded from and saved to DB (`provider_config` table — single-row config)
+- Saving generates a formatted operator packet with exact `.env` changes and cPanel restart instructions
+- "Kopier" button copies operator packet to clipboard
+- Full audit trail: every provider change written to `provider_audit_log` and rendered in the UI
+- No fake in-folder provider router: real switching is operator-executed via the generated packet
+- New API endpoints: `GET /master/provider-config`, `POST /master/provider-config`
+
+#### 6.3 Subscription Management Tab (Tab 5)
+- New "Abonnementer" tab added to Master Hub
+- Per-site subscription cards: plan badge (Starter/Growth/Pro), 4 usage bars (AI tokens, sider, lager, mail-konti)
+- Usage bars colour-coded: green < 70%, amber 70–90%, red > 90%
+- Billing status: overdue warning surfaced in-card with renewal date
+- Upgrade request flow: select site + new plan → `POST /master/subscription-upgrade-request` → logged to DB
+- Operator instructions panel with explicit numbered steps for live billing activation
+- New API endpoints: `GET /master/subscriptions`, `POST /master/subscription-upgrade-request`
+
+#### 6.4 Email Client Foundation
+- New admin page: `src/pages/admin/email.astro`
+- Setup notice shown always with required env vars listed
+- Unconfigured state: graceful not-configured gate (checks `GET /email/config`)
+- Configured state: 2-column split — folder list (left) + message list/viewer (right)
+- Compose modal: To, Subject, Body fields with Send and Save Draft actions
+- Reply flow: pre-populates To and Subject from message header
+
+**New schema files** (operator-applied via cPanel phpMyAdmin):
+- `api/src/schema_subscriptions.sql` — `subscriptions`, `subscription_usage_snapshots`, `subscription_upgrade_requests`, `provider_config`, `provider_audit_log`; seeds default `provider_config` row with `active_provider = 'anthropic'`
+- `api/src/schema_email_client.sql` — `email_accounts`, `email_folders`, `email_messages`, `email_drafts`
+
+**Operator actions required at rollout:**
+1. Run `schema_subscriptions.sql` on the master DB via cPanel phpMyAdmin
+2. Run `schema_email_client.sql` on each client DB where email is to be enabled
+3. Add `EMAIL_IMAP_HOST`, `EMAIL_IMAP_PORT`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_ENCRYPTION_KEY` to `.env` for each client site where email is enabled
+4. Wire `/email/*` IMAP/SMTP proxy routes (see `PHASE6_HANDOFF.md` route contract)
+5. Restart Node app via cPanel > Setup Node.js App > Restart
+
+---
+
+### Phase 5 — CMS/Admin Productivity Uplift (2026-03-14)
+
+#### 5.1 Dashboard Quick Actions
+- Added four quick-action shortcut cards below the stat row: **Ny side med AI**, **Rediger sider**, **Upload medier**, **Publicer nu**
+- "Publicer nu" quick card triggers the `/publish` API endpoint directly from the dashboard with visual confirmation feedback
+- Responsive grid: 4 columns on desktop, 2 columns on narrow screens
+
+#### 5.2 Pages Workflow Improvements
+- Added **"+ Ny side"** button with a modal dialog (Enter to confirm, Esc to cancel) that creates a new page by path
+- Pages sidebar now shows a summary badge row: total page count + published page count
+- Each page button now shows a **status dot** (green = all components published, amber = partial, grey = none)
+- Added per-component **visibility toggle button** (eye icon) that calls `POST /page-components/publish` to toggle `is_published` per component without the full page publish flow
+- Added **Ctrl+S / Cmd+S** keyboard shortcut to save the currently open component edit modal
+
+#### 5.3 Component Duplicate Button
+- Added a **duplicate (⊕)** button to each component row in the page editor
+- Clones the component into the same page at the next sort position, copying `content`, `is_published`, and `component_id`
+
+#### 5.4 AI Assembler Improvements
+- Both the Standard and Advanced page path inputs now use a `<datalist>` populated with existing page paths from the API — provides autocomplete suggestions
+- Added an **animated step-by-step loading indicator** during generation: Analyserer → Vælger komponenter → Genererer tekster → Gemmer til databasen
+- Steps animate sequentially and all turn green on success, providing clearer feedback during the 10–30 second generation process
+
+#### 5.5 Media Library Bulk Delete
+- Added **"Vælg"** button that activates bulk-select mode
+- In bulk mode, clicking any image card toggles its checkbox selection (highlighted with blue ring)
+- Bulk toolbar shows selected count with **Vælg alle**, **Fravælg alle**, and **Slet valgte** actions
+- Bulk delete loops through selected IDs with individual DELETE calls and reports errors
+
+#### 5.6 Assistant Quick-Prompt Chips
+- Added five clickable **quick-prompt chips** above the chat textarea when a session is open
+- Chips: _Hvad kan du hjælpe med?_, _Generer tekst til forsiden_, _Beskriv et nyt komponent jeg skal bruge_, _Hjælp mig med SEO-tekster_, _Skriv en ticket til engineer-teamet_
+- Clicking a chip populates the textarea and hides the chip row for a clean chat flow
+
+#### 5.7 Admin Layout Keyboard Shortcuts
+- Added a **keyboard shortcut overlay** (`?` key or `?` button in the header) listing all global navigation shortcuts
+- Navigation shortcuts: `g d` → Dashboard, `g p` → Sider, `g m` → Medier, `g a` → AI-assembler, `g s` → Shop, `g c` → Assistant
+- `Esc` closes any open overlay or mobile menu
+- Small `?` button added to the admin header topbar for discoverability
+
 > Features developed on `main` but not yet tagged. Will become the next release.
-
-### Added (Phase 7 — Final Handoff and Operator Packet Consolidation)
-- **SCHEMA_OVERVIEW Updated** — `local-mirror/docs/SCHEMA_OVERVIEW.md` now includes all Phase 4.1 shop extension schema files and Phase 6 master/email schema files that were missing from the manual module section.
-- **Consolidated Rollout Packet** — `PHASE7_HANDOFF.md` contains the complete operator packet for Phases 4.1 and 6: SQL run orders, idempotency notes, verification queries, rollback commands, env packets, and the live verification checklist.
-- **Final Blocker and Outside-Folder Ledgers** — Email proxy routes, subscription cron, live billing, provider middleware, and release-health verification are explicitly recorded as outside-folder operator handoff items. Nothing is silently dropped.
-
-### Added (Phase 6 — Master Console Uplift, Provider Switching, Subscriptions, Email Client Foundation)
-- **Master Hub AI Usage Fleet Summary** — Fleet-level summary bar on the AI tab: total tokens, total cost, total requests, and active site count for the 30-day window. Per-site cards now show request count alongside token and cost totals.
-- **Master Hub Stale Activity Signal** — Sites with no AI usage in the last 7+ days show an amber "Inaktiv Xd" pill; active sites show last-active date. DB-unavailable sites show red "DB utilgængelig" error pill.
-- **Master Hub Provider Tab (Tab 4)** — New "Provider" tab in Master Hub (master-only). Visual radio-card selector (Anthropic vs OpenAI). Provider choice persisted to `provider_config` DB table. Saving generates a formatted operator packet with exact `.env` changes and cPanel restart instructions. Full audit trail rendered in-UI from `provider_audit_log`. No fake routing — real switching is operator-executed via the generated packet.
-- **Master Hub Subscriptions Tab (Tab 5)** — New "Abonnementer" tab. Per-site subscription cards with plan badge (Starter/Growth/Pro), 4 usage bars (AI tokens, sider, lager, mail-konti) colour-coded by usage %. Overdue billing warning. Upgrade request flow: select site + new plan → logged to `subscription_upgrade_requests`.
-- **Email Client Admin Page** — New `src/pages/admin/email.astro`. Always shows setup notice with required env vars. Unconfigured state shows graceful gate. Configured state: 2-column folder list + message list/viewer, compose modal (To, Subject, Body, Send, Save Draft), reply pre-population.
-- **New schema files**: `api/src/schema_subscriptions.sql` (`subscriptions`, `subscription_usage_snapshots`, `subscription_upgrade_requests`, `provider_config`, `provider_audit_log`); `api/src/schema_email_client.sql` (`email_accounts`, `email_folders`, `email_messages`, `email_drafts`).
-- **New API endpoints**: `GET /master/provider-config`, `POST /master/provider-config`, `GET /master/subscriptions`, `POST /master/subscription-upgrade-request`.
-
-### Added (Phase 5 — CMS/Admin Productivity Uplift)
-- **Dashboard Quick Actions** — Four quick-action shortcut cards below the stat row: Ny side med AI, Rediger sider, Upload medier, Publicer nu. "Publicer nu" card calls the `/publish` API with visual confirmation feedback. Responsive grid: 4 columns on desktop, 2 columns on narrow screens.
-- **Pages "+ Ny side" Button** — Modal dialog (Enter to confirm, Esc to cancel) that creates a new page by path via the API.
-- **Pages Status Dots** — Each page sidebar button shows a status dot (green = all components published, amber = partial, grey = none).
-- **Pages Summary Badge Row** — Sidebar header shows total page count and published page count.
-- **Per-Component Visibility Toggle** — Eye icon on each component row calls `POST /page-components/publish` to toggle `is_published` without a full page publish.
-- **Ctrl+S / Cmd+S Save Shortcut** — Saves the currently open component edit modal.
-- **Component Duplicate Button** — Duplicate (⊕) button on each component row clones it into the same page at the next sort position, copying `content`, `is_published`, and `component_id`.
-- **AI Assembler Datalist Autocomplete** — Page path inputs use `<datalist>` populated from existing page paths API.
-- **AI Assembler Step Indicator** — Animated step-by-step loading: Analyserer → Vælger komponenter → Genererer tekster → Gemmer til databasen. All steps turn green on success.
-- **Media Library Bulk Delete** — "Vælg" button activates bulk-select mode. Bulk toolbar: Vælg alle, Fravælg alle, Slet valgte with selected count.
-- **Assistant Quick-Prompt Chips** — Five clickable chips above the chat textarea populate it on click.
-- **Admin Keyboard Shortcut Overlay** — `?` key (or `?` header button) shows all global shortcuts (g d, g p, g m, g a, g s, g c). Esc closes.
-
-### Added (Phase 5.1 — Enterprise CMS Modernisation)
-- **Global Toast/Notification System** — Added centralized `toast(message, type, duration)` function in `AdminLayout.astro`. Replaces all `alert()` calls across admin panel with non-blocking, auto-dismissing toasts in success/error/warning/info variants with animated entrance/exit. `window.toast` is globally available on all admin pages.
-- **Dashboard Skeleton Loading States** — Replaced the bare "Henter data..." spinner with animated shimmer skeleton cards that match the final layout structure (stat cards, chart, table). Eliminates layout shift on load.
-- **Dashboard Activity Chart** — Added a 14-day sparkline-style bar chart under the stat cards, derived from recent events data. Shows per-day event counts with hover tooltips and a "Top: N events" label.
-- **Dashboard Stat Card Improvements** — Added trend indicator slots on event/session cards, "seneste 24 timer" note on today's stat, hover shadow on all stat cards.
-- **Theme Gallery Visual Previews** — Replaced plain text/radio-button theme cards with visual mini-preview renders showing each theme's color palette, header style, typography, and button design. Active theme shows a blue checkmark badge. Theme grid adapts to available space.
-- **Components Browser Sorting & Filtering** — Added category dropdown filter, sort controls (name A-Z, name Z-A, category, most props, most used), live result count badge. All controls work together with the existing search input.
-- **Components Browser Usage Counts** — Component cards now display a green "brugt Nx" badge derived from actual page-component assignments, making it easy to identify which components are in active use.
-- **Components Browser Status Labels** — Component cards now show STABIL / BETA / UDGÅET status badges based on the `status` field on each component record.
-- **Styling Editor Recent Colors Palette** — Added a persistent recent-colors swatch row that appears above the color inputs after the first color edit. Clicking a swatch applies it to the currently focused color field. Up to 12 colors are remembered across sessions in `localStorage`.
-- **Styling Editor Autosave Draft** — Color changes automatically save a draft to `localStorage` (1.2 s debounce). Draft is restored on next page load with a visible "Kladde indlæst" indicator. Draft is cleared on successful API save.
-- **Toast Feedback on All Save/Publish Actions** — Success and error toasts added to: dashboard publish, pages publish/component save, media alt-text, header-footer save, themes save, styling save/publish, AI assembler deploy, shop reviews.
-
-### Changed (Phase 5.1)
-- Styling editor header replaced with a more compact, inline design matching the rest of the admin panel.
-- Components grid card design refreshed with tighter typography, pill badges, flex layout, and hover border highlight.
-- `components.astro` now loads page-component data in parallel with component data to calculate live usage counts.
 
 ### Added
 - Implemented the first-party e-commerce module with shop schema, Flatpay / Frisbii payment integration, public storefront routes, admin shop management, and transactional order email support.
 
+### Planned
+- Phase 4.1 planning complete: scoped Ecommerce Functional Depth sprint covering admin shop dashboard, inventory reservation at checkout, storefront product search, refund/return workflow, and order notes as Tier 1 blockers; shipping zones, customer accounts, product filters, and email template customization as Tier 2 differentiators; back-in-stock notifications, abandoned cart recovery, product reviews, and bulk import/export as Tier 3. Full implementation plan in `PHASE4.1_HANDOFF.md`. No code changes in this entry.
+
+### Phase 4.1 — Ecommerce Functional Depth (Tier 1 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_stock_reservations.sql` — `stock_reservations` table: session-scoped inventory reservations with `product_id`, `variant_id`, `quantity`, `session_token`, `expires_at`; indexed on product, token, and expiry for efficient lazy sweeps.
+- `schema_order_notes.sql` — additive `ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_note TEXT NULL` for buyer-supplied order notes.
+
+**New API endpoints:**
+- `GET /shop/search?q=&limit=` — MySQL FULLTEXT search across `products.name` and `products.short_desc` with wildcard prefix matching; returns matching products with primary image and price.
+- `POST /shop/cart/reserve` — atomic inventory reservation: sweeps expired rows, checks available stock (stock minus active reservations), creates a 15-minute session-scoped reservation row; returns HTTP 409 on insufficient stock.
+- `POST /shop/admin/orders/:id/refund` — marks order `refunded`, optionally restores stock per line item, records `order_events` audit row, sends refund confirmation email best-effort.
+- `POST /shop/admin/orders/:id/note` — appends an internal admin note as an `order_events` row with `event_type: internal_note`.
+- Extended `GET /shop/admin/dashboard` to include `low_stock` (products with `stock ≤ 5` and `track_stock = 1`) and `daily_orders` (14-day daily order counts).
+
+**New pages and components:**
+- `src/pages/admin/shop/dashboard.astro` — admin shop overview with 4 KPI cards (revenue 30d, orders 30d, pending payment, ready to ship), pure-CSS 14-day daily orders bar chart, top 5 products list, recent orders table, and low-stock alert list.
+- `src/components/SearchBar.astro` — reusable search input with debounced fetch (280ms), results dropdown, thumbnail/placeholder, price display, clear button, keyboard Escape dismiss, and outside-click close.
+
+**Modified files:**
+- `src/pages/shop/checkout.astro` — added "Note til butikken" textarea; added session token generation via `sessionStorage` + `crypto.getRandomValues`; reserve call before order creation with 409 error surfacing.
+- `src/pages/admin/shop/orders.astro` — added refund modal (reason + restore-stock checkbox); internal note input section; customer note display box; full event timeline (no longer capped at 10); emoji prefix for internal note events.
+- `src/layouts/AdminLayout.astro` — added "Shop-overblik" nav link to `/admin/shop/dashboard/` in the Shop section.
+- `src/pages/shop/index.astro` — injected `SearchBar` above category grid.
+- `src/components/Header.astro` — injected `SearchBar` into regular and modern layout nav rail (before CartIcon).
+- `api/src/services/shop-email.cjs` — added `sendRefundConfirmation` email function.
+- `api/run-schema.cjs` — registered `schema_stock_reservations.sql` and `schema_order_notes.sql` in `SCHEMA_ORDER`.
+
+### Phase 4.1 — Ecommerce Functional Depth (Tier 2 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_shipping_zones.sql` — additive `ALTER TABLE shipping_methods ADD COLUMN IF NOT EXISTS countries JSON NULL` for per-method country targeting.
+- `schema_customer_accounts.sql` — additive columns on `customers` (`password_hash TEXT NULL`, `email_verified_at TIMESTAMP NULL`) plus new `customer_sessions` table (token, customer_id, expires_at) for light customer account sessions.
+- `schema_email_templates.sql` — new `email_templates` table (slug, label, subject, html_body, updated_at) for admin-editable transactional email templates with hardcoded fallback.
+
+**New API endpoints (public):**
+- `POST /shop/auth/register` — customer self-registration with bcrypt password hash; returns 30-day session token.
+- `POST /shop/auth/login` — customer login with bcrypt verify; returns session token.
+- `POST /shop/auth/logout` — invalidates session token row.
+- `GET /shop/auth/me` — returns current customer identity from session header.
+- `GET /shop/orders/my` — returns authenticated customer's order history (requires `X-Customer-Session` or `Authorization` header).
+- `GET /shop/products?min_price_ore=&max_price_ore=&in_stock_only=&sort=` — new optional filter params (price range, stock filter, sort order) added to existing products endpoint; fully backwards-compatible.
+- `GET /shop/shipping/methods?country=DK` — new optional `country` query param filters methods by `countries` JSON column; NULL = all countries (backwards-compatible).
+
+**New API endpoints (admin):**
+- `GET /shop/admin/emails` — list all email templates.
+- `GET /shop/admin/emails/:slug` — retrieve a single template by slug.
+- `PUT /shop/admin/emails/:slug` — create or update an email template; used by the admin editor page.
+- `PUT /shop/admin/shipping/:id` + `POST /shop/admin/shipping` — extended to accept optional `countries` array field.
+
+**New admin page:**
+- `src/pages/admin/shop/emails.astro` — email template editor with sidebar template list, subject and HTML body editor, `{{token}}` insertion pills, save button, and "reset to default" button. All four transactional templates (order confirmation, shipped, refund, admin new order) are editable.
+
+**New storefront pages:**
+- `src/pages/shop/konto/login.astro` — customer login form with session token storage in localStorage.
+- `src/pages/shop/konto/register.astro` — customer registration form with first/last name, email, password.
+- `src/pages/shop/konto/index.astro` — authenticated order history page with status badges and logout.
+
+**New component:**
+- `src/components/ProductFilters.astro` — filter sidebar with price range inputs, in-stock toggle, sort dropdown, apply button, reset button. Dispatches `pf:results` custom event with filtered product list.
+
+**Modified files:**
+- `src/pages/shop/[category].astro` — injected `ProductFilters` sidebar; switched to two-column layout; added `pf:results` event listener to re-render product grid without page reload.
+- `api/src/services/shop-email.cjs` — all four email functions now check `email_templates` DB table first; fall back to hardcoded HTML if no DB row exists. Added `loadTemplate()` and `renderTemplate()` helpers; added `pool` import.
+- `src/layouts/AdminLayout.astro` — added "E-mailskabeloner" nav link to `/admin/shop/emails/` in the Shop section.
+- `api/run-schema.cjs` — registered `schema_shipping_zones.sql`, `schema_customer_accounts.sql`, and `schema_email_templates.sql` in `SCHEMA_ORDER`.
+
+**Operator actions required at rollout:**
+1. Run `node api/run-schema.cjs` to apply the three new Tier 2 schema files.
+2. Trigger Astro build + deploy.
+
+### Phase 4.1 — Ecommerce Functional Depth (Tier 3 implementation)
+
+**New schema files** (run via `node api/run-schema.cjs`):
+- `schema_stock_notifications.sql` — `stock_notifications` table: email opt-in for out-of-stock products/variants; indexed on product, variant, email, and notified_at.
+- `schema_abandoned_carts.sql` — `cart_sessions` table: session_id, email, cart JSON, captured_at, last_activity_at, reminder_sent_at, recovered_at; used for abandoned cart recovery.
+- `schema_product_reviews.sql` — `product_reviews` table: product_id, customer_email, customer_name, rating (1–5), body, approved flag, created_at; indexed on product and approval status.
+
+**New API endpoints (public):**
+- `POST /shop/notify/stock` — register email for back-in-stock notification; deduplicates per product/variant/email; rate-limited via existing `orderRateLimiter`.
+- `POST /shop/products/:slug/review` — submit a product review (rate-limited, 5/hour per IP); stores as unapproved; returns `pending_approval: true`.
+- `GET /shop/products/:slug/reviews` — return approved reviews with average rating and count.
+- `POST /shop/cart/session` — upsert cart session row for abandoned cart tracking; called from cart client side; `ON DUPLICATE KEY UPDATE` pattern.
+
+**New API endpoints (admin):**
+- `GET /shop/admin/reviews` — list all reviews with optional `?approved=0|1` filter and pagination.
+- `PUT /shop/admin/reviews/:id/approve` — approve or unapprove a review.
+- `DELETE /shop/admin/reviews/:id` — permanently delete a review.
+- `GET /shop/admin/cron/abandoned-carts` — operator/cPanel-cron callable endpoint; sends reminder emails to cart sessions with email captured, no reminder sent yet, and last activity > 2 hours ago; marks `reminder_sent_at`.
+- `GET /shop/admin/products/export.csv` — download all products as UTF-8 CSV with BOM; correct CSV quoting.
+- `POST /shop/admin/products/import` — multipart CSV upload (max 5 MB); validates required columns (`sku`, `name`, `slug`, `price_ore`); upserts by SKU via `ON DUPLICATE KEY UPDATE`; returns `{ upserted, skipped, errors }`.
+
+**New admin page:**
+- `src/pages/admin/shop/reviews.astro` — review moderation list with approve/unapprove/delete actions, filter by status, and pagination.
+
+**Modified files:**
+- `src/pages/shop/produkt/[slug].astro` — added approved review list with star rating display and average summary; added review submission form (name, email, star rating, body); added back-in-stock notification widget that appears when the add-to-cart button is disabled (out of stock).
+- `src/pages/admin/shop/products.astro` — added "Eksporter CSV" and "Importer CSV" buttons to the page header; added import result message strip; added JS for client-side CSV download with `Authorization` header and file upload handling.
+- `api/src/routes/shop-admin.cjs` — added `multer` import and `upload` instance; added all Tier 3 admin endpoints; wired back-in-stock notification dispatch into the refund stock-restore path.
+- `src/layouts/AdminLayout.astro` — added "Anmeldelser" nav link to `/admin/shop/reviews/` in the Shop section.
+- `api/run-schema.cjs` — registered `schema_stock_notifications.sql`, `schema_abandoned_carts.sql`, and `schema_product_reviews.sql` in `SCHEMA_ORDER`.
+
+**Operator actions required at rollout:**
+1. Run `node api/run-schema.cjs` to apply the three new Tier 3 schema files.
+2. Trigger Astro build + deploy.
+3. (Optional) Configure a cPanel cron job: `curl -s -H "Authorization: Bearer <admin_token>" https://api.lavprishjemmeside.dk/shop/admin/cron/abandoned-carts` — run every 30 minutes.
+
 ### Changed
-- Uplifted all shop storefront, cart, checkout, and admin pages from Tailwind utility classes to scoped `<style>` blocks using CSS design tokens: `shop/index.astro`, `shop/[category].astro`, `shop/produkt/[slug].astro`, `shop/kurv.astro`, `shop/checkout.astro`, `shop/ordre/[token].astro`, `admin/shop/products.astro`, `admin/shop/orders.astro`, `admin/shop/settings.astro`. All Tailwind `hidden` class toggles replaced with `element.style.display` or semantic `.is-open` class patterns. Status badge class assignments in JS template literals replaced with semantic BEM-style classes (`ao-status-paid`, `ordre-status-pending`, `asp-status-active`, etc.) defined in scoped CSS. No JavaScript logic, API contracts, or schema changes.
-- Uplifted shop components (`ShopHero.astro`, `CartDrawer.astro`, `PriceDisplay.astro`) from Tailwind to scoped CSS. `CartDrawer` slide animation changed from `translate-x-full`/`translate-x-0` class toggling to `.is-open` CSS class with `transform: translateX()`. `PriceDisplay` size variants converted from Tailwind `text-sm`/`text-base`/`text-2xl` to `.price-display--sm/md/lg` modifier classes.
+- Uplifted all shop storefront, cart, checkout, and admin pages from Tailwind utility classes to scoped `<style>` blocks using CSS design tokens: `shop/index.astro`, `shop/[category].astro`, `shop/produkt/[slug].astro`, `shop/kurv.astro`, `shop/checkout.astro`, `shop/ordre/[token].astro`, `admin/shop/products.astro`, `admin/shop/orders.astro`, `admin/shop/settings.astro`. All Tailwind `hidden` class toggles replaced with `element.style.display` or semantic `.is-open` class patterns. Status badge class assignments in JS template literals replaced with semantic BEM-style classes defined in scoped CSS. No JavaScript logic, API contracts, or schema changes.
+- Uplifted shop components (`ShopHero.astro`, `CartDrawer.astro`, `PriceDisplay.astro`) from Tailwind to scoped CSS. `CartDrawer` slide animation changed from `translate-x-full`/`translate-x-0` class toggling to `.is-open` CSS class with `transform: translateX()`. `PriceDisplay` size variants converted to `.price-display--sm/md/lg` modifier classes.
 - Hardened installer (`scripts/setup.cjs`) with partial-install state persistence (`.setup-state.json`), `--reset` flag for full restart, `execWithRetry` for dependency and build steps, URL and required-field validation, resume-aware variable pre-fill, 90-second health polling with last-error reporting, API stderr capture on health failure, Agent Enterprise provisioning with 3-retry logic, JWT secret and provisioned token preservation across resume runs, numbered step headers, and explicit repair guidance on each failure.
 - Hardened schema runner (`api/run-schema.cjs`) with per-statement execution (`multipleStatements: false`), `splitStatements()` DELIMITER-aware SQL splitter, `isIdempotentError()` for safe-to-skip MySQL error codes, `checkConnection()` pre-flight, missing-file warnings, per-file timing and applied/skipped counts, wrapped errors carrying `schemaFile`/`statementIndex`/`statementPreview`/`originalCode`, post-run summary table, and expanded `SCHEMA_ORDER` covering all 27 current schema files.
 - Hardened assistant setup wizard (`src/pages/admin/assistant.astro`) with full scoped CSS system replacing all Tailwind dependencies, `STEP_REQUIRED_FIELDS` per-step validation map, `validateStep()`/`clearStepErrors()` functions, `setWizardStep(nextStep, skipValidation)` navigation gate that blocks forward progress on empty required fields, dismissible error banner, step progress indicators with active/complete/error-state styles, all visibility toggling moved from Tailwind `hidden` class to `element.style.display`, `escHtml()` XSS helper, and activation error recovery that re-enables the submit button on failure.

@@ -165,11 +165,7 @@ cd ~/repositories/<domain> && npm run build
 
 ### 8. Verify the API is running
 
-Touch the Node.js app restart trigger:
-
-```bash
-touch ~/repositories/<domain>/api/tmp/restart.txt
-```
+Restart the Node.js app via **cPanel › Setup Node.js App › Restart** (current primary method).
 
 Then test:
 
@@ -227,11 +223,7 @@ In `api/.env` on the server:
 FLATPAY_TEST_MODE=false
 ```
 
-Then touch restart:
-
-```bash
-touch ~/repositories/<domain>/api/tmp/restart.txt
-```
+Then restart the Node.js app via **cPanel › Setup Node.js App › Restart**.
 
 ---
 
@@ -283,10 +275,8 @@ touch ~/repositories/<domain>/api/tmp/restart.txt
 `~/repositories/<domain>/api/.env`
 
 ### Restart / Build Requirement
-After any `.env` change:
-```bash
-touch ~/repositories/<domain>/api/tmp/restart.txt
-```
+After any `.env` change: **cPanel › Setup Node.js App › Restart** (current primary method).
+
 After `PUBLIC_API_URL` or `PUBLIC_SITE_URL` changes (Astro build-time vars):
 ```bash
 cd ~/repositories/<domain> && npm run build

@@ -1,309 +1,77 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.dk';
 ---
 
 <AdminLayout title="E-mail">
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-4xl mx-auto">
     <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
       <div>
         <h1 class="text-3xl font-bold text-gray-900">E-mail</h1>
-        <p class="text-gray-600 mt-2">Administrer mailbokse og beskeder</p>
+        <p class="text-gray-600 mt-2">E-mailklient til administrerede postkasser</p>
       </div>
       <span class="inline-flex items-center gap-1.5 text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200 rounded-full px-3 py-1.5">
-        Kræver cPanel IMAP/SMTP-konfiguration
+        Kræver operatørtrin
       </span>
     </div>
 
-    <div id="email-setup-notice" class="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-8">
-      <p class="text-sm font-semibold text-blue-900 mb-1">E-mail-klienten kræver et operatørtrin</p>
-      <p class="text-sm text-blue-700 mb-3">For at aktivere e-mail skal operatøren køre <code class="bg-blue-100 px-1 rounded">schema_email_client.sql</code> og konfigurere IMAP/SMTP-credentials i <code class="bg-blue-100 px-1 rounded">.env</code>. Se PHASE6_HANDOFF.md for den fulde kontrakt.</p>
-      <p class="text-xs text-blue-600">Nødvendige .env-variabler: <code class="bg-blue-100 px-1 rounded">EMAIL_IMAP_HOST</code>, <code class="bg-blue-100 px-1 rounded">EMAIL_IMAP_PORT</code>, <code class="bg-blue-100 px-1 rounded">EMAIL_SMTP_HOST</code>, <code class="bg-blue-100 px-1 rounded">EMAIL_SMTP_PORT</code>, <code class="bg-blue-100 px-1 rounded">EMAIL_ENCRYPTION_KEY</code></p>
-    </div>
-
-    <div id="email-loading" class="text-center py-12 text-gray-400 text-sm">Kontrollerer e-mail-konfiguration…</div>
-    <div id="email-not-configured" class="hidden">
-      <div class="bg-gray-50 border border-gray-200 rounded-xl p-8 text-center">
-        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-          <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2" y="4" width="18" height="14" rx="2" stroke="#9ca3af" stroke-width="1.5"/><path d="M2 7l9 6 9-6" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round"/></svg>
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mt-0.5">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="2" stroke="#3b82f6" stroke-width="1.5"/><path d="M2 7l8 5 8-5" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>
         </div>
-        <p class="text-gray-500 text-sm font-medium">E-mail er ikke konfigureret endnu</p>
-        <p class="text-gray-400 text-xs mt-1">Kontakt operatøren for at aktivere IMAP/SMTP-integration.</p>
-      </div>
-    </div>
-
-    <div id="email-content" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        <div class="lg:col-span-1">
-          <div class="bg-white rounded-xl border border-gray-200 p-4">
-            <div class="flex items-center justify-between mb-3">
-              <p class="text-sm font-semibold text-gray-900">Mapper</p>
-              <button onclick="refreshFolders()" class="text-xs text-gray-400 hover:text-gray-700">&#8635;</button>
-            </div>
-            <div id="folder-list" class="space-y-1">
-              <div class="h-5 bg-gray-100 rounded animate-pulse"></div>
-              <div class="h-5 bg-gray-100 rounded animate-pulse w-3/4"></div>
-              <div class="h-5 bg-gray-100 rounded animate-pulse w-2/3"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="lg:col-span-3">
-          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-              <div class="flex items-center gap-3">
-                <p class="text-sm font-semibold text-gray-900" id="active-folder-label">Indbakke</p>
-                <span id="unread-badge" class="hidden text-xs font-medium bg-blue-100 text-blue-700 rounded-full px-2 py-0.5"></span>
-              </div>
-              <div class="flex items-center gap-2">
-                <button onclick="openCompose()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">+ Ny besked</button>
-                <button onclick="refreshMessages()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-3 py-1.5 rounded-lg transition-colors">Opdatér</button>
-              </div>
-            </div>
-
-            <div id="messages-loading" class="text-center py-12 text-gray-400 text-sm">Henter beskeder…</div>
-            <div id="messages-empty" class="hidden text-center py-12 text-gray-400 text-sm">Ingen beskeder i denne mappe</div>
-            <div id="messages-list" class="hidden divide-y divide-gray-50"></div>
-
-            <div id="message-view" class="hidden p-5">
-              <button onclick="closeMessage()" class="text-xs text-gray-400 hover:text-gray-700 mb-4 flex items-center gap-1">
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Tilbage til liste
-              </button>
-              <div id="message-detail"></div>
-            </div>
-          </div>
+        <div>
+          <p class="text-sm font-semibold text-blue-900 mb-1">E-mailklienten er ikke aktiveret endnu</p>
+          <p class="text-sm text-blue-700 mb-3">
+            Denne side er implementeringsklar, men e-mailruter (<code class="bg-blue-100 px-1 rounded">/email/config</code>, <code class="bg-blue-100 px-1 rounded">/email/folders</code> m.fl.) er ikke tilgængelige i API-laget endnu. Operatøren skal fuldføre opsætningen nedenfor, inden klienten kan aktiveres.
+          </p>
+          <p class="text-xs text-blue-600 font-medium">Status: <span class="text-amber-700">Afventer operatøropsætning</span></p>
         </div>
       </div>
     </div>
 
-    <div id="compose-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end sm:items-center justify-center p-4">
-      <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl">
-        <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <p class="text-sm font-semibold text-gray-900">Ny besked</p>
-          <button onclick="closeCompose()" class="text-gray-400 hover:text-gray-700">&times;</button>
+    <div class="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+      <div class="px-6 py-5">
+        <p class="text-sm font-semibold text-gray-900 mb-4">Trin 1 — Kør databaseskema (cPanel phpMyAdmin)</p>
+        <div class="bg-gray-50 rounded-lg px-4 py-3 font-mono text-xs text-gray-700 mb-2">api/src/schema_email_client.sql</div>
+        <p class="text-xs text-gray-500">Opretter <code class="bg-gray-100 px-0.5 rounded">email_accounts</code>, <code class="bg-gray-100 px-0.5 rounded">email_folders</code>, <code class="bg-gray-100 px-0.5 rounded">email_messages</code>, <code class="bg-gray-100 px-0.5 rounded">email_drafts</code>. Kør på hvert klient-DB, hvor e-mail skal aktiveres.</p>
+      </div>
+
+      <div class="px-6 py-5">
+        <p class="text-sm font-semibold text-gray-900 mb-4">Trin 2 — Tilføj env-variabler (api/.env)</p>
+        <div class="bg-gray-50 rounded-lg px-4 py-3 font-mono text-xs text-gray-700 space-y-1">
+          <div>EMAIL_IMAP_HOST=mail.klientdomæne.dk</div>
+          <div>EMAIL_IMAP_PORT=993</div>
+          <div>EMAIL_IMAP_SSL=true</div>
+          <div>EMAIL_SMTP_HOST=mail.klientdomæne.dk</div>
+          <div>EMAIL_SMTP_PORT=587</div>
+          <div>EMAIL_SMTP_SSL=true</div>
+          <div>EMAIL_ENCRYPTION_KEY=&lt;32-byte hex — openssl rand -hex 32&gt;</div>
         </div>
-        <div class="p-5 space-y-3">
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Til</label>
-            <input id="compose-to" type="email" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="modtager@eksempel.dk" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Emne</label>
-            <input id="compose-subject" type="text" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Emne" />
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-gray-500 mb-1">Besked</label>
-            <textarea id="compose-body" rows="8" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm" placeholder="Skriv din besked her…"></textarea>
-          </div>
+      </div>
+
+      <div class="px-6 py-5">
+        <p class="text-sm font-semibold text-gray-900 mb-4">Trin 3 — Wire API-ruter (server/src/routes/)</p>
+        <p class="text-xs text-gray-600 mb-3">Følgende seks ruter skal implementeres i Agent Enterprise API-laget (udenfor dette mappe-scope):</p>
+        <div class="bg-gray-50 rounded-lg px-4 py-3 font-mono text-xs text-gray-700 space-y-1">
+          <div>GET  /email/config</div>
+          <div>GET  /email/folders</div>
+          <div>GET  /email/messages?folder_id=</div>
+          <div>GET  /email/messages/:id</div>
+          <div>POST /email/drafts</div>
+          <div>POST /email/send</div>
         </div>
-        <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
-          <p id="compose-status" class="text-xs text-gray-400"></p>
-          <div class="flex gap-2">
-            <button onclick="saveDraft()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors">Gem kladde</button>
-            <button onclick="sendMessage()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors">Send</button>
-          </div>
-        </div>
+        <p class="text-xs text-gray-500 mt-2">Se <code class="bg-gray-100 px-0.5 rounded">PHASE6_HANDOFF.md</code> for den fulde rutekontrakt og svar-format.</p>
+      </div>
+
+      <div class="px-6 py-5">
+        <p class="text-sm font-semibold text-gray-900 mb-2">Trin 4 — Genstart Node.js-app</p>
+        <p class="text-xs text-gray-600">cPanel &rsaquo; Setup Node.js App &rsaquo; Restart</p>
+      </div>
+
+      <div class="px-6 py-5">
+        <p class="text-sm font-semibold text-gray-900 mb-2">Verifikation</p>
+        <p class="text-xs text-gray-600">Når ovenstående trin er fuldført og ruterne er wired, vil e-mailgrænsefladen være tilgængelig i admin-panelet. Der kræves ingen yderligere kodeændring i dette repo.</p>
       </div>
     </div>
   </div>
-
-  <script define:vars={{ apiUrl }}>
-  (function() {
-    var API = String(apiUrl || '').replace(/\/+$/, '');
-    var token = localStorage.getItem('admin_token');
-    if (!token) { window.location.href = '/admin/'; return; }
-    var headers = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
-    var activeFolderId = null;
-
-    function checkEmailConfig() {
-      fetch(API + '/email/config', { headers: headers })
-        .then(function(r) { return r.json(); })
-        .then(function(d) {
-          document.getElementById('email-loading').classList.add('hidden');
-          if (!d.configured) {
-            document.getElementById('email-not-configured').classList.remove('hidden');
-          } else {
-            document.getElementById('email-content').classList.remove('hidden');
-            loadFolders();
-          }
-        })
-        .catch(function() {
-          document.getElementById('email-loading').classList.add('hidden');
-          document.getElementById('email-not-configured').classList.remove('hidden');
-        });
-    }
-
-    function loadFolders() {
-      fetch(API + '/email/folders', { headers: headers })
-        .then(function(r) { return r.json(); })
-        .then(function(folders) {
-          var list = document.getElementById('folder-list');
-          list.innerHTML = (folders || []).map(function(f) {
-            return '<button onclick="selectFolder(' + f.id + ',\'' + f.folder_name + '\',' + f.unseen_count + ')" class="w-full text-left px-2 py-1.5 rounded-lg text-sm hover:bg-gray-50 flex justify-between items-center group transition-colors">' +
-              '<span class="text-gray-700 group-hover:text-gray-900">' + escHtml(f.folder_name) + '</span>' +
-              (f.unseen_count > 0 ? '<span class="text-xs font-medium text-blue-600 bg-blue-50 rounded-full px-1.5 py-0.5">' + f.unseen_count + '</span>' : '') +
-            '</button>';
-          }).join('') || '<p class="text-xs text-gray-400 px-2">Ingen mapper</p>';
-          if (folders && folders.length) {
-            selectFolder(folders[0].id, folders[0].folder_name, folders[0].unseen_count);
-          }
-        })
-        .catch(function() {
-          document.getElementById('folder-list').innerHTML = '<p class="text-xs text-red-500 px-2">Fejl ved indlæsning</p>';
-        });
-    }
-
-    window.selectFolder = function(id, name, unseen) {
-      activeFolderId = id;
-      document.getElementById('active-folder-label').textContent = name;
-      var badge = document.getElementById('unread-badge');
-      if (unseen > 0) {
-        badge.textContent = unseen + ' ulæste';
-        badge.classList.remove('hidden');
-      } else {
-        badge.classList.add('hidden');
-      }
-      loadMessages(id);
-    };
-
-    function loadMessages(folderId) {
-      var listEl = document.getElementById('messages-list');
-      var loadEl = document.getElementById('messages-loading');
-      var emptyEl = document.getElementById('messages-empty');
-      var viewEl  = document.getElementById('message-view');
-      listEl.classList.add('hidden');
-      emptyEl.classList.add('hidden');
-      viewEl.classList.add('hidden');
-      loadEl.classList.remove('hidden');
-
-      fetch(API + '/email/messages?folder_id=' + folderId, { headers: headers })
-        .then(function(r) { return r.json(); })
-        .then(function(msgs) {
-          loadEl.classList.add('hidden');
-          if (!msgs || !msgs.length) { emptyEl.classList.remove('hidden'); return; }
-          listEl.innerHTML = msgs.map(function(m) {
-            return '<div class="px-5 py-3 hover:bg-gray-50 cursor-pointer flex gap-3 items-start' + (m.is_seen ? '' : ' bg-blue-50/30') + '" onclick="viewMessage(' + m.id + ')">' +
-              '<div class="flex-1 min-w-0">' +
-                '<div class="flex items-center justify-between gap-2">' +
-                  '<p class="text-sm font-' + (m.is_seen ? 'normal text-gray-700' : 'semibold text-gray-900') + ' truncate">' + escHtml(m.from_address || '') + '</p>' +
-                  '<span class="text-xs text-gray-400 flex-shrink-0">' + escHtml(m.sent_at ? m.sent_at.slice(0, 10) : '') + '</span>' +
-                '</div>' +
-                '<p class="text-xs text-gray-500 truncate mt-0.5">' + escHtml(m.subject || '(ingen emne)') + '</p>' +
-                '<p class="text-xs text-gray-400 truncate">' + escHtml(m.body_preview || '') + '</p>' +
-              '</div>' +
-            '</div>';
-          }).join('');
-          listEl.classList.remove('hidden');
-        })
-        .catch(function() {
-          loadEl.classList.add('hidden');
-          emptyEl.textContent = 'Fejl ved hentning af beskeder.';
-          emptyEl.classList.remove('hidden');
-        });
-    }
-
-    window.viewMessage = function(id) {
-      var listEl  = document.getElementById('messages-list');
-      var viewEl  = document.getElementById('message-view');
-      var detail  = document.getElementById('message-detail');
-      listEl.classList.add('hidden');
-      viewEl.classList.remove('hidden');
-      detail.innerHTML = '<p class="text-sm text-gray-400">Henter besked…</p>';
-      fetch(API + '/email/messages/' + id, { headers: headers })
-        .then(function(r) { return r.json(); })
-        .then(function(m) {
-          detail.innerHTML =
-            '<div class="mb-4 pb-4 border-b border-gray-100">' +
-              '<p class="text-lg font-semibold text-gray-900">' + escHtml(m.subject || '(ingen emne)') + '</p>' +
-              '<p class="text-xs text-gray-400 mt-1">Fra: <span class="text-gray-600">' + escHtml(m.from_address || '') + '</span> · ' + escHtml(m.sent_at || '') + '</p>' +
-            '</div>' +
-            '<div class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">' + escHtml(m.body_preview || '(brødtekst ikke indlæst — kræver IMAP-proxy)') + '</div>' +
-            '<div class="mt-4 pt-4 border-t border-gray-100 flex gap-2">' +
-              '<button onclick="replyTo(' + m.id + ',\'' + escAttr(m.from_address || '') + '\',\'' + escAttr(m.subject || '') + '\')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-1.5 rounded-lg transition-colors">Svar</button>' +
-            '</div>';
-        })
-        .catch(function() { detail.innerHTML = '<p class="text-sm text-red-500">Fejl ved hentning.</p>'; });
-    };
-
-    window.closeMessage = function() {
-      document.getElementById('message-view').classList.add('hidden');
-      document.getElementById('messages-list').classList.remove('hidden');
-    };
-
-    window.refreshFolders = function() { loadFolders(); };
-    window.refreshMessages = function() { if (activeFolderId) loadMessages(activeFolderId); };
-
-    window.openCompose = function() {
-      document.getElementById('compose-to').value = '';
-      document.getElementById('compose-subject').value = '';
-      document.getElementById('compose-body').value = '';
-      document.getElementById('compose-status').textContent = '';
-      document.getElementById('compose-modal').classList.remove('hidden');
-    };
-
-    window.closeCompose = function() {
-      document.getElementById('compose-modal').classList.add('hidden');
-    };
-
-    window.replyTo = function(id, from, subject) {
-      document.getElementById('compose-to').value = from;
-      document.getElementById('compose-subject').value = subject.startsWith('Re:') ? subject : 'Re: ' + subject;
-      document.getElementById('compose-body').value = '';
-      document.getElementById('compose-status').textContent = '';
-      document.getElementById('compose-modal').classList.remove('hidden');
-    };
-
-    window.saveDraft = function() {
-      var statusEl = document.getElementById('compose-status');
-      statusEl.textContent = 'Gemmer kladde…';
-      fetch(API + '/email/drafts', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          to_addresses: document.getElementById('compose-to').value,
-          subject: document.getElementById('compose-subject').value,
-          body_text: document.getElementById('compose-body').value,
-          status: 'draft'
-        })
-      }).then(function(r) { return r.json(); })
-        .then(function(d) { statusEl.textContent = d.ok ? 'Kladde gemt.' : ('Fejl: ' + (d.error || '')); })
-        .catch(function() { statusEl.textContent = 'Netværksfejl.'; });
-    };
-
-    window.sendMessage = function() {
-      var statusEl = document.getElementById('compose-status');
-      statusEl.textContent = 'Sender…';
-      fetch(API + '/email/send', {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify({
-          to: document.getElementById('compose-to').value,
-          subject: document.getElementById('compose-subject').value,
-          body: document.getElementById('compose-body').value
-        })
-      }).then(function(r) { return r.json(); })
-        .then(function(d) {
-          if (d.ok) {
-            statusEl.textContent = 'Sendt.';
-            if (window.toast) toast('Besked sendt', 'success');
-            setTimeout(window.closeCompose, 1200);
-          } else {
-            statusEl.textContent = 'Fejl: ' + (d.error || 'Ukendt fejl');
-          }
-        })
-        .catch(function() { statusEl.textContent = 'Netværksfejl.'; });
-    };
-
-    function escHtml(t) {
-      if (!t) return '';
-      var d = document.createElement('div');
-      d.textContent = String(t);
-      return d.innerHTML;
-    }
-    function escAttr(t) { return String(t || '').replace(/["']/g, ''); }
-
-    checkEmailConfig();
-  })();
-  </script>
 </AdminLayout>

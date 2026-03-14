@@ -1811,7 +1811,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     // --- Live Preview Panel ---
     var previewOpen = false;
     var previewCurrentPath = null;
-    var siteBase = window.PUBLIC_SITE_URL || 'https://lavprishjemmeside.dk';
+    var siteBase = window.PUBLIC_SITE_URL || window.location.origin;
 
     window.togglePreview = function(open) {
       previewOpen = open;

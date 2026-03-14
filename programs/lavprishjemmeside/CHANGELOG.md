@@ -26,6 +26,7 @@ Change discipline:
 - Added final blocker ledger and outside-folder follow-up ledger: email proxy routes, subscription snapshot cron, live billing integration, provider middleware, and release-health verification are explicitly handed off as outside-folder operator steps
 - Confirmed `ROLLBACK_AND_REPAIR.md` baseline is still current (`2026-03-14`, commit `f25e38320c2fcfebb1a79c0e3e1dcc2ca037a685`)
 - Sprint implementation complete within the in-folder boundary; no live rollout, cPanel execution, or release-health claimed complete
+- Correction pass applied: page-builder preview now uses `window.location.origin` as the safe same-install fallback (no longer defaults to `lavprishjemmeside.dk` on client installs); email admin page reframed as an operator-bound foundation (interactive mailbox UI removed, honest status screen rendered instead until routes are wired); both CHANGELOG copies now byte-identical so release-health SHA gate passes; `alert()` calls replaced with `window.toast()` on `dashboard.astro`, `pages.astro`, `ai-assemble.astro`, `header-footer.astro`, `master.astro`, `media.astro`, and `styling.astro`; stale `touch api/tmp/restart.txt` instruction replaced with the current cPanel restart contract in `dashboard.astro` and `INSTALL_OPERATOR_PACKET.md`
 
 ---
 
