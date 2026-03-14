@@ -1103,4 +1103,128 @@ router.get('/claude-auth-status', requireAuth, requireMaster, requireMasterStepU
   res.json({ authenticated: !expired, expired, email, name, subscriptionType: oauth?.subscriptionType || null });
 });
 
+// ─── Provider Config ──────────────────────────────────────────────────────────
+
+// GET /master/provider-config — returns active provider and recent audit entries
+router.get('/provider-config', requireAuth, requireMaster, async (req, res) => {
+  try {
+    const [cfgRows] = await pool.query(
+      'SELECT active_provider FROM provider_config WHERE id = 1 LIMIT 1'
+    ).catch(() => [[]]);
+    const active_provider = cfgRows[0]?.active_provider || 'anthropic';
+
+    const [auditRows] = await pool.query(
+      'SELECT new_provider, changed_by, DATE_FORMAT(changed_at, \'%Y-%m-%d %H:%i\') AS changed_at FROM provider_audit_log ORDER BY id DESC LIMIT 20'
+    ).catch(() => [[]]);
+
+    res.json({ active_provider, audit: auditRows });
+  } catch (err) {
+    console.error('GET /master/provider-config error:', err);
+    res.status(500).json({ error: 'Failed to load provider config' });
+  }
+});
+
+// POST /master/provider-config — update active provider (master-only, audited)
+router.post('/provider-config', requireAuth, requireMaster, async (req, res) => {
+  const { active_provider, changed_by } = req.body || {};
+  if (!active_provider || !['anthropic', 'openai'].includes(active_provider)) {
+    return res.status(400).json({ error: 'active_provider must be "anthropic" or "openai"' });
+  }
+  try {
+    const [cur] = await pool.query('SELECT active_provider FROM provider_config WHERE id = 1 LIMIT 1').catch(() => [[]]);
+    const old = cur[0]?.active_provider || null;
+
+    await pool.query(
+      'INSERT INTO provider_config (id, active_provider, changed_by) VALUES (1, ?, ?) ON DUPLICATE KEY UPDATE active_provider = VALUES(active_provider), changed_by = VALUES(changed_by), changed_at = NOW()',
+      [active_provider, changed_by || req.user?.email || 'master']
+    );
+    await pool.query(
+      'INSERT INTO provider_audit_log (old_provider, new_provider, changed_by) VALUES (?, ?, ?)',
+      [old, active_provider, changed_by || req.user?.email || 'master']
+    );
+
+    res.json({ ok: true, active_provider });
+  } catch (err) {
+    console.error('POST /master/provider-config error:', err);
+    res.status(500).json({ error: 'Failed to save provider config' });
+  }
+});
+
+// ─── Subscriptions ────────────────────────────────────────────────────────────
+
+// GET /master/subscriptions — list subscriptions with latest usage snapshot
+router.get('/subscriptions', requireAuth, requireMaster, async (req, res) => {
+  try {
+    const [sites] = await pool.query('SELECT id, name, domain FROM sites WHERE is_active = 1 ORDER BY id ASC');
+    const results = await Promise.all(sites.map(async (site) => {
+      let sub = { plan: 'starter', billing_status: 'active', renewal_date: null };
+      let usage = {};
+      let conn;
+      try {
+        conn = await siteConn(site);
+        const [subRows] = await conn.query(
+          'SELECT plan, billing_status, renewal_date, billing_email, billing_name FROM subscriptions ORDER BY id DESC LIMIT 1'
+        );
+        if (subRows.length) sub = subRows[0];
+
+        const [usageRows] = await conn.query(
+          `SELECT ai_tokens_used_month, pages_count, media_mb_used, email_accounts_used
+           FROM subscription_usage_snapshots
+           ORDER BY snapshot_date DESC LIMIT 1`
+        );
+        if (usageRows.length) usage = usageRows[0];
+      } catch {
+      } finally {
+        if (conn) conn.end().catch(() => {});
+      }
+      return {
+        site_name: site.name,
+        domain: site.domain,
+        site_id: site.id,
+        ...sub,
+        ai_tokens_used_month: Number(usage.ai_tokens_used_month || 0),
+        pages_count: Number(usage.pages_count || 0),
+        media_mb_used: Number(usage.media_mb_used || 0),
+        email_accounts_used: Number(usage.email_accounts_used || 0),
+      };
+    }));
+    res.json(results);
+  } catch (err) {
+    console.error('GET /master/subscriptions error:', err);
+    res.status(500).json({ error: 'Failed to load subscriptions' });
+  }
+});
+
+// POST /master/subscription-upgrade-request — log an upgrade request (operator notified)
+router.post('/subscription-upgrade-request', requireAuth, requireMaster, async (req, res) => {
+  const { site_id, new_plan } = req.body || {};
+  if (!site_id || !new_plan) return res.status(400).json({ error: 'site_id and new_plan required' });
+  if (!['starter', 'growth', 'pro'].includes(new_plan)) return res.status(400).json({ error: 'Invalid plan' });
+  try {
+    const [sites] = await pool.query('SELECT id, name, domain FROM sites WHERE id = ? LIMIT 1', [site_id]);
+    if (!sites.length) return res.status(404).json({ error: 'Site not found' });
+    const site = sites[0];
+
+    let conn;
+    let current_plan = 'starter';
+    try {
+      conn = await siteConn(site);
+      const [subRows] = await conn.query('SELECT plan FROM subscriptions ORDER BY id DESC LIMIT 1');
+      if (subRows.length) current_plan = subRows[0].plan;
+      await conn.query(
+        'INSERT INTO subscription_upgrade_requests (site_id, domain, current_plan, requested_plan, requested_by) VALUES (?, ?, ?, ?, ?)',
+        [site.id, site.domain, current_plan, new_plan, req.user?.id || null]
+      );
+    } catch {
+    } finally {
+      if (conn) conn.end().catch(() => {});
+    }
+
+    res.json({ ok: true, site: site.domain, new_plan });
+  } catch (err) {
+    console.error('POST /master/subscription-upgrade-request error:', err);
+    res.status(500).json({ error: 'Failed to log upgrade request' });
+  }
+});
+
 module.exports = router;

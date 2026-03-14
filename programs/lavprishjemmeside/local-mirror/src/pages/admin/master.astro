@@ -278,6 +278,20 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     }
 
     /* AI Usage tab */
+    .ai-fleet-summary {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    @media (max-width: 640px) { .ai-fleet-summary { grid-template-columns: repeat(2,1fr); } }
+    .ai-fleet-stat { text-align: center; }
+    .ai-fleet-val { font-size: 1.25rem; font-weight: 700; color: #111827; }
+    .ai-fleet-lbl { font-size: 0.6875rem; color: #9ca3af; margin-top: 0.125rem; }
     .ai-site-card {
       background: #fff;
       border: 1px solid #e5e7eb;
@@ -285,7 +299,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       padding: 1.125rem 1.25rem;
       display: flex;
       flex-direction: column;
-      gap: 0.875rem;
+      gap: 0.75rem;
     }
     .ai-site-head {
       display: flex;
@@ -293,10 +307,116 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       justify-content: space-between;
       gap: 0.75rem;
     }
+    .ai-site-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .ai-meta-pill {
+      font-size: 0.6875rem;
+      font-weight: 500;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .ai-meta-pill.stale { background: #fef3c7; color: #92400e; }
+    .ai-meta-pill.error { background: #fee2e2; color: #991b1b; }
     .ai-chart { display: flex; align-items: flex-end; gap: 2px; height: 3rem; }
     .ai-chart-bar { background: #93c5fd; border-radius: 2px 2px 0 0; width: 0.75rem; flex-shrink: 0; transition: background 0.1s; }
     .ai-chart-bar:hover { background: #3b82f6; }
     .ai-unavailable { font-size: 0.75rem; color: #f87171; }
+    .ai-chart-footer { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+    .ai-chart-footer-lbl { font-size: 0.6875rem; color: #d1d5db; font-family: ui-monospace, monospace; }
+
+    /* Provider tab */
+    .provider-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .provider-option {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: 1rem;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      margin-bottom: 0.75rem;
+    }
+    .provider-option:hover { border-color: #93c5fd; background: #f8fbff; }
+    .provider-option.selected { border-color: #3b82f6; background: #eff6ff; }
+    .provider-option-dot {
+      width: 1.125rem;
+      height: 1.125rem;
+      border-radius: 50%;
+      border: 2px solid #d1d5db;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+      transition: border-color 0.15s;
+    }
+    .provider-option.selected .provider-option-dot {
+      border-color: #3b82f6;
+      background: #3b82f6;
+      box-shadow: inset 0 0 0 3px #fff;
+    }
+    .provider-audit-row {
+      font-size: 0.75rem;
+      color: #9ca3af;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    .provider-audit-row:last-child { border-bottom: none; }
+    .provider-notice {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 0.625rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.8125rem;
+      color: #78350f;
+      margin-bottom: 1rem;
+    }
+
+    /* Subscriptions tab */
+    .sub-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .sub-plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .sub-plan-starter { background: #f3f4f6; color: #374151; }
+    .sub-plan-growth  { background: #dbeafe; color: #1d4ed8; }
+    .sub-plan-pro     { background: #f0fdf4; color: #166534; }
+    .sub-usage-bar { height: 0.375rem; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 0.25rem; }
+    .sub-usage-fill { height: 100%; border-radius: 999px; background: #3b82f6; transition: width 0.4s; }
+    .sub-notice {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 0.625rem;
+      padding: 0.875rem 1rem;
+      font-size: 0.8125rem;
+      color: #1e3a8a;
+      margin-bottom: 1rem;
+    }
 
     /* Claude Code tab */
     .claude-step-grid {
@@ -468,6 +588,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     <button onclick="switchTab('claude')" id="tab-claude" class="tab-btn">
       <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><rect x="1" y="3" width="11" height="7" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 7l1.5-1.5L4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 7h2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
       Claude Code
+    </button>
+    <button onclick="switchTab('provider')" id="tab-provider" class="tab-btn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><circle cx="6.5" cy="6.5" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M4.5 6.5h4M6.5 4.5v4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Provider
+    </button>
+    <button onclick="switchTab('subscriptions')" id="tab-subscriptions" class="tab-btn">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:inline;vertical-align:-1px;margin-right:0.3em"><rect x="1" y="2.5" width="11" height="8" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M1 5.5h11" stroke="currentColor" stroke-width="1.3"/><path d="M4 8.5h2M8 8.5h1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Abonnementer
     </button>
   </div>
 
@@ -649,6 +777,103 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       <pre id="claude-output"></pre>
     </div>
   </div>
+
+  <!-- ── Tab 4: Provider ─────────────────────────────────────── -->
+  <div id="panel-provider" class="hidden-el">
+    <div class="provider-notice">
+      Provider-valg er master-only og auditeret. En ændring træder i kraft ved næste API-genstart via cPanel. Se operatørpakken nedenfor.
+    </div>
+
+    <div class="provider-card">
+      <p style="font-size:0.8125rem;font-weight:600;color:#111827;margin-bottom:0.25rem;">Aktiv AI-udbyder</p>
+      <p style="font-size:0.75rem;color:#9ca3af;margin-bottom:1rem;">Valget gemmes i <code style="font-size:0.75rem;background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">.env</code> på serveren (cPanel operator-trin). Nedenfor vises den aktuelt konfigurerede udbyder hentet fra <code style="font-size:0.75rem;background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">/master/provider-config</code>.</p>
+
+      <div id="provider-loading" class="state-center" style="padding:1rem 0;">Henter udbyderkonfiguration…</div>
+      <div id="provider-content" style="display:none;">
+        <div id="provider-option-anthropic" class="provider-option selected" onclick="selectProvider('anthropic')">
+          <div class="provider-option-dot"></div>
+          <div>
+            <p style="font-size:0.875rem;font-weight:600;color:#111827;margin:0;">Anthropic Claude</p>
+            <p style="font-size:0.75rem;color:#6b7280;margin-top:0.25rem;">Standard for AI-assemblering og assistent. Bruger <code style="font-size:0.75rem;background:#f3f4f6;padding:0.1em 0.3em;border-radius:3px;">ANTHROPIC_API_KEY</code>.</p>
+          </div>
+        </div>
+        <div id="provider-option-openai" class="provider-option" onclick="selectProvider('openai')">
+          <div class="provider-option-dot"></div>
+          <div>
+            <p style="font-size:0.875rem;font-weight:600;color:#111827;margin:0;">OpenAI / Codex</p>
+            <p style="font-size:0.75rem;color:#6b7280;margin-top:0.25rem;">Alternativ udbyder. Kræver <code style="font-size:0.75rem;background:#f3f4f6;padding:0.1em 0.3em;border-radius:3px;">OPENAI_API_KEY</code> og API-genstart via cPanel.</p>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-top:0.875rem;">
+          <button onclick="saveProviderChoice()" id="provider-save-btn" class="btn btn-primary" style="font-size:0.8125rem;">Gem valg og generér operatørpakke</button>
+          <span id="provider-save-status" style="font-size:0.75rem;color:#6b7280;"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="provider-card" id="provider-operator-packet" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+        <p style="font-size:0.8125rem;font-weight:600;color:#111827;margin:0;">Operatørpakke — nødvendige .env-ændringer</p>
+        <button onclick="copyProviderPacket()" class="btn btn-ghost" style="font-size:0.75rem;padding:0.3rem 0.625rem;">Kopier</button>
+      </div>
+      <pre id="provider-packet-content" style="font-size:0.75rem;font-family:ui-monospace,monospace;background:#090c10;color:#4ade80;border-radius:0.5rem;padding:0.875rem;white-space:pre-wrap;word-break:break-all;max-height:14rem;overflow:auto;"></pre>
+      <p style="font-size:0.75rem;color:#9ca3af;margin-top:0.5rem;">Send denne pakke til operatøren. Handlingen registreres i audit-loggen.</p>
+    </div>
+
+    <div class="provider-card">
+      <p style="font-size:0.8125rem;font-weight:600;color:#111827;margin-bottom:0.75rem;">Seneste provider-ændringer (audit)</p>
+      <div id="provider-audit-list">
+        <p style="font-size:0.75rem;color:#9ca3af;">Henter audit-log…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tab 5: Subscriptions ────────────────────────────────── -->
+  <div id="panel-subscriptions" class="hidden-el">
+    <div class="sub-notice">
+      Abonnementsstyring er et operator-grænsefladelag. Live faktureringsdata kræver cPanel/ekstern billing-integration — se operatørpakken nedenfor. Denne fane viser abonnementsstatus hentet fra den lokale DB og muliggør plan-opdateringsflow.
+    </div>
+
+    <div id="sub-loading" class="state-center">Henter abonnementer…</div>
+    <div id="sub-content" style="display:none;"></div>
+
+    <div class="sub-card" style="margin-top:1rem;">
+      <p style="font-size:0.8125rem;font-weight:600;color:#111827;margin-bottom:0.5rem;">Operatørpakke — abonnementsintegration</p>
+      <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.75rem;">Fuld live billing kræver disse outside-folder operatørtrin:</p>
+      <ol style="font-size:0.75rem;color:#374151;padding-left:1.25rem;line-height:2;">
+        <li>Kør <code style="background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">schema_subscriptions.sql</code> på hver klient-DB via cPanel phpMyAdmin</li>
+        <li>Tilføj <code style="background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">BILLING_PROVIDER</code>, <code style="background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">BILLING_API_KEY</code> til <code style="background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">.env</code></li>
+        <li>Genstart Node-app via cPanel</li>
+        <li>Test webhook-endpoint <code style="background:#f3f4f6;padding:0.1em 0.35em;border-radius:3px;">POST /billing/webhook</code></li>
+      </ol>
+      <p style="font-size:0.75rem;color:#9ca3af;margin-top:0.5rem;">Skemaet og API-kontrakten er inkluderet i Phase 6 handoff-dokumentet.</p>
+    </div>
+
+    <div class="sub-card">
+      <p style="font-size:0.8125rem;font-weight:600;color:#111827;margin-bottom:0.5rem;">Opgrader / tilføj plan</p>
+      <p style="font-size:0.75rem;color:#6b7280;margin-bottom:0.875rem;">Vælg et site og en ny plan. Dette sender en upgrade-request til operatøren (ingen live billing-ændring sker automatisk).</p>
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:flex-end;">
+        <div>
+          <label class="form-label">Site</label>
+          <select id="sub-upgrade-site" class="form-input" style="min-width:13rem;">
+            <option value="">Henter sites…</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label">Plan</label>
+          <select id="sub-upgrade-plan" class="form-input">
+            <option value="starter">Starter</option>
+            <option value="growth">Growth</option>
+            <option value="pro">Pro</option>
+          </select>
+        </div>
+        <button onclick="submitUpgradeRequest()" class="btn btn-primary" style="font-size:0.8125rem;">Send upgrade-anmodning</button>
+      </div>
+      <p id="sub-upgrade-status" style="font-size:0.75rem;margin-top:0.5rem;color:#6b7280;"></p>
+    </div>
+  </div>
+
 </AdminLayout>
 
 <script define:vars={{ apiUrl }}>
@@ -806,16 +1031,13 @@ function showEl(el) { if (el) el.style.display = ''; }
 function hideEl(el) { if (el) el.style.display = 'none'; }
 
 function switchTab(tab) {
-  ['sites', 'ai', 'claude'].forEach(function(t) {
+  ['sites', 'ai', 'claude', 'provider', 'subscriptions'].forEach(function(t) {
     var panel = document.getElementById('panel-' + t);
     var btn = document.getElementById('tab-' + t);
     if (panel) panel.style.display = t === tab ? '' : 'none';
     if (btn) {
-      if (t === tab) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
+      if (t === tab) btn.classList.add('active');
+      else btn.classList.remove('active');
     }
   });
   activeTab = tab;
@@ -830,6 +1052,8 @@ function switchTab(tab) {
       updateRunButtonState();
     });
   }
+  if (tab === 'provider') loadProviderConfig();
+  if (tab === 'subscriptions') loadSubscriptions();
 }
 
 function healthDotHtml(status) {
@@ -938,12 +1162,25 @@ document.getElementById('add-site-form').addEventListener('submit', function(e) 
 
 function renderMiniChart(usageRows) {
   if (!usageRows || !usageRows.length) return '<p style="font-size:0.75rem;color:#9ca3af;">Ingen data</p>';
-  var max = Math.max.apply(null, usageRows.map(function(r) { return Number(r.tokens) || 0; })) || 1;
-  var bars = usageRows.slice(-14).map(function(r) {
+  var rows14 = usageRows.slice(-14);
+  var max = Math.max.apply(null, rows14.map(function(r) { return Number(r.tokens) || 0; })) || 1;
+  var bars = rows14.map(function(r) {
     var h = Math.max(3, Math.round((Number(r.tokens) / max) * 48));
-    return '<div class="ai-chart-bar" title="' + r.day + ': ' + fmt(r.tokens) + ' tokens" style="height:' + h + 'px;"></div>';
+    return '<div class="ai-chart-bar" title="' + r.day + ': ' + fmt(r.tokens) + ' tokens · ' + (r.requests || 0) + ' req" style="height:' + h + 'px;"></div>';
   }).join('');
-  return '<div class="ai-chart">' + bars + '</div>';
+  var firstDay = rows14.length ? rows14[0].day : '';
+  var lastDay  = rows14.length ? rows14[rows14.length - 1].day : '';
+  return '<div class="ai-chart">' + bars + '</div>' +
+    '<div class="ai-chart-footer">' +
+      '<span class="ai-chart-footer-lbl">' + firstDay + '</span>' +
+      '<span class="ai-chart-footer-lbl">' + lastDay + '</span>' +
+    '</div>';
+}
+
+function daysSince(dateStr) {
+  if (!dateStr) return null;
+  var ms = Date.now() - new Date(dateStr).getTime();
+  return Math.floor(ms / 86400000);
 }
 
 function loadAiUsage() {
@@ -956,29 +1193,269 @@ function loadAiUsage() {
     .then(function(r) { return r.json(); })
     .then(function(sites) {
       hideEl(loading);
-      content.innerHTML = sites.map(function(site) {
-        var totalTokens = (site.usage || []).reduce(function(s, r) { return s + Number(r.tokens); }, 0);
-        var totalCost = (site.usage || []).reduce(function(s, r) { return s + Number(r.cost_usd); }, 0);
+
+      var fleetTokens = 0, fleetCost = 0, fleetReqs = 0, activeSites = 0;
+      sites.forEach(function(s) {
+        if (!s.error && s.usage && s.usage.length) activeSites++;
+        (s.usage || []).forEach(function(r) {
+          fleetTokens += Number(r.tokens) || 0;
+          fleetCost   += Number(r.cost_usd) || 0;
+          fleetReqs   += Number(r.requests) || 0;
+        });
+      });
+
+      var summaryHtml = '<div class="ai-fleet-summary">' +
+        '<div class="ai-fleet-stat"><div class="ai-fleet-val">' + fmt(fleetTokens) + '</div><div class="ai-fleet-lbl">Tokens i alt (30d)</div></div>' +
+        '<div class="ai-fleet-stat"><div class="ai-fleet-val">' + fmtCost(fleetCost) + '</div><div class="ai-fleet-lbl">Omkostning i alt</div></div>' +
+        '<div class="ai-fleet-stat"><div class="ai-fleet-val">' + fmt(fleetReqs) + '</div><div class="ai-fleet-lbl">Requests</div></div>' +
+        '<div class="ai-fleet-stat"><div class="ai-fleet-val">' + activeSites + ' / ' + sites.length + '</div><div class="ai-fleet-lbl">Aktive sites</div></div>' +
+      '</div>';
+
+      var cardsHtml = sites.map(function(site) {
+        var usage = site.usage || [];
+        var totalTokens = usage.reduce(function(s, r) { return s + Number(r.tokens); }, 0);
+        var totalCost   = usage.reduce(function(s, r) { return s + Number(r.cost_usd); }, 0);
+        var totalReqs   = usage.reduce(function(s, r) { return s + Number(r.requests || 0); }, 0);
+        var lastDay     = usage.length ? usage[usage.length - 1].day : null;
+        var stale       = lastDay ? daysSince(lastDay) > 7 : true;
+        var stalePill   = stale && !site.error
+          ? '<span class="ai-meta-pill stale">Inaktiv ' + (lastDay ? daysSince(lastDay) + 'd' : '—') + '</span>'
+          : (lastDay ? '<span class="ai-meta-pill">Aktiv ' + lastDay + '</span>' : '');
         return '<div class="ai-site-card">' +
           '<div class="ai-site-head">' +
             '<div>' +
-              '<p style="font-size:0.9375rem;font-weight:600;color:#111827;margin:0;">' + site.site + '</p>' +
-              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + site.domain + '</p>' +
+              '<p style="font-size:0.9375rem;font-weight:600;color:#111827;margin:0;">' + escHtml(site.site) + '</p>' +
+              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + escHtml(site.domain) + '</p>' +
             '</div>' +
             '<div style="text-align:right;">' +
               '<p style="font-size:0.875rem;font-weight:700;color:#111827;margin:0;">' + fmt(totalTokens) + ' tokens</p>' +
-              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + fmtCost(totalCost) + ' (30 dage)</p>' +
+              '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + fmtCost(totalCost) + ' · ' + fmt(totalReqs) + ' req</p>' +
             '</div>' +
           '</div>' +
-          renderMiniChart(site.usage) +
-          (site.error ? '<p class="ai-unavailable">DB utilgængelig</p>' : '') +
+          '<div class="ai-site-meta">' +
+            stalePill +
+            (site.error ? '<span class="ai-meta-pill error">DB utilgængelig</span>' : '') +
+          '</div>' +
+          renderMiniChart(usage) +
         '</div>';
       }).join('') || '<p style="color:#9ca3af;font-size:0.875rem;">Ingen sites fundet.</p>';
+
+      content.innerHTML = summaryHtml + cardsHtml;
       showEl(content);
     })
     .catch(function() {
       loading.textContent = 'Kunne ikke hente AI-forbrug.';
     });
+}
+
+// ── Provider config ──────────────────────────────────────────────────────────
+
+var selectedProvider = 'anthropic';
+
+function selectProvider(p) {
+  selectedProvider = p;
+  ['anthropic', 'openai'].forEach(function(id) {
+    var el = document.getElementById('provider-option-' + id);
+    if (el) el.classList.toggle('selected', id === p);
+  });
+}
+
+function loadProviderConfig() {
+  var loading = document.getElementById('provider-loading');
+  var content = document.getElementById('provider-content');
+  if (!loading || !content) return;
+  loading.style.display = '';
+  content.style.display = 'none';
+  fetch(API + '/master/provider-config', { headers: authHeaders() })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      loading.style.display = 'none';
+      content.style.display = '';
+      var p = d.active_provider || 'anthropic';
+      selectProvider(p);
+      renderProviderAudit(d.audit || []);
+    })
+    .catch(function() {
+      loading.style.display = 'none';
+      content.style.display = '';
+      renderProviderAudit([]);
+    });
+}
+
+function renderProviderAudit(rows) {
+  var el = document.getElementById('provider-audit-list');
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<p style="font-size:0.75rem;color:#9ca3af;">Ingen audit-poster endnu.</p>';
+    return;
+  }
+  el.innerHTML = rows.map(function(r) {
+    return '<div class="provider-audit-row">' +
+      '<span style="min-width:9rem;">' + escHtml(r.changed_at || '') + '</span>' +
+      '<span style="min-width:6rem;font-weight:500;">' + escHtml(r.new_provider || '') + '</span>' +
+      '<span style="color:#6b7280;">' + escHtml(r.changed_by || '') + '</span>' +
+    '</div>';
+  }).join('');
+}
+
+function saveProviderChoice() {
+  var btn = document.getElementById('provider-save-btn');
+  var status = document.getElementById('provider-save-status');
+  var packetEl = document.getElementById('provider-operator-packet');
+  var packetContent = document.getElementById('provider-packet-content');
+  if (!btn || !status) return;
+  btn.disabled = true;
+  status.textContent = 'Gemmer…';
+
+  var payload = {
+    active_provider: selectedProvider,
+    changed_by: (localStorage.getItem('admin_email') || 'master'),
+    changed_at: new Date().toISOString()
+  };
+
+  fetch(API + '/master/provider-config', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify(payload)
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      btn.disabled = false;
+      if (d.error) { status.textContent = 'Fejl: ' + d.error; return; }
+      status.textContent = 'Gemt. Operator-pakke genereret.';
+      if (packetEl && packetContent) {
+        var envKey = selectedProvider === 'openai' ? 'OPENAI_API_KEY' : 'ANTHROPIC_API_KEY';
+        var otherKey = selectedProvider === 'openai' ? 'ANTHROPIC_API_KEY' : 'OPENAI_API_KEY';
+        packetContent.textContent = [
+          '# Provider Switch — Operator Packet',
+          '# Generated: ' + new Date().toISOString(),
+          '# Changed by: ' + (payload.changed_by),
+          '# New provider: ' + selectedProvider,
+          '',
+          '## Required .env changes (cPanel File Manager or SSH)',
+          'AI_PROVIDER=' + selectedProvider,
+          '# Ensure ' + envKey + ' is set and valid',
+          '# ' + otherKey + ' can remain (unused)',
+          '',
+          '## Required restart',
+          '# Restart Node app via cPanel > Setup Node.js App > Restart',
+          '',
+          '## Verification',
+          '# POST /ai/generate with a test prompt — check response model field',
+          '# Check /health endpoint for provider status if implemented',
+        ].join('\n');
+        packetEl.style.display = '';
+      }
+      loadProviderConfig();
+    })
+    .catch(function() {
+      btn.disabled = false;
+      status.textContent = 'Netværksfejl — kontrollér forbindelsen.';
+    });
+}
+
+function copyProviderPacket() {
+  var el = document.getElementById('provider-packet-content');
+  if (!el) return;
+  navigator.clipboard.writeText(el.textContent).then(function() {
+    if (window.toast) toast('Kopieret', 'success');
+  }).catch(function() {});
+}
+
+// ── Subscriptions ────────────────────────────────────────────────────────────
+
+var PLAN_LABELS = { starter: 'Starter', growth: 'Growth', pro: 'Pro' };
+var PLAN_LIMITS = {
+  starter: { pages: 10, ai_tokens_month: 50000, media_mb: 500, email_accounts: 1 },
+  growth:  { pages: 50, ai_tokens_month: 250000, media_mb: 2048, email_accounts: 5 },
+  pro:     { pages: 999, ai_tokens_month: 1000000, media_mb: 10240, email_accounts: 20 },
+};
+
+function loadSubscriptions() {
+  var loading = document.getElementById('sub-loading');
+  var content = document.getElementById('sub-content');
+  if (!loading || !content) return;
+  loading.style.display = '';
+  content.style.display = 'none';
+
+  Promise.all([
+    fetch(API + '/master/subscriptions', { headers: authHeaders() }).then(function(r) { return r.json(); }).catch(function() { return []; }),
+    fetch(API + '/master/sites', { headers: authHeaders() }).then(function(r) { return r.json(); }).catch(function() { return []; })
+  ]).then(function(results) {
+    loading.style.display = 'none';
+    content.style.display = '';
+    var subs = Array.isArray(results[0]) ? results[0] : (results[0].subscriptions || []);
+    var sites = Array.isArray(results[1]) ? results[1] : (results[1].sites || []);
+
+    var upgradeEl = document.getElementById('sub-upgrade-site');
+    if (upgradeEl) {
+      upgradeEl.innerHTML = sites.map(function(s) {
+        return '<option value="' + s.id + '">' + escHtml(s.name) + ' (' + escHtml(s.domain) + ')</option>';
+      }).join('') || '<option value="">Ingen sites</option>';
+    }
+
+    if (!subs.length) {
+      content.innerHTML = '<div class="sub-card"><p style="font-size:0.875rem;color:#9ca3af;">Ingen abonnementsdata fundet. Kør <code>schema_subscriptions.sql</code> og genstart API.</p></div>';
+      return;
+    }
+
+    content.innerHTML = subs.map(function(sub) {
+      var plan = sub.plan || 'starter';
+      var limits = PLAN_LIMITS[plan] || PLAN_LIMITS.starter;
+      var tokenPct = limits.ai_tokens_month ? Math.min(100, Math.round((sub.ai_tokens_used_month || 0) / limits.ai_tokens_month * 100)) : 0;
+      var pagesPct  = limits.pages ? Math.min(100, Math.round((sub.pages_count || 0) / limits.pages * 100)) : 0;
+      var planClass = plan === 'pro' ? 'sub-plan-pro' : plan === 'growth' ? 'sub-plan-growth' : 'sub-plan-starter';
+      return '<div class="sub-card">' +
+        '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:0.875rem;">' +
+          '<div>' +
+            '<p style="font-size:0.9375rem;font-weight:600;color:#111827;margin:0;">' + escHtml(sub.site_name || sub.domain || '') + '</p>' +
+            '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.125rem;">' + escHtml(sub.domain || '') + '</p>' +
+          '</div>' +
+          '<span class="sub-plan-badge ' + planClass + '">' + (PLAN_LABELS[plan] || plan) + '</span>' +
+        '</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">' +
+          renderUsageBar('AI-tokens', fmt(sub.ai_tokens_used_month || 0), fmt(limits.ai_tokens_month), tokenPct) +
+          renderUsageBar('Sider', sub.pages_count || 0, limits.pages === 999 ? '∞' : limits.pages, pagesPct) +
+          renderUsageBar('Lager', (sub.media_mb_used || 0) + ' MB', limits.media_mb + ' MB', Math.min(100, Math.round((sub.media_mb_used || 0) / limits.media_mb * 100))) +
+          renderUsageBar('Mail-konti', sub.email_accounts_used || 0, limits.email_accounts, Math.min(100, Math.round(((sub.email_accounts_used || 0) / limits.email_accounts) * 100))) +
+        '</div>' +
+        (sub.billing_status === 'overdue' ? '<p style="font-size:0.75rem;color:#dc2626;margin-top:0.5rem;font-weight:500;">Betaling forsinket</p>' : '') +
+        (sub.renewal_date ? '<p style="font-size:0.75rem;color:#9ca3af;margin-top:0.375rem;">Fornyelse: ' + sub.renewal_date + '</p>' : '') +
+      '</div>';
+    }).join('');
+  });
+}
+
+function renderUsageBar(label, used, limit, pct) {
+  var barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#3b82f6';
+  return '<div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:0.6875rem;color:#9ca3af;margin-bottom:0.25rem;">' +
+      '<span>' + label + '</span>' +
+      '<span>' + used + ' / ' + limit + '</span>' +
+    '</div>' +
+    '<div class="sub-usage-bar"><div class="sub-usage-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div>' +
+  '</div>';
+}
+
+function submitUpgradeRequest() {
+  var siteEl = document.getElementById('sub-upgrade-site');
+  var planEl = document.getElementById('sub-upgrade-plan');
+  var statusEl = document.getElementById('sub-upgrade-status');
+  if (!siteEl || !planEl || !siteEl.value) {
+    if (statusEl) statusEl.textContent = 'Vælg et site først.';
+    return;
+  }
+  statusEl.textContent = 'Sender…';
+  fetch(API + '/master/subscription-upgrade-request', {
+    method: 'POST',
+    headers: authHeaders(),
+    body: JSON.stringify({ site_id: siteEl.value, new_plan: planEl.value })
+  }).then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.error) { statusEl.textContent = 'Fejl: ' + d.error; return; }
+      statusEl.textContent = 'Anmodning registreret. Operatøren notificeres.';
+      if (window.toast) toast('Upgrade-anmodning sendt', 'success');
+    })
+    .catch(function() { statusEl.textContent = 'Netværksfejl.'; });
 }
 
 var claudeTasks = [];
@@ -1474,6 +1951,10 @@ window.openAuthPanel = openAuthPanel;
 window.closeAuthPanel = closeAuthPanel;
 window.startClaudeAuth = startClaudeAuth;
 window.submitAuthCode = submitAuthCode;
+window.selectProvider = selectProvider;
+window.saveProviderChoice = saveProviderChoice;
+window.copyProviderPacket = copyProviderPacket;
+window.submitUpgradeRequest = submitUpgradeRequest;
 
 var promptInput = document.getElementById('claude-prompt');
 if (promptInput) promptInput.addEventListener('input', updateRunButtonState);

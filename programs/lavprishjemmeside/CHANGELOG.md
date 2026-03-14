@@ -19,6 +19,57 @@ Change discipline:
 
 ## [Unreleased]
 
+### Phase 6 — Master Console Uplift, Provider Switching, Subscriptions, Email Client Foundation (2026-03-14)
+
+#### 6.1 AI Usage Tab Uplift
+- Added fleet-level summary bar to Master Hub AI tab: total tokens, total cost, total requests, and active site count for the 30-day window
+- Per-site cards now show request count alongside token and cost totals
+- Stale activity signal: sites with no AI usage in the last 7+ days show an amber "Inaktiv Xd" pill
+- Last-active date label shown on non-stale sites
+- Activity chart date range labels added (first/last day of the 14-day window)
+- Bar tooltips include request count in addition to token count
+- DB-unavailable sites show a red "DB utilgængelig" error pill
+
+#### 6.2 Provider Switching Tab (Tab 4)
+- New "Provider" tab added to Master Hub (master-only, gated by existing master role check)
+- Visual radio-card selector: Anthropic Claude vs OpenAI/Codex
+- Provider choice loaded from and saved to DB (`provider_config` table — single-row config)
+- Saving generates a formatted operator packet with exact `.env` changes and cPanel restart instructions
+- "Kopier" button copies operator packet to clipboard
+- Full audit trail: every provider change written to `provider_audit_log` and rendered in the UI
+- No fake in-folder provider router: real switching is operator-executed via the generated packet
+- New API endpoints: `GET /master/provider-config`, `POST /master/provider-config`
+
+#### 6.3 Subscription Management Tab (Tab 5)
+- New "Abonnementer" tab added to Master Hub
+- Per-site subscription cards: plan badge (Starter/Growth/Pro), 4 usage bars (AI tokens, sider, lager, mail-konti)
+- Usage bars colour-coded: green < 70%, amber 70–90%, red > 90%
+- Billing status: overdue warning surfaced in-card with renewal date
+- Upgrade request flow: select site + new plan → `POST /master/subscription-upgrade-request` → logged to DB
+- Operator instructions panel with explicit numbered steps for live billing activation
+- New API endpoints: `GET /master/subscriptions`, `POST /master/subscription-upgrade-request`
+
+#### 6.4 Email Client Foundation
+- New admin page: `src/pages/admin/email.astro`
+- Setup notice shown always with required env vars listed
+- Unconfigured state: graceful not-configured gate (checks `GET /email/config`)
+- Configured state: 2-column split — folder list (left) + message list/viewer (right)
+- Compose modal: To, Subject, Body fields with Send and Save Draft actions
+- Reply flow: pre-populates To and Subject from message header
+
+**New schema files** (operator-applied via cPanel phpMyAdmin):
+- `api/src/schema_subscriptions.sql` — `subscriptions`, `subscription_usage_snapshots`, `subscription_upgrade_requests`, `provider_config`, `provider_audit_log`; seeds default `provider_config` row with `active_provider = 'anthropic'`
+- `api/src/schema_email_client.sql` — `email_accounts`, `email_folders`, `email_messages`, `email_drafts`
+
+**Operator actions required at rollout:**
+1. Run `schema_subscriptions.sql` on the master DB via cPanel phpMyAdmin
+2. Run `schema_email_client.sql` on each client DB where email is to be enabled
+3. Add `EMAIL_IMAP_HOST`, `EMAIL_IMAP_PORT`, `EMAIL_SMTP_HOST`, `EMAIL_SMTP_PORT`, `EMAIL_ENCRYPTION_KEY` to `.env` for each client site where email is enabled
+4. Wire `/email/*` IMAP/SMTP proxy routes (see `PHASE6_HANDOFF.md` route contract)
+5. Restart Node app via cPanel > Setup Node.js App > Restart
+
+---
+
 ### Phase 5 — CMS/Admin Productivity Uplift (2026-03-14)
 
 #### 5.1 Dashboard Quick Actions
