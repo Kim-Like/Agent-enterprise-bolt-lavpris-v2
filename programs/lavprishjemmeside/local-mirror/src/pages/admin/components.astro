@@ -68,6 +68,34 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     </div>
   </div>
 
+  <!-- Preview Modal -->
+  <div id="preview-modal" class="hidden fixed inset-0 bg-black bg-opacity-60 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full flex flex-col" style="max-width:1140px;max-height:92vh;">
+      <div class="flex items-center justify-between gap-4 px-5 py-3 border-b border-gray-200 flex-shrink-0">
+        <span class="text-sm font-semibold text-gray-900" id="preview-modal-title"></span>
+        <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1" id="preview-viewport-btns">
+          <button onclick="setPreviewViewport(375)" id="pvp-mobile" class="pvp-btn px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-600 hover:bg-white hover:shadow-sm">
+            <span class="hidden sm:inline">Mobil</span> 375
+          </button>
+          <button onclick="setPreviewViewport(768)" id="pvp-tablet" class="pvp-btn px-3 py-1.5 rounded-md text-xs font-medium transition-colors text-gray-600 hover:bg-white hover:shadow-sm">
+            <span class="hidden sm:inline">Tablet</span> 768
+          </button>
+          <button onclick="setPreviewViewport('full')" id="pvp-desktop" class="pvp-btn active px-3 py-1.5 rounded-md text-xs font-medium transition-colors bg-white shadow-sm text-gray-900">
+            <span class="hidden sm:inline">Desktop</span> Full
+          </button>
+        </div>
+        <button onclick="closePreviewModal()" class="text-gray-400 hover:text-gray-700 text-xl leading-none">&times;</button>
+      </div>
+      <div class="flex-1 overflow-hidden flex items-start justify-center bg-gray-50 p-4 rounded-b-xl" id="preview-modal-stage">
+        <iframe id="preview-iframe" src="" class="border border-gray-200 rounded-lg bg-white transition-all duration-300 shadow-sm" style="width:100%;height:68vh;" frameborder="0" title="Komponent forhåndsvisning"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .pvp-btn.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.1); color:#111827; }
+  </style>
+
   <script define:vars={{ apiUrl }}>
   (function() {
     const API = apiUrl;
@@ -199,9 +227,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           </div>
           <p class="text-xs text-gray-500 mb-4 line-clamp-2 flex-1">${escapeHtml(comp.description || '(Ingen beskrivelse)')}</p>
           <div class="flex gap-2 mt-auto">
-            <a href="/admin/components/preview/${escapeAttr(comp.slug)}/" target="_blank" rel="noopener noreferrer" class="flex-1 text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-2 rounded-lg transition-colors text-xs">
+            <button onclick="openPreviewModal('${escapeAttr(comp.slug)}', '${escapeAttr(comp.name)}')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-2 rounded-lg transition-colors text-xs">
               Forhåndsvis
-            </a>
+            </button>
             <button onclick="openModal('${escapeAttr(comp.slug)}', '${escapeAttr(comp.name)}', '${escapeAttr(comp.documentation || 'Ingen dokumentation tilgængelig.')}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg transition-colors text-xs">
               Dokumentation
             </button>
@@ -231,15 +259,55 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     // Close modal on outside click
     document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this) {
-        closeModal();
-      }
+      if (e.target === this) closeModal();
     });
 
-    // Close modal on Escape key
+    // Preview modal
+    window.openPreviewModal = function(slug, name) {
+      const modal = document.getElementById('preview-modal');
+      const iframe = document.getElementById('preview-iframe');
+      document.getElementById('preview-modal-title').textContent = name || slug;
+      iframe.src = '/admin/components/preview/' + slug + '/';
+      setPreviewViewport('full');
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    };
+
+    window.closePreviewModal = function() {
+      const modal = document.getElementById('preview-modal');
+      modal.classList.add('hidden');
+      document.getElementById('preview-iframe').src = '';
+      document.body.style.overflow = '';
+    };
+
+    window.setPreviewViewport = function(size) {
+      const iframe = document.getElementById('preview-iframe');
+      const btns = document.querySelectorAll('.pvp-btn');
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      if (size === 375) {
+        iframe.style.width = '375px';
+        document.getElementById('pvp-mobile').classList.add('active');
+      } else if (size === 768) {
+        iframe.style.width = '768px';
+        document.getElementById('pvp-tablet').classList.add('active');
+      } else {
+        iframe.style.width = '100%';
+        document.getElementById('pvp-desktop').classList.add('active');
+      }
+    };
+
+    document.getElementById('preview-modal').addEventListener('click', function(e) {
+      if (e.target === this) closePreviewModal();
+    });
+
+    // Close modals on Escape key
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape') {
-        closeModal();
+        if (!document.getElementById('preview-modal').classList.contains('hidden')) {
+          closePreviewModal();
+        } else {
+          closeModal();
+        }
       }
     });
 

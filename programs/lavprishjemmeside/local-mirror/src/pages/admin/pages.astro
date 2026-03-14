@@ -6,10 +6,32 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 <AdminLayout title="Page Builder">
   <div class="max-w-7xl mx-auto">
     <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-3xl font-bold text-gray-900">Sidestyring</h1>
-      <p class="text-gray-600 mt-2">Rediger komponenter på hver side</p>
+    <div class="mb-8 flex items-center justify-between gap-4 flex-wrap">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Sidestyring</h1>
+        <p class="text-gray-600 mt-2">Rediger komponenter på hver side</p>
+      </div>
+      <div class="flex items-center gap-2" id="preview-controls" style="display:none!important;">
+        <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button onclick="setPbViewport(375)" id="pb-pvp-mobile" class="pb-pvp-btn px-3 py-1.5 rounded-md text-xs font-medium text-gray-600 hover:bg-white hover:shadow-sm transition-colors">Mobil</button>
+          <button onclick="setPbViewport(768)" id="pb-pvp-tablet" class="pb-pvp-btn px-3 py-1.5 rounded-md text-xs font-medium text-gray-600 hover:bg-white hover:shadow-sm transition-colors">Tablet</button>
+          <button onclick="setPbViewport('full')" id="pb-pvp-desktop" class="pb-pvp-btn active px-3 py-1.5 rounded-md text-xs font-medium text-gray-900 bg-white shadow-sm transition-colors">Desktop</button>
+        </div>
+        <button onclick="refreshPreview()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-3 py-2 rounded-lg transition-colors" title="Genindlæs forhåndsvisning">&#8635;</button>
+        <button onclick="togglePreview(false)" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium px-3 py-2 rounded-lg transition-colors">Skjul</button>
+      </div>
+      <button id="toggle-preview-btn" onclick="togglePreview(true)" class="text-sm bg-white border border-gray-300 hover:border-blue-400 hover:text-blue-600 text-gray-700 font-medium px-4 py-2 rounded-lg transition-colors shadow-sm">
+        Forhåndsvis side
+      </button>
     </div>
+    <style>
+      .pb-pvp-btn.active { background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.1); color:#111827; }
+      #pb-split-layout { display:grid; grid-template-columns:1fr; gap:1.5rem; }
+      #pb-split-layout.preview-open { grid-template-columns:1fr 1fr; }
+      @media (max-width:1024px) { #pb-split-layout.preview-open { grid-template-columns:1fr; } }
+      #pb-preview-pane { display:none; }
+      #pb-preview-pane.visible { display:flex; flex-direction:column; }
+    </style>
 
     <!-- Loading state -->
     <div id="loading" class="text-center py-12 text-gray-500">Henter sider...</div>
@@ -36,9 +58,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 
     <!-- Main content -->
     <div id="content" class="hidden">
-      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div id="pb-split-layout" class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Pages List (Left) -->
-        <div class="lg:col-span-1">
+        <div class="lg:col-span-1 pb-editor-col">
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center justify-between mb-3">
               <h2 class="text-lg font-semibold text-gray-900">Sider</h2>
@@ -122,6 +144,22 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
             </div>
           </div>
         </div>
+
+        <!-- Live Preview Pane -->
+        <div id="pb-preview-pane" class="lg:col-span-2 pb-editor-col">
+          <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col" style="min-height:600px;height:calc(100vh - 14rem);">
+            <div class="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex-shrink-0">
+              <span class="text-xs font-medium text-gray-500" id="pb-preview-url-label">Ingen side valgt</span>
+              <div class="flex items-center gap-1 text-xs text-gray-400">
+                <span id="pb-preview-status"></span>
+              </div>
+            </div>
+            <div class="flex-1 flex items-stretch overflow-hidden bg-gray-100">
+              <iframe id="pb-preview-iframe" src="" class="w-full border-0 bg-white transition-all duration-300" style="min-height:560px;" title="Side forhåndsvisning"></iframe>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -341,6 +379,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       selectedPage = page;
       document.getElementById('selected-page').textContent = page || '/ (Startside)';
       loadSeoMeta(page);
+      if (typeof updatePreviewUrl === 'function') updatePreviewUrl(page);
 
       const pageComponents = allPageComponents.filter(pc => pc.page_path === page);
       const componentsList = document.getElementById('components-list');
@@ -641,6 +680,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         );
 
         if (window.toast) toast('Side publiceret', 'success'); else alert('Side publiceret');
+        setTimeout(function() { if (typeof refreshPreview === 'function') refreshPreview(); }, 800);
       } catch (err) {
         if (window.toast) toast('Fejl ved publicering: ' + err.message, 'error'); else alert('Fejl ved publicering: ' + err.message);
       } finally {
@@ -1767,6 +1807,102 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         }
       }
     });
+
+    // --- Live Preview Panel ---
+    var previewOpen = false;
+    var previewCurrentPath = null;
+    var siteBase = window.PUBLIC_SITE_URL || 'https://lavprishjemmeside.dk';
+
+    window.togglePreview = function(open) {
+      previewOpen = open;
+      var pane = document.getElementById('pb-preview-pane');
+      var controls = document.getElementById('preview-controls');
+      var toggleBtn = document.getElementById('toggle-preview-btn');
+      var layout = document.getElementById('pb-split-layout');
+
+      if (open) {
+        pane.classList.add('visible');
+        controls.style.removeProperty('display');
+        controls.style.display = 'flex';
+        toggleBtn.style.display = 'none';
+        layout.classList.add('preview-open');
+        layout.style.gridTemplateColumns = '';
+        if (selectedPage !== null) updatePreviewUrl(selectedPage);
+      } else {
+        pane.classList.remove('visible');
+        controls.style.display = 'none';
+        toggleBtn.style.display = '';
+        layout.classList.remove('preview-open');
+        document.getElementById('pb-preview-iframe').src = '';
+        previewCurrentPath = null;
+      }
+    };
+
+    window.refreshPreview = function() {
+      var iframe = document.getElementById('pb-preview-iframe');
+      if (iframe.src && iframe.src !== window.location.href) {
+        iframe.src = iframe.src;
+      }
+    };
+
+    window.setPbViewport = function(size) {
+      var iframe = document.getElementById('pb-preview-iframe');
+      var btns = document.querySelectorAll('.pb-pvp-btn');
+      btns.forEach(function(b) { b.classList.remove('active'); });
+      if (size === 375) {
+        iframe.style.maxWidth = '375px';
+        iframe.style.margin = '0 auto';
+        document.getElementById('pb-pvp-mobile').classList.add('active');
+      } else if (size === 768) {
+        iframe.style.maxWidth = '768px';
+        iframe.style.margin = '0 auto';
+        document.getElementById('pb-pvp-tablet').classList.add('active');
+      } else {
+        iframe.style.maxWidth = '';
+        iframe.style.margin = '';
+        document.getElementById('pb-pvp-desktop').classList.add('active');
+      }
+    };
+
+    function updatePreviewUrl(pagePath) {
+      if (!previewOpen) return;
+      var urlPath = pagePath || '/';
+      if (urlPath === previewCurrentPath) return;
+      previewCurrentPath = urlPath;
+      var iframe = document.getElementById('pb-preview-iframe');
+      var label = document.getElementById('pb-preview-url-label');
+      var status = document.getElementById('pb-preview-status');
+      var fullUrl = siteBase.replace(/\/$/, '') + urlPath;
+      label.textContent = urlPath;
+      status.textContent = 'Henter…';
+      iframe.onload = function() { status.textContent = ''; };
+      iframe.src = fullUrl;
+    }
+
+    // Hook selectPage to update preview
+    var _origSelectPage = typeof selectPage === 'function' ? selectPage : null;
+    var _selectPagePatched = false;
+    function patchSelectPage() {
+      if (_selectPagePatched) return;
+      _selectPagePatched = true;
+      var origFn = window.selectPage;
+      if (origFn) {
+        window.selectPage = function(page) {
+          origFn(page);
+          updatePreviewUrl(page);
+        };
+      }
+    }
+    setTimeout(patchSelectPage, 200);
+
+    // Hook publishPage to refresh preview after publish
+    var _origPublish = window.publishPage;
+    if (_origPublish) {
+      window.publishPage = async function() {
+        await _origPublish();
+        setTimeout(refreshPreview, 800);
+      };
+    }
 
     // Load data on page load
     loadData();
