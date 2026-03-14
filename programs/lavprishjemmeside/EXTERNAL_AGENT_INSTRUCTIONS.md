@@ -55,14 +55,27 @@ If you believe no changelog entry is needed, say so explicitly in your handoff.
 
 If you change a structured contract, you must leave behind updated handoff documentation in the Lavprishjemmeside folder.
 
-Minimum requirements:
+Structured contracts include:
 
-- database or seed changes: update `local-mirror/docs/SCHEMA_OVERVIEW.md`
-- API, proxy, auth, env, or request/response changes: update the relevant canonical doc or create/update a contract doc under `local-mirror/docs/`
-- wizard, install, rollout, shop, or master-dashboard flow changes: update the corresponding handoff doc that explains the flow
-- outside-folder dependency changes: update `OUTSIDE_FOLDER_DEPENDENCIES.md`
+- **Database schema**: table structure, columns, indexes, foreign keys, enums
+- **Seed data behavior**: default rows, component library entries, system settings
+- **API request/response contracts**: route signatures, payload shapes, status codes
+- **Environment variable contracts**: new required vars, changed var names, changed value formats
+- **Workflow contracts**: install sequences, wizard steps, rollout order, publish behavior
+- **Outside-folder contracts**: Agent Enterprise routes, packet shapes, telemetry expectations
 
-No phase is complete if the code introduces a new schema, interface, or workflow expectation that exists only in code and not in the handoff docs.
+Minimum documentation requirements per contract type:
+
+- **Database or seed changes**: update `local-mirror/docs/SCHEMA_OVERVIEW.md` with the new tables, columns, or seed expectations
+- **API, proxy, auth, or request/response changes**: update the relevant doc under `local-mirror/docs/` or create a new contract doc if none exists
+- **Env contract changes**: document the new variables, their purpose, expected format, and which sites need them
+- **Wizard, install, rollout, or operational flow changes**: update the corresponding handoff doc (`ROLLOUT_MANUAL.md`, `SSH_FIRST_OPERATIONS.md`, `UPSTREAM_UPDATES.md`, `CLIENT_ASSISTANT_ARCHITECTURE.md`)
+- **Shop or commerce contract changes**: update `SHOPPING_MODULE_PLAN.md` or the shop sections of `SCHEMA_OVERVIEW.md`
+- **Outside-folder dependency changes**: update `OUTSIDE_FOLDER_DEPENDENCIES.md` with the dependency, expected interface, and handoff action
+
+No phase is complete if the code introduces a new schema, interface, env requirement, or workflow expectation that exists only in code and not in the handoff docs.
+
+Documentation updates must be specific, not vague. Saying "updated docs" without listing which files were changed and what contracts they now describe is not sufficient.
 
 ### Rule 2B: Missing Documentation Means The Phase Failed
 

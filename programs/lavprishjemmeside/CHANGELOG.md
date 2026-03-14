@@ -25,6 +25,7 @@ Change discipline:
 - Implemented the first-party e-commerce module with shop schema, Flatpay / Frisbii payment integration, public storefront routes, admin shop management, and transactional order email support.
 
 ### Changed
+- Strengthened contract-documentation rules in `EXTERNAL_AGENT_INSTRUCTIONS.md` so the external sprint must explicitly document all structured contracts (schema, seed, API, env, workflow, outside-folder) with specific file updates, not vague summaries.
 - Removed the remaining stale references to the retired duplicate planning location from the canonical V2 docs and authority maps after the planning set was moved fully into `programs/lavprishjemmeside/`.
 - Tightened the external-agent startup contract so `EXTERNAL_AGENT_PROMPT.md` and `EXTERNAL_AGENT_INSTRUCTIONS.md` now force the in-folder trilogy, require explicit documentation/handoff completion, and treat cPanel/DB/env work as operator packets rather than improviseable implementation scope.
 - Moved the canonical V2 planning trilogy into `programs/lavprishjemmeside/requirements.md`, `programs/lavprishjemmeside/design.md`, and `programs/lavprishjemmeside/tasks.md` so the external sprint reads the real plan directly inside the writable folder.
