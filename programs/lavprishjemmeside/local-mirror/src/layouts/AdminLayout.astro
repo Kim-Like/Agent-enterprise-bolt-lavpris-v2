@@ -275,6 +275,7 @@ const { title } = Astro.props;
           <div style="display:flex; align-items:center; gap:0.75rem;">
             <span id="header-role-badge" style="display:none; font-size:0.65rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; padding:0.15rem 0.5rem; border-radius:9999px; background:#f3f0ff; color:#7c3aed;"></span>
             <span id="header-page-title" style="font-size:0.8125rem; font-weight:600; color:#374151;"></span>
+            <button onclick="openKbdOverlay()" title="Tastaturgenveje (?)" style="background:none; border:1px solid #e5e7eb; border-radius:0.4rem; padding:0.15rem 0.5rem; font-size:0.7rem; color:#9ca3af; cursor:pointer; font-family:monospace; transition:color 0.12s, border-color 0.12s;" onmouseover="this.style.color='#374151';this.style.borderColor='#d1d5db'" onmouseout="this.style.color='#9ca3af';this.style.borderColor='#e5e7eb'">?</button>
           </div>
         </header>
 
@@ -287,6 +288,51 @@ const { title } = Astro.props;
 
     <!-- Mobile overlay -->
     <div id="mobile-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:49;" onclick="closeMobileMenu()"></div>
+
+    <!-- Keyboard shortcuts overlay -->
+    <div id="kbd-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; align-items:center; justify-content:center;" onclick="closeKbdOverlay()">
+      <div style="background:#fff; border-radius:1rem; padding:1.5rem; max-width:28rem; width:92%; box-shadow:0 20px 60px rgba(0,0,0,0.25);" onclick="event.stopPropagation()">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1.125rem;">
+          <span style="font-size:1rem; font-weight:700; color:#111827;">Tastaturgenveje</span>
+          <button onclick="closeKbdOverlay()" style="background:none; border:none; cursor:pointer; font-size:1.25rem; color:#9ca3af; line-height:1;">&times;</button>
+        </div>
+        <div style="display:grid; gap:0.5rem; font-size:0.8125rem;">
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Vis genveje</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">?</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Oversigt (Dashboard)</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g d</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Sider</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g p</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Medier</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g m</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">AI-assembler</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g a</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Shop-overblik</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g s</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0; border-bottom:1px solid #f3f4f6;">
+            <span style="color:#374151;">Assistant</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">g c</kbd>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; padding:0.4rem 0;">
+            <span style="color:#374151;">Luk overlay / modal</span>
+            <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.375rem; padding:0.1rem 0.5rem; font-family:monospace; font-size:0.75rem; color:#374151;">Esc</kbd>
+          </div>
+        </div>
+        <p style="font-size:0.6875rem; color:#9ca3af; margin-top:1rem;">Tryk <kbd style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:0.25rem; padding:0.05rem 0.35rem; font-family:monospace; font-size:0.6875rem;">Esc</kbd> for at lukke</p>
+      </div>
+    </div>
 
     <script is:inline>
     (function() {
@@ -377,6 +423,52 @@ const { title } = Astro.props;
       if (overlay) overlay.style.display = 'none';
     }
     window.closeMobileMenu = closeMobileMenu;
+
+    function openKbdOverlay() {
+      var el = document.getElementById('kbd-overlay');
+      if (el) { el.style.display = 'flex'; }
+    }
+    function closeKbdOverlay() {
+      var el = document.getElementById('kbd-overlay');
+      if (el) { el.style.display = 'none'; }
+    }
+    window.closeKbdOverlay = closeKbdOverlay;
+
+    var kbdBuffer = '';
+    var kbdTimer = null;
+    document.addEventListener('keydown', function(e) {
+      var active = document.activeElement;
+      var isInput = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.tagName === 'SELECT' || active.isContentEditable);
+
+      if (e.key === 'Escape') {
+        closeKbdOverlay();
+        closeMobileMenu();
+        return;
+      }
+
+      if (isInput) return;
+
+      if (e.key === '?') {
+        openKbdOverlay();
+        return;
+      }
+
+      if (e.key === 'g') {
+        kbdBuffer = 'g';
+        clearTimeout(kbdTimer);
+        kbdTimer = setTimeout(function() { kbdBuffer = ''; }, 1500);
+        return;
+      }
+
+      if (kbdBuffer === 'g') {
+        clearTimeout(kbdTimer);
+        kbdBuffer = '';
+        var navMap = { d: '/admin/dashboard/', p: '/admin/pages/', m: '/admin/media/', a: '/admin/ai-assemble/', s: '/admin/shop/dashboard/', c: '/admin/assistant/' };
+        var dest = navMap[e.key];
+        if (dest) { window.location.href = dest; }
+        return;
+      }
+    });
     </script>
   </body>
 </html>

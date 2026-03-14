@@ -19,6 +19,46 @@ Change discipline:
 
 ## [Unreleased]
 
+### Phase 5 — CMS/Admin Productivity Uplift (2026-03-14)
+
+#### 5.1 Dashboard Quick Actions
+- Added four quick-action shortcut cards below the stat row: **Ny side med AI**, **Rediger sider**, **Upload medier**, **Publicer nu**
+- "Publicer nu" quick card triggers the `/publish` API endpoint directly from the dashboard with visual confirmation feedback
+- Responsive grid: 4 columns on desktop, 2 columns on narrow screens
+
+#### 5.2 Pages Workflow Improvements
+- Added **"+ Ny side"** button with a modal dialog (Enter to confirm, Esc to cancel) that creates a new page by path
+- Pages sidebar now shows a summary badge row: total page count + published page count
+- Each page button now shows a **status dot** (green = all components published, amber = partial, grey = none)
+- Added per-component **visibility toggle button** (eye icon) that calls `POST /page-components/publish` to toggle `is_published` per component without the full page publish flow
+- Added **Ctrl+S / Cmd+S** keyboard shortcut to save the currently open component edit modal
+
+#### 5.3 Component Duplicate Button
+- Added a **duplicate (⊕)** button to each component row in the page editor
+- Clones the component into the same page at the next sort position, copying `content`, `is_published`, and `component_id`
+
+#### 5.4 AI Assembler Improvements
+- Both the Standard and Advanced page path inputs now use a `<datalist>` populated with existing page paths from the API — provides autocomplete suggestions
+- Added an **animated step-by-step loading indicator** during generation: Analyserer → Vælger komponenter → Genererer tekster → Gemmer til databasen
+- Steps animate sequentially and all turn green on success, providing clearer feedback during the 10–30 second generation process
+
+#### 5.5 Media Library Bulk Delete
+- Added **"Vælg"** button that activates bulk-select mode
+- In bulk mode, clicking any image card toggles its checkbox selection (highlighted with blue ring)
+- Bulk toolbar shows selected count with **Vælg alle**, **Fravælg alle**, and **Slet valgte** actions
+- Bulk delete loops through selected IDs with individual DELETE calls and reports errors
+
+#### 5.6 Assistant Quick-Prompt Chips
+- Added five clickable **quick-prompt chips** above the chat textarea when a session is open
+- Chips: _Hvad kan du hjælpe med?_, _Generer tekst til forsiden_, _Beskriv et nyt komponent jeg skal bruge_, _Hjælp mig med SEO-tekster_, _Skriv en ticket til engineer-teamet_
+- Clicking a chip populates the textarea and hides the chip row for a clean chat flow
+
+#### 5.7 Admin Layout Keyboard Shortcuts
+- Added a **keyboard shortcut overlay** (`?` key or `?` button in the header) listing all global navigation shortcuts
+- Navigation shortcuts: `g d` → Dashboard, `g p` → Sider, `g m` → Medier, `g a` → AI-assembler, `g s` → Shop, `g c` → Assistant
+- `Esc` closes any open overlay or mobile menu
+- Small `?` button added to the admin header topbar for discoverability
+
 > Features developed on `main` but not yet tagged. Will become the next release.
 
 ### Added

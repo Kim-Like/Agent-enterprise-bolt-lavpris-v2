@@ -4,6 +4,14 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
 ---
 
 <AdminLayout title="AI Indholdsudvikler">
+  <style>
+    .ai-step { display:flex; align-items:center; gap:0.625rem; font-size:0.8125rem; color:#374151; padding:0.375rem 0; }
+    .ai-step-pending { color:#9ca3af; }
+    .ai-step-done { color:#16a34a; }
+    .ai-step-dot { width:0.5rem; height:0.5rem; border-radius:50%; background:#3b82f6; flex-shrink:0; }
+    .ai-step-pending .ai-step-dot { background:#d1d5db; }
+    .ai-step-done .ai-step-dot { background:#22c55e; }
+  </style>
   <div class="max-w-4xl mx-auto">
     <!-- Header -->
     <div class="mb-8">
@@ -95,8 +103,9 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           <form id="generate-form-standard" class="standard-form" onsubmit="generateContentStandard(event)">
             <div class="mb-6">
               <label for="page_path" class="block text-sm font-medium text-gray-700 mb-2">Sidesti:</label>
-              <input type="text" id="page_path" placeholder="Tom eller / = forside, f.eks. /priser" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
-              <p class="text-xs text-gray-500 mt-1">Tom = forside (/). Ellers f.eks. /priser, /om-os</p>
+              <input type="text" id="page_path" list="existing-pages-list" placeholder="Tom eller / = forside, f.eks. /priser" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+              <datalist id="existing-pages-list"></datalist>
+              <p class="text-xs text-gray-500 mt-1">Tom = forside (/). Ellers f.eks. /priser, /om-os — eksisterende sider foreslås</p>
             </div>
             <div class="mb-6">
               <label for="prompt" class="block text-sm font-medium text-gray-700 mb-2">Beskrivelse (Dansk):</label>
@@ -112,7 +121,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           <form id="generate-form-advanced" class="advanced-form hidden" onsubmit="generateContentAdvanced(event)">
             <div class="mb-6">
               <label for="page_path_adv" class="block text-sm font-medium text-gray-700 mb-2">Sidesti:</label>
-              <input type="text" id="page_path_adv" placeholder="Tom eller / = forside, f.eks. /priser" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
+              <input type="text" id="page_path_adv" list="existing-pages-list" placeholder="Tom eller / = forside, f.eks. /priser" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
               <p class="text-xs text-gray-500 mt-1">Tom = forside (/). Ellers f.eks. /priser, /om-os</p>
             </div>
             <div class="mb-6">
@@ -148,11 +157,28 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           <h2 class="text-lg font-semibold mb-6 text-gray-900">Resultat</h2>
 
           <!-- Loading spinner (hidden by default) -->
-          <div id="result-loading" class="hidden text-center py-8">
-            <div class="inline-block">
+          <div id="result-loading" class="hidden py-6">
+            <div class="flex justify-center mb-5">
               <div class="w-8 h-8 border-4 border-gray-200 border-t-blue-600 rounded-full animate-spin"></div>
             </div>
-            <p class="text-gray-600 mt-4">Genererer indhold med AI...</p>
+            <div class="space-y-2.5">
+              <div class="ai-step" id="step-1">
+                <div class="ai-step-dot"></div>
+                <span>Analyserer din beskrivelse</span>
+              </div>
+              <div class="ai-step ai-step-pending" id="step-2">
+                <div class="ai-step-dot"></div>
+                <span>Vælger komponenter og struktur</span>
+              </div>
+              <div class="ai-step ai-step-pending" id="step-3">
+                <div class="ai-step-dot"></div>
+                <span>Genererer tekster og indhold</span>
+              </div>
+              <div class="ai-step ai-step-pending" id="step-4">
+                <div class="ai-step-dot"></div>
+                <span>Gemmer til databasen</span>
+              </div>
+            </div>
           </div>
 
           <!-- Result content (hidden by default) -->
@@ -222,6 +248,60 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
     // Hide loading on page load
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('content').classList.remove('hidden');
+
+    // Load existing page paths for datalist suggestions
+    (async function loadPageSuggestions() {
+      try {
+        var res = await fetch(API + '/page-components?page=all', { headers: { 'Authorization': 'Bearer ' + token } });
+        if (!res.ok) return;
+        var pages = await res.json();
+        var paths = [...new Set(pages.map(function(p) { return p.page_path; }))].filter(Boolean);
+        var dl = document.getElementById('existing-pages-list');
+        if (dl) paths.forEach(function(p) {
+          var opt = document.createElement('option');
+          opt.value = p;
+          dl.appendChild(opt);
+        });
+      } catch (_) { /* ignore */ }
+    })();
+
+    // Animate loading steps
+    var stepTimers = [];
+    function startStepAnimation() {
+      var steps = ['step-1','step-2','step-3','step-4'];
+      steps.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) { el.className = 'ai-step ai-step-pending'; var dot = el.querySelector('.ai-step-dot'); if (dot) dot.style.background = ''; }
+      });
+      var el1 = document.getElementById('step-1');
+      if (el1) el1.className = 'ai-step';
+      stepTimers.push(setTimeout(function() {
+        var e = document.getElementById('step-1');
+        if (e) e.className = 'ai-step ai-step-done';
+        var e2 = document.getElementById('step-2');
+        if (e2) e2.className = 'ai-step';
+      }, 1500));
+      stepTimers.push(setTimeout(function() {
+        var e = document.getElementById('step-2');
+        if (e) e.className = 'ai-step ai-step-done';
+        var e3 = document.getElementById('step-3');
+        if (e3) e3.className = 'ai-step';
+      }, 4000));
+      stepTimers.push(setTimeout(function() {
+        var e = document.getElementById('step-3');
+        if (e) e.className = 'ai-step ai-step-done';
+        var e4 = document.getElementById('step-4');
+        if (e4) e4.className = 'ai-step';
+      }, 8000));
+    }
+    function stopStepAnimation() {
+      stepTimers.forEach(clearTimeout);
+      stepTimers = [];
+      ['step-1','step-2','step-3','step-4'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.className = 'ai-step ai-step-done';
+      });
+    }
 
     // Load prompt settings
     async function loadPromptSettings() {
@@ -352,6 +432,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       document.getElementById('result-content').classList.add('hidden');
       document.getElementById('result-error').classList.add('hidden');
       document.getElementById('result-loading').classList.remove('hidden');
+      startStepAnimation();
 
       try {
         const res = await fetch(API + '/ai-generate/page', {
@@ -360,6 +441,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           body: JSON.stringify({ page_path: pagePath, prompt: prompt })
         });
         const data = await res.json();
+        stopStepAnimation();
         document.getElementById('result-loading').classList.add('hidden');
         if (!res.ok) {
           document.getElementById('error-message').textContent = data.error || 'Ukendt fejl';
@@ -368,6 +450,7 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           showResult(data);
         }
       } catch (err) {
+        stopStepAnimation();
         document.getElementById('result-loading').classList.add('hidden');
         document.getElementById('error-message').textContent = err.message;
         document.getElementById('result-error').classList.remove('hidden');

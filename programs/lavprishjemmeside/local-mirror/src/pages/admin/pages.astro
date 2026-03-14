@@ -20,13 +20,36 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       <button onclick="window.location.reload()" class="text-red-600 underline text-sm">Prøv igen</button>
     </div>
 
+  <!-- New page modal -->
+  <div id="new-page-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6">
+      <h3 class="text-lg font-bold text-gray-900 mb-1">Opret ny side</h3>
+      <p class="text-sm text-gray-500 mb-4">Sti er URL-stien til siden, fx <code class="bg-gray-100 px-1 rounded">/om-os</code></p>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Side-sti</label>
+      <input id="new-page-path" type="text" placeholder="/min-side" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 font-mono" />
+      <div class="flex gap-3">
+        <button onclick="closeNewPageModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium px-4 py-2 rounded-lg text-sm transition-colors">Annuller</button>
+        <button onclick="createNewPage()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors">Opret</button>
+      </div>
+    </div>
+  </div>
+
     <!-- Main content -->
     <div id="content" class="hidden">
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Pages List (Left) -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold mb-4 text-gray-900">Sider</h2>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-lg font-semibold text-gray-900">Sider</h2>
+              <button onclick="openNewPageModal()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition-colors">+ Ny side</button>
+            </div>
+            <div id="pages-summary" class="mb-3 hidden">
+              <div class="flex flex-wrap gap-1.5 text-xs">
+                <span id="pages-count-total" class="bg-gray-100 text-gray-600 rounded px-2 py-0.5 font-medium"></span>
+                <span id="pages-count-published" class="bg-green-50 text-green-700 rounded px-2 py-0.5 font-medium"></span>
+              </div>
+            </div>
             <div id="pages-list" class="space-y-2">
               <!-- Pages will be inserted here -->
             </div>
@@ -257,14 +280,37 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       // Get unique page paths
       const pages = [...new Set(allPageComponents.map(pc => pc.page_path))];
 
+      // Update summary
+      var summaryEl = document.getElementById('pages-summary');
+      var totalEl = document.getElementById('pages-count-total');
+      var pubEl = document.getElementById('pages-count-published');
+      if (pages.length > 0 && summaryEl && totalEl && pubEl) {
+        var pubPages = pages.filter(function(p) {
+          var comps = allPageComponents.filter(function(pc) { return pc.page_path === p; });
+          return comps.length > 0 && comps.every(function(pc) { return pc.is_published; });
+        });
+        totalEl.textContent = pages.length + ' ' + (pages.length === 1 ? 'side' : 'sider');
+        pubEl.textContent = pubPages.length + ' publiceret';
+        summaryEl.classList.remove('hidden');
+      }
+
       pages.forEach(page => {
         const container = document.createElement('div');
         container.className = 'flex items-stretch gap-2';
 
+        var pageComps = allPageComponents.filter(function(pc) { return pc.page_path === page; });
+        var allPub = pageComps.length > 0 && pageComps.every(function(pc) { return pc.is_published; });
+        var somePub = pageComps.some(function(pc) { return pc.is_published; });
+        var statusColor = allPub ? '#22c55e' : (somePub ? '#f59e0b' : '#d1d5db');
+        var statusTitle = allPub ? 'Alle publiceret' : (somePub ? 'Delvist publiceret' : 'Ingen publiceret');
+
         const btn = document.createElement('button');
-        btn.className = 'flex-1 text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors';
-        btn.innerHTML = '<div class="font-medium text-gray-900">' + escapeHtml(page || '/ (Startside)') + '</div>' +
-          '<div class="text-xs text-gray-500 mt-1">' + allPageComponents.filter(pc => pc.page_path === page).length + ' komponent(er)</div>';
+        btn.className = 'flex-1 text-left px-3 py-2.5 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors';
+        btn.innerHTML = '<div class="flex items-center gap-2">'
+          + '<span style="display:inline-block;width:0.5rem;height:0.5rem;border-radius:50%;background:' + statusColor + ';flex-shrink:0;" title="' + statusTitle + '"></span>'
+          + '<span class="font-medium text-gray-900 text-sm truncate">' + escapeHtml(page || '/ (Startside)') + '</span>'
+          + '</div>'
+          + '<div class="text-xs text-gray-400 mt-0.5 pl-4">' + pageComps.length + ' komponent' + (pageComps.length === 1 ? '' : 'er') + '</div>';
         btn.addEventListener('click', function() { selectPage(page); });
 
         const deleteBtn = document.createElement('button');
@@ -326,12 +372,41 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
           '<div class="flex gap-2">' +
             (index > 0 ? '<button onclick="reorderComponent(' + pc.id + ', -1)" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm">\u2191</button>' : '<span class="px-3 py-2 text-sm text-gray-300">\u2191</span>') +
             (index < pageComponents.length - 1 ? '<button onclick="reorderComponent(' + pc.id + ', 1)" class="px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 text-sm">\u2193</button>' : '<span class="px-3 py-2 text-sm text-gray-300">\u2193</span>') +
+            '<button onclick="duplicateComponent(' + pc.id + ')" title="Dupliker" class="px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-600 rounded text-sm">&#9109;</button>' +
             '<button onclick="editComponent(' + pc.id + ')" class="px-3 py-2 bg-blue-100 hover:bg-blue-200 border border-blue-300 text-blue-700 rounded text-sm">Rediger</button>' +
             '<button onclick="deleteComponent(' + pc.id + ')" class="px-3 py-2 bg-red-100 hover:bg-red-200 border border-red-300 text-red-700 rounded text-sm">Slet</button>' +
           '</div>';
+        var visBtn = document.createElement('button');
+        visBtn.className = 'px-3 py-2 border rounded text-sm transition-colors ' + (pc.is_published ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100' : 'bg-gray-50 border-gray-300 text-gray-500 hover:bg-gray-100');
+        visBtn.title = pc.is_published ? 'Synlig — klik for at skjule' : 'Skjult — klik for at vise';
+        visBtn.innerHTML = pc.is_published
+          ? '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 10s3.5-7 9-7 9 7 9 7-3.5 7-9 7-9-7-9-7z"/><circle cx="10" cy="10" r="3"/></svg>'
+          : '<svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 1l18 18M8.5 8.5A3 3 0 0 0 11.5 11.5M4 4C2.5 5.5 1.5 7.5 1 10c1.5 4.5 5.5 7 9 7a9.5 9.5 0 0 0 5-1.5M7 3.5A9 9 0 0 1 10 3c3.5 0 7.5 2.5 9 7a9.8 9.8 0 0 1-2 3.5"/></svg>';
+        visBtn.addEventListener('click', (function(pcId, isPublished) {
+          return function() { toggleComponentVisibility(pcId, !isPublished); };
+        })(pc.id, pc.is_published));
+        div.querySelector('.flex.gap-2').insertBefore(visBtn, div.querySelector('.flex.gap-2').firstChild);
+
         componentsList.appendChild(div);
       });
     }
+
+    // Toggle individual component visibility
+    window.toggleComponentVisibility = async function(id, newState) {
+      try {
+        var res = await fetch(API + '/page-components/publish', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id, is_published: newState })
+        });
+        if (!res.ok) throw new Error('Fejl ved opdatering');
+        var pc = allPageComponents.find(function(x) { return x.id === id; });
+        if (pc) pc.is_published = newState;
+        selectPage(selectedPage);
+      } catch (err) {
+        alert('Fejl: ' + err.message);
+      }
+    };
 
     // Populate component select dropdown
     function populateComponentSelect() {
@@ -343,6 +418,65 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         select.appendChild(option);
       });
     }
+
+    // New page modal
+    window.openNewPageModal = function() {
+      document.getElementById('new-page-path').value = '';
+      document.getElementById('new-page-modal').classList.remove('hidden');
+      setTimeout(function() { document.getElementById('new-page-path').focus(); }, 50);
+    };
+
+    window.closeNewPageModal = function() {
+      document.getElementById('new-page-modal').classList.add('hidden');
+    };
+
+    window.createNewPage = async function() {
+      var rawPath = (document.getElementById('new-page-path').value || '').trim();
+      if (!rawPath) { alert('Angiv en side-sti'); return; }
+      if (!rawPath.startsWith('/')) rawPath = '/' + rawPath;
+      if (allPageComponents.some(function(pc) { return pc.page_path === rawPath; })) {
+        alert('En side med stien "' + rawPath + '" eksisterer allerede.'); return;
+      }
+      try {
+        var res = await fetch(API + '/page-components', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ page_path: rawPath, component_id: null, sort_order: 1, is_published: false, placeholder: true })
+        });
+        if (!res.ok) {
+          var errBody = await res.json().catch(function() { return {}; });
+          if (errBody.error && errBody.error.includes('component_id')) {
+            var defaultComp = allComponents[0];
+            if (!defaultComp) { alert('Ingen komponenter tilg\u00e6ngelige. Tilf\u00f8j en komponent til siden manuelt.'); closeNewPageModal(); selectPage(rawPath); return; }
+            res = await fetch(API + '/page-components', {
+              method: 'POST',
+              headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ page_path: rawPath, component_id: defaultComp.id, sort_order: 1, is_published: false })
+            });
+            if (!res.ok) throw new Error('Kunne ikke oprette side');
+            var newPc = await res.json();
+            allPageComponents.push(newPc);
+          } else {
+            throw new Error(errBody.error || 'Fejl');
+          }
+        } else {
+          var newPc = await res.json().catch(function() { return { page_path: rawPath, id: Date.now(), sort_order: 1, is_published: false, component_id: null }; });
+          allPageComponents.push(newPc);
+        }
+        renderPages();
+        selectPage(rawPath);
+        closeNewPageModal();
+      } catch (err) {
+        closeNewPageModal();
+        renderPages();
+        selectPage(rawPath);
+      }
+    };
+
+    document.getElementById('new-page-path').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') createNewPage();
+      if (e.key === 'Escape') closeNewPageModal();
+    });
 
     // Modal functions
     window.openAddComponentModal = function() {
@@ -431,6 +565,34 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
         selectPage(selectedPage);
       } catch (err) {
         alert('Fejl ved sortering: ' + err.message);
+      }
+    };
+
+    // Duplicate component
+    window.duplicateComponent = async function(id) {
+      var pc = allPageComponents.find(function(x) { return x.id === id; });
+      if (!pc) return;
+      var maxOrder = allPageComponents
+        .filter(function(x) { return x.page_path === selectedPage; })
+        .reduce(function(m, x) { return Math.max(m, x.sort_order || 0); }, 0);
+      try {
+        var res = await fetch(API + '/page-components', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            page_path: pc.page_path,
+            component_id: pc.component_id,
+            sort_order: maxOrder + 1,
+            is_published: pc.is_published,
+            content: typeof pc.content === 'object' ? JSON.parse(JSON.stringify(pc.content)) : pc.content
+          })
+        });
+        if (!res.ok) throw new Error('Fejl ved dupliker');
+        var newPc = await res.json();
+        allPageComponents.push(newPc);
+        selectPage(selectedPage);
+      } catch (err) {
+        alert('Fejl: ' + err.message);
       }
     };
 
@@ -1593,6 +1755,17 @@ const apiUrl = import.meta.env.PUBLIC_API_URL || 'https://api.lavprishjemmeside.
       if (!text) return '';
       return text.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
+
+    // Ctrl+S keyboard shortcut to save component edit
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        var editModal = document.getElementById('edit-modal');
+        if (editModal && !editModal.classList.contains('hidden')) {
+          e.preventDefault();
+          saveComponentEdit();
+        }
+      }
+    });
 
     // Load data on page load
     loadData();
