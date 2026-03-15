@@ -1,0 +1,225 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import portfolioItems from '../data/portfolio-items.json';
+const featured = portfolioItems.filter(p => p.featured).slice(0, 4);
+const stats = [
+  { value: '12+', label: 'År i branchen' },
+  { value: '200+', label: 'Projekter leveret' },
+  { value: '94%', label: 'Gentagne kunder' },
+  { value: '18', label: 'Design awards' },
+];
+---
+<ThemeLayout title="Kreativt bureau — Branding, Digital & Print">
+  <Nav />
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-bg">
+      <img src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="" role="presentation" />
+      <div class="hero-overlay"></div>
+    </div>
+    <div class="container-inner hero-content">
+      <p class="hero-eyebrow">Kreativt bureau · København</p>
+      <h1>Vi designer <em>oplevelser</em><br/>der huskes</h1>
+      <p class="hero-sub">Brand-identiteter, digitale platforme og print-kommunikation til virksomheder der vil skille sig ud.</p>
+      <div class="hero-actions">
+        <a href="/portfolio" class="btn-accent">Se vores arbejde</a>
+        <a href="/contact" class="btn-outline-white">Start et projekt</a>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-band">
+    <div class="container-inner">
+      <div class="stats-grid">
+        {stats.map(s => (
+          <div class="stat-item">
+            <span class="stat-value">{s.value}</span>
+            <span class="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured work -->
+  <section class="section-py">
+    <div class="container-inner">
+      <div class="section-header" data-reveal>
+        <span class="eyebrow">Udvalgte projekter</span>
+        <h2>Arbejde vi er stolte af</h2>
+        <p>Et udsnit af vores seneste projekter på tværs af branding, digital og print.</p>
+      </div>
+      <div class="portfolio-grid">
+        {featured.map((item, i) => (
+          <a href={`/portfolio/${item.slug}`} class="portfolio-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+            <div class="portfolio-card-img">
+              <img src={item.image} alt={item.title} loading="lazy" />
+              <div class="portfolio-card-overlay">
+                <span class="view-label">Se projekt →</span>
+              </div>
+            </div>
+            <div class="portfolio-card-body">
+              <span class="portfolio-category">{item.categoryLabel}</span>
+              <h3>{item.title}</h3>
+              <p>{item.summary}</p>
+            </div>
+          </a>
+        ))}
+      </div>
+      <div class="section-cta">
+        <a href="/portfolio" class="btn-outline">Se alle projekter</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services intro -->
+  <section class="services-intro section-alt section-py">
+    <div class="container-inner">
+      <div class="services-intro-inner">
+        <div class="services-intro-text" data-reveal>
+          <span class="eyebrow">Hvad vi laver</span>
+          <h2>Tre discipliner.<br/>Ét samlet perspektiv.</h2>
+          <p>Vi er et tværfagligt bureau der kombinerer strategisk tænkning med stærkt håndværk. Uanset om du har brug for et nyt brand, en digital platform eller en kampagne der virker.</p>
+          <a href="/services" class="btn-primary" style="margin-top:1.5rem;">Se alle services</a>
+        </div>
+        <div class="services-list">
+          {[
+            { icon: '◈', title: 'Branding & Identitet', text: 'Logo, designsystem, brand guidelines og alt der gør dit brand genkendeligt.' },
+            { icon: '◎', title: 'Digital Design', text: 'UX research, UI design, frontend-udvikling og design systems.' },
+            { icon: '◻', title: 'Print & Kampagne', text: 'Årsrapporter, emballage, outdoor og integrerede kampagner.' },
+          ].map((s, i) => (
+            <div class="service-item" data-reveal style={`--reveal-delay:${i * 100}ms`}>
+              <span class="service-icon">{s.icon}</span>
+              <div>
+                <h4>{s.title}</h4>
+                <p>{s.text}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section section-py-lg">
+    <div class="container-inner" style="text-align:center;">
+      <span class="eyebrow" data-reveal>Klar til at starte?</span>
+      <h2 data-reveal>Lad os skabe noget<br/>ekstraordinært sammen</h2>
+      <p data-reveal style="max-width:480px;margin:0 auto 2rem;">Fortæl os om dit projekt og vi vender tilbage inden for 24 timer med vores første tanker.</p>
+      <div data-reveal>
+        <a href="/contact" class="btn-primary">Start samtalen</a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</ThemeLayout>
+
+<style>
+  /* Hero */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; }
+  .hero-bg img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(27,43,94,0.88) 0%, rgba(27,43,94,0.65) 100%); }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    padding-top: 8rem;
+    padding-bottom: 4rem;
+    max-width: 720px;
+  }
+  .hero-eyebrow { color: var(--color-accent); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 1.25rem; }
+  .hero-content h1 {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: #fff;
+    margin-bottom: 1.25rem;
+    line-height: 1.1;
+  }
+  .hero-content h1 em { font-style: italic; color: var(--color-accent); }
+  .hero-sub { font-size: 1.15rem; color: rgba(255,255,255,0.82); max-width: 520px; margin-bottom: 2.5rem; line-height: 1.7; }
+  .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .hero-scroll {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    z-index: 2;
+  }
+  .scroll-line { width: 1px; height: 48px; background: linear-gradient(to bottom, rgba(255,255,255,0.4), transparent); }
+
+  /* Stats */
+  .stats-band { background: var(--color-primary); padding: 3rem 0; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; text-align: center; }
+  .stat-value { display: block; font-family: var(--font-heading); font-size: 2.5rem; font-weight: 700; color: var(--color-accent); }
+  .stat-label { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 0.25rem; }
+
+  /* Section header */
+  .section-header { text-align: center; max-width: 600px; margin: 0 auto 3.5rem; }
+  .section-header h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 0.75rem; }
+  .section-header p { color: var(--color-text-secondary); }
+
+  /* Portfolio grid */
+  .portfolio-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+  .portfolio-card { text-decoration: none; display: block; }
+  .portfolio-card-img { position: relative; border-radius: var(--radius-card); overflow: hidden; aspect-ratio: 4/3; }
+  .portfolio-card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .portfolio-card:hover .portfolio-card-img img { transform: scale(1.04); }
+  .portfolio-card-overlay {
+    position: absolute; inset: 0;
+    background: rgba(27,43,94,0.6);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 300ms ease;
+  }
+  .portfolio-card:hover .portfolio-card-overlay { opacity: 1; }
+  .view-label { color: #fff; font-weight: 600; font-size: 1rem; }
+  .portfolio-card-body { padding: 1.25rem 0.25rem 0; }
+  .portfolio-category { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+  .portfolio-card-body h3 { font-size: 1.25rem; margin: 0.35rem 0 0.5rem; color: var(--color-text-primary); }
+  .portfolio-card-body p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
+  .section-cta { text-align: center; margin-top: 3rem; }
+
+  /* Services intro */
+  .services-intro-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+  .services-intro-text h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 1rem; }
+  .services-intro-text p { color: var(--color-text-secondary); line-height: 1.7; }
+  .services-list { display: flex; flex-direction: column; gap: 1.75rem; padding-top: 0.5rem; }
+  .service-item { display: flex; gap: 1.25rem; align-items: flex-start; }
+  .service-icon { font-size: 1.5rem; color: var(--color-primary); flex-shrink: 0; margin-top: 0.1rem; }
+  .service-item h4 { font-family: var(--font-body); font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .service-item p { font-size: 0.9rem; color: var(--color-text-secondary); margin: 0; }
+
+  /* CTA section */
+  .cta-section { background: var(--color-primary-light); }
+  .cta-section h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); margin: 0.75rem 0 1rem; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .services-intro-inner { grid-template-columns: 1fr; gap: 3rem; }
+  }
+  @media (max-width: 640px) {
+    .portfolio-grid { grid-template-columns: 1fr; }
+  }
+</style>

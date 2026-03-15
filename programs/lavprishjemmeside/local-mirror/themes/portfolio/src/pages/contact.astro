@@ -1,0 +1,141 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+---
+<ThemeLayout title="Kontakt" description="Start et projekt med Studio Meridian.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Kontakt</span>
+        <h1>Lad os tale<br/>om dit projekt</h1>
+        <p>Vi er altid åbne for nye projekter og samarbejder.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner contact-grid">
+        <div class="contact-form-wrap" data-reveal>
+          <h2>Send os en besked</h2>
+          <form id="contact-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="fname">Fornavn *</label>
+                <input type="text" id="fname" name="fname" required autocomplete="given-name" />
+              </div>
+              <div class="form-group">
+                <label for="lname">Efternavn *</label>
+                <input type="text" id="lname" name="lname" required autocomplete="family-name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="email">E-mail *</label>
+              <input type="email" id="email" name="email" required autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label for="company">Virksomhed</label>
+              <input type="text" id="company" name="company" autocomplete="organization" />
+            </div>
+            <div class="form-group">
+              <label for="service">Hvad kan vi hjælpe med?</label>
+              <select id="service" name="service">
+                <option value="">Vælg en service...</option>
+                <option>Branding & Identitet</option>
+                <option>Digital Design</option>
+                <option>Print & Kampagne</option>
+                <option>Andet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="message">Fortæl os om dit projekt *</label>
+              <textarea id="message" name="message" rows="5" required placeholder="Hvad er baggrunden? Hvad er målet?"></textarea>
+            </div>
+            <button type="submit" class="btn-primary">Send besked</button>
+            <div class="form-success" id="form-success" aria-live="polite">
+              <span>✓</span> Tak for din besked — vi vender tilbage inden for 24 timer.
+            </div>
+          </form>
+        </div>
+        <div class="contact-info" data-reveal>
+          <div class="info-card">
+            <h3>Studio Meridian</h3>
+            <address>
+              Vesterbrogade 12<br/>
+              1620 København V<br/>
+              Danmark
+            </address>
+            <a href="tel:+4570123456" class="info-link">+45 70 12 34 56</a>
+            <a href="mailto:hej@studiomeridian.dk" class="info-link">hej@studiomeridian.dk</a>
+          </div>
+          <div class="hours-card">
+            <h4>Åbningstider</h4>
+            <ul>
+              <li><span>Mandag–Torsdag</span><span>9:00–17:00</span></li>
+              <li><span>Fredag</span><span>9:00–15:00</span></li>
+              <li><span>Weekend</span><span>Lukket</span></li>
+            </ul>
+          </div>
+          <div class="response-note">
+            <strong>Svar inden for 24 timer</strong>
+            <p>Vi besvarer alle henvendelser på hverdage inden for 24 timer.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 10rem 0 4rem; background: var(--color-primary); color: #fff; }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; margin-bottom: 1rem; }
+  .page-hero p { color: rgba(255,255,255,0.75); }
+  .contact-grid { display: grid; grid-template-columns: 1fr 360px; gap: 4rem; align-items: start; }
+  .contact-form-wrap h2 { font-size: 1.75rem; margin-bottom: 2rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1.25rem; }
+  label { font-size: 0.85rem; font-weight: 600; color: var(--color-text-primary); }
+  input, select, textarea {
+    padding: 0.75rem 1rem;
+    border: 1.5px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+    background: var(--color-bg-page);
+    transition: border-color 200ms ease;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--color-primary); }
+  textarea { resize: vertical; min-height: 120px; }
+  .form-success { display: none; margin-top: 1rem; padding: 1rem; background: var(--color-primary-light); border-radius: var(--radius-md); color: var(--color-primary); font-weight: 500; }
+  .form-success.visible { display: block; }
+  .form-success span { color: var(--color-accent); font-size: 1.1rem; margin-right: 0.4rem; }
+  .info-card { background: var(--color-primary); color: #fff; border-radius: var(--radius-card); padding: 1.75rem; margin-bottom: 1.25rem; }
+  .info-card h3 { color: #fff; font-size: 1.15rem; margin-bottom: 1rem; }
+  .info-card address { font-style: normal; line-height: 1.7; color: rgba(255,255,255,0.75); margin-bottom: 1.25rem; font-size: 0.9rem; }
+  .info-link { display: block; color: var(--color-accent); text-decoration: none; font-size: 0.9rem; margin-bottom: 0.4rem; }
+  .info-link:hover { text-decoration: underline; }
+  .hours-card { border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 1.25rem; margin-bottom: 1.25rem; }
+  .hours-card h4 { font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 0.875rem; }
+  .hours-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .hours-card li { display: flex; justify-content: space-between; font-size: 0.875rem; }
+  .response-note { background: var(--color-accent-light); border-radius: var(--radius-card); padding: 1.25rem; }
+  .response-note strong { display: block; margin-bottom: 0.375rem; color: var(--color-primary); }
+  .response-note p { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; }
+  @media (max-width: 900px) {
+    .contact-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+<script>
+  const form = document.getElementById('contact-form');
+  const success = document.getElementById('form-success');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    form.querySelectorAll('button[type="submit"]')[0].disabled = true;
+    success.classList.add('visible');
+    form.reset();
+  });
+</script>

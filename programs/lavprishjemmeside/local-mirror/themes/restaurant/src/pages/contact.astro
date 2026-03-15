@@ -1,0 +1,157 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+const hours = [
+  { day: 'Mandag', time: '17:00–22:00' },
+  { day: 'Tirsdag', time: '17:00–22:00' },
+  { day: 'Onsdag', time: '17:00–22:00' },
+  { day: 'Torsdag', time: '17:00–22:00' },
+  { day: 'Fredag', time: '17:00–23:00' },
+  { day: 'Lørdag', time: '17:00–23:00' },
+  { day: 'Søndag', time: '16:00–21:00' },
+];
+---
+<ThemeLayout title="Kontakt — BRASA" description="Book bord, find os eller send os en besked.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Kontakt</span>
+        <h1>Find os</h1>
+        <p>Book bord, spørg om privatarrangementer eller skriv til os.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner contact-grid">
+        <div class="info-col" data-reveal>
+          <div class="info-card">
+            <h3>BRASA</h3>
+            <address>
+              Istedgade 88<br />
+              1650 København V<br />
+              Danmark
+            </address>
+            <a href="tel:+4533123456" class="info-link">+45 33 12 34 56</a>
+            <a href="mailto:hej@brasa.dk" class="info-link">hej@brasa.dk</a>
+          </div>
+          <div class="hours-card">
+            <h4>Åbningstider</h4>
+            <ul>
+              {hours.map(h => (
+                <li>
+                  <span>{h.day}</span>
+                  <span>{h.time}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <a href="/takeaway" class="btn-primary" style="display:block;text-align:center;margin-top:1rem;">Bestil takeaway online</a>
+        </div>
+
+        <div class="form-col" data-reveal>
+          <h2>Skriv til os</h2>
+          <form id="contact-form" novalidate>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="c-fname">Fornavn *</label>
+                <input type="text" id="c-fname" required autocomplete="given-name" />
+              </div>
+              <div class="form-group">
+                <label for="c-lname">Efternavn *</label>
+                <input type="text" id="c-lname" required autocomplete="family-name" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="c-email">E-mail *</label>
+              <input type="email" id="c-email" required autocomplete="email" />
+            </div>
+            <div class="form-group">
+              <label for="c-phone">Telefon</label>
+              <input type="tel" id="c-phone" autocomplete="tel" />
+            </div>
+            <div class="form-group">
+              <label for="c-subject">Emne</label>
+              <select id="c-subject">
+                <option>Generel henvendelse</option>
+                <option>Bordreservation</option>
+                <option>Privatarrangement / Selskab</option>
+                <option>Takeaway / Levering</option>
+                <option>Feedback</option>
+                <option>Andet</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="c-msg">Besked *</label>
+              <textarea id="c-msg" rows="5" required placeholder="Fortæl os hvad vi kan hjælpe dig med..."></textarea>
+            </div>
+            <button type="submit" class="btn-submit">Send besked</button>
+            <div class="success-msg" id="success-msg">
+              <span class="success-check">✓</span>
+              Tak for din besked — vi vender tilbage inden for 24 timer.
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="reservation-cta section-py section-warm">
+      <div class="container-inner" style="text-align:center;">
+        <span class="eyebrow" data-reveal>Bordreservation</span>
+        <h2 data-reveal>Reservér dit bord</h2>
+        <p data-reveal>Vi anbefaler reservation, særligt fredag og lørdag. Walk-ins er velkomne, men pladser er ikke garanterede.</p>
+        <div data-reveal style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+          <a href="tel:+4533123456" class="btn-dark">Ring +45 33 12 34 56</a>
+          <a href="mailto:hej@brasa.dk" class="btn-primary">Send e-mail</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 6rem 0 3.5rem; background: var(--color-bg-dark); color: var(--color-text-on-dark); }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(212,144,26,0.3); background: rgba(212,144,26,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: var(--color-text-on-dark); margin-bottom: 0.75rem; }
+  .page-hero p { color: rgba(245,240,232,0.7); }
+  .contact-grid { display: grid; grid-template-columns: 320px 1fr; gap: 4rem; align-items: start; }
+  .info-card { background: var(--color-bg-dark); color: var(--color-text-on-dark); border-radius: var(--radius-card); padding: 1.75rem; margin-bottom: 1.25rem; }
+  .info-card h3 { color: var(--color-text-on-dark); font-size: 1.2rem; margin-bottom: 1rem; }
+  .info-card address { font-style: normal; line-height: 1.8; color: rgba(245,240,232,0.7); font-size: 0.9rem; margin-bottom: 1rem; display: block; }
+  .info-link { display: block; color: var(--color-accent); text-decoration: none; font-size: 0.9rem; margin-bottom: 0.3rem; }
+  .info-link:hover { text-decoration: underline; }
+  .hours-card { border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 1.25rem; margin-bottom: 1.25rem; }
+  .hours-card h4 { font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-text-secondary); margin-bottom: 0.875rem; }
+  .hours-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .hours-card li { display: flex; justify-content: space-between; font-size: 0.875rem; }
+  .form-col h2 { font-size: 1.75rem; margin-bottom: 1.75rem; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 1.1rem; }
+  .form-group label { font-size: 0.83rem; font-weight: 600; }
+  .form-group input, .form-group select, .form-group textarea { padding: 0.7rem 1rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: 0.95rem; transition: border-color 150ms; background: var(--color-bg-page); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--color-accent); }
+  .form-group textarea { resize: vertical; }
+  .btn-submit { padding: 0.875rem 2rem; background: var(--color-accent); color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font-body); font-size: 1rem; font-weight: 700; transition: background 180ms; }
+  .btn-submit:hover { background: var(--color-accent-dark, #b87a10); }
+  .success-msg { display: none; margin-top: 1rem; padding: 1rem 1.25rem; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: #166534; border-radius: var(--radius-md); font-weight: 500; font-size: 0.875rem; }
+  .success-msg.visible { display: flex; align-items: center; gap: 0.5rem; }
+  .success-check { font-size: 1.1rem; color: #22c55e; }
+  .reservation-cta h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin-bottom: 0.75rem; }
+  .reservation-cta p { color: var(--color-text-secondary); max-width: 520px; margin: 0 auto; }
+  @media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 580px) { .form-row-2 { grid-template-columns: 1fr; } }
+</style>
+<script>
+  document.getElementById('contact-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const fname = document.getElementById('c-fname').value.trim();
+    const email = document.getElementById('c-email').value.trim();
+    const msg = document.getElementById('c-msg').value.trim();
+    if (!fname || !email || !msg) return;
+    document.getElementById('success-msg').classList.add('visible');
+    e.target.reset();
+    e.target.querySelector('button[type="submit"]').disabled = true;
+  });
+</script>

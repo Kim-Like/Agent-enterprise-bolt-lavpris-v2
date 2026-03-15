@@ -1,0 +1,73 @@
+---
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="container-inner footer-grid">
+    <div class="footer-brand">
+      <a href="/" class="logo">
+        <span class="logo-r">R</span>
+        <span>Salon Rosé</span>
+      </a>
+      <p>Din trygge havn til hår og velvære. Vi ser frem til at byde dig velkommen.</p>
+      <div class="socials">
+        <a href="#" aria-label="Instagram">Instagram</a>
+        <a href="#" aria-label="Facebook">Facebook</a>
+      </div>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="/services">Services & Priser</a></li>
+        <li><a href="/gallery">Galleri</a></li>
+        <li><a href="/about">Om Salonnen</a></li>
+        <li><a href="/contact">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Book</h4>
+      <ul>
+        <li><a href="/booking">Book en tid</a></li>
+        <li><a href="/booking#klip">Klippeaftaler</a></li>
+        <li><a href="/booking#farve">Farvebehandling</a></li>
+        <li><a href="/booking#behandling">Hårbehandling</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Kontakt</h4>
+      <address>
+        Bredgade 24<br/>
+        1260 København K<br/>
+        <a href="tel:+4532123456">+45 32 12 34 56</a><br/>
+        <a href="mailto:hej@salonrose.dk">hej@salonrose.dk</a>
+      </address>
+      <p class="hours">Man–Fre: 9–18<br/>Lørdag: 9–15<br/>Søndag: Lukket</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container-inner fb-inner">
+      <p>&copy; {year} Salon Rosé</p>
+      <a href="/privatlivspolitik">Privatlivspolitik</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer { background: var(--color-neutral-900); color: rgba(255,255,255,0.7); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 3rem; padding: 4.5rem 0 3rem; }
+  .footer-brand .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; font-family: var(--font-heading); font-size: 1.15rem; color: #fff; margin-bottom: 1rem; }
+  .logo-r { width: 1.875rem; height: 1.875rem; background: var(--color-primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-weight: 600; font-size: 0.875rem; }
+  .footer-brand p { font-size: 0.875rem; line-height: 1.7; margin-bottom: 1.25rem; max-width: 260px; }
+  .socials { display: flex; gap: 0.75rem; }
+  .socials a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.8rem; transition: color 150ms; }
+  .socials a:hover { color: var(--color-accent); }
+  h4 { font-family: var(--font-body); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(255,255,255,0.4); margin-bottom: 1rem; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; transition: color 150ms; }
+  a:hover { color: #fff; }
+  address { font-style: normal; line-height: 1.8; font-size: 0.875rem; margin-bottom: 0.75rem; }
+  .hours { font-size: 0.8rem; color: rgba(255,255,255,0.5); line-height: 1.8; margin: 0; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); }
+  .fb-inner { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; font-size: 0.8rem; }
+  @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; } }
+  @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } }
+</style>

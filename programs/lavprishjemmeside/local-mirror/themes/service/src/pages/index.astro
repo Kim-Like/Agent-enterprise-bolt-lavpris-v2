@@ -1,0 +1,216 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import services from '../data/services.json';
+import staff from '../data/staff.json';
+const highlightedServices = services.slice(0, 4);
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+const testimonials = [
+  { name: 'Louise M.', text: 'Utrolig dygtig salon. Amalie forstår præcis hvad man ønsker og leverer altid noget smukt. Kan varmt anbefales!', rating: 5 },
+  { name: 'Mette T.', text: 'Jeg har gået her i 3 år. Lea er så omhyggelig og salonnen har en skøn, rolig atmosfære. Perfekt!' , rating: 5 },
+  { name: 'Rikke H.', text: 'Sofias balayage er noget af det smukkeste jeg har haft. Prisen er fair og resultatet er luksus.', rating: 5 },
+];
+---
+<ThemeLayout title="Frisørsalon i København">
+  <Nav />
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-media">
+        <img src="https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="" role="presentation" />
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="container-inner hero-content">
+        <p class="hero-eyebrow">Salon Rosé · København</p>
+        <h1>Din perfekte<br/><em>frisørdag</em><br/>starter her</h1>
+        <p>Oplev det bedste inden for klip, farve og behandling i hjertets af Indre By.</p>
+        <div class="hero-actions">
+          <a href="/booking" class="btn-primary">Book en tid</a>
+          <a href="/services" class="hero-link">Se services →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- USP strip -->
+    <section class="usp-strip">
+      <div class="container-inner usp-grid">
+        {[
+          { icon: '✦', t: 'Certificerede stylister', s: '15+ års erfaring' },
+          { icon: '✦', t: 'Eco-venlige produkter', s: 'L\'Oréal & Kevin Murphy' },
+          { icon: '✦', t: 'Online booking', s: 'Åbent 24/7' },
+          { icon: '✦', t: 'Gratis konsultation', s: 'Til nye kunder' },
+        ].map(u => (
+          <div class="usp-item">
+            <span class="usp-icon">{u.icon}</span>
+            <div><strong>{u.t}</strong><p>{u.s}</p></div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Services preview -->
+    <section class="section-py section-warm">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Services</span>
+          <h2>Hvad vi tilbyder</h2>
+          <p>Fra hurtig klip til fuld farvetransformation — vi har noget til enhver.</p>
+        </div>
+        <div class="services-grid">
+          {highlightedServices.map((s, i) => (
+            <div class="service-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <div class="service-card-inner">
+                <div class="service-duration">{s.duration} min</div>
+                <h3>{s.name}</h3>
+                <p>{s.description}</p>
+                <div class="service-footer">
+                  <span class="service-price">Fra {formatPrice(s.price)}</span>
+                  <a href="/booking" class="book-link">Book →</a>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="section-cta" data-reveal>
+          <a href="/services" class="btn-outline">Se alle priser</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- About preview -->
+    <section class="about-preview section-py">
+      <div class="container-inner about-grid">
+        <div class="about-images" data-reveal>
+          <img class="img-main" src="https://images.pexels.com/photos/3993444/pexels-photo-3993444.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Salonnen" />
+          <img class="img-accent" src="https://images.pexels.com/photos/3993456/pexels-photo-3993456.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Styling" />
+        </div>
+        <div class="about-text" data-reveal>
+          <span class="eyebrow">Om os</span>
+          <h2>En salon med<br/>sjæl og sans</h2>
+          <p>Salon Rosé åbnede sine døre i 2010 med en simpel vision: At give alle en salon-oplevelse der føles personlig, afslappet og luksus — uden den tunge prisseddel.</p>
+          <p>Vi bruger udelukkende miljøvenlige produkter og tilbyder gratis konsultationer til alle nye kunder.</p>
+          <a href="/about" class="btn-outline" style="margin-top:1.5rem;">Læs vores historie</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Team -->
+    <section class="team-section section-py section-alt">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Vores stylister</span>
+          <h2>Holdet bag salonnen</h2>
+        </div>
+        <div class="team-grid">
+          {staff.map((member, i) => (
+            <div class="staff-card" data-reveal style={`--reveal-delay:${i * 100}ms`}>
+              <div class="staff-img">
+                <img src={member.img} alt={member.name} loading="lazy" />
+              </div>
+              <h3>{member.name}</h3>
+              <p class="staff-title">{member.title}</p>
+              <div class="staff-specs">
+                {member.specialties.map(s => <span>{s}</span>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="section-py">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Anmeldelser</span>
+          <h2>Det siger vores kunder</h2>
+        </div>
+        <div class="testimonials-grid">
+          {testimonials.map((t, i) => (
+            <div class="testimonial-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <div class="stars">{'★'.repeat(t.rating)}</div>
+              <blockquote>{t.text}</blockquote>
+              <cite>— {t.name}</cite>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-section section-py">
+      <div class="container-inner" style="text-align:center;">
+        <span class="eyebrow" data-reveal>Klar til en ny frisure?</span>
+        <h2 data-reveal>Book din tid online</h2>
+        <p data-reveal>Det tager under 2 minutter. Vælg service, dato og stylist.</p>
+        <div data-reveal style="margin-top:1.75rem;">
+          <a href="/booking" class="btn-primary" style="font-size:1rem;padding:0.9rem 2.5rem;">Book en tid nu</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .hero { position: relative; min-height: 90vh; display: flex; align-items: center; }
+  .hero-media { position: absolute; inset: 0; }
+  .hero-media img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(to right, rgba(23,23,23,0.72) 0%, rgba(23,23,23,0.35) 60%, transparent 100%); }
+  .hero-content { position: relative; z-index: 2; padding-top: 5rem; padding-bottom: 4rem; max-width: 560px; }
+  .hero-eyebrow { color: var(--color-accent); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 1.25rem; }
+  .hero-content h1 { font-size: clamp(2.75rem, 7vw, 4.75rem); color: #fff; margin-bottom: 1.25rem; }
+  .hero-content h1 em { font-style: italic; color: var(--color-accent); }
+  .hero-content p { font-size: 1.05rem; color: rgba(255,255,255,0.8); margin-bottom: 2rem; }
+  .hero-actions { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+  .hero-link { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 500; font-size: 0.9rem; }
+  .hero-link:hover { color: var(--color-accent); }
+  .usp-strip { background: var(--color-primary); padding: 1.75rem 0; }
+  .usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .usp-item { display: flex; align-items: flex-start; gap: 0.875rem; }
+  .usp-icon { color: var(--color-accent); font-size: 0.875rem; margin-top: 0.15rem; }
+  .usp-item strong { display: block; font-size: 0.8rem; font-weight: 600; color: #fff; margin-bottom: 0.15rem; }
+  .usp-item p { font-size: 0.75rem; color: rgba(255,255,255,0.6); margin: 0; }
+  .section-header { text-align: center; max-width: 520px; margin: 0 auto 3rem; }
+  .section-header h2 { font-size: clamp(1.75rem, 3.5vw, 2.75rem); margin-bottom: 0.625rem; }
+  .section-header p { color: var(--color-text-secondary); }
+  .services-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .service-card { background: var(--color-bg-page); border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; transition: transform 240ms ease, box-shadow 240ms ease; }
+  .service-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+  .service-card-inner { padding: 1.5rem; }
+  .service-duration { display: inline-block; font-size: 0.7rem; font-weight: 600; background: var(--color-primary-light); color: var(--color-primary); padding: 0.2rem 0.625rem; border-radius: var(--radius-full); margin-bottom: 0.75rem; }
+  .service-card h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .service-card p { font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 1.25rem; line-height: 1.6; }
+  .service-footer { display: flex; justify-content: space-between; align-items: center; }
+  .service-price { font-weight: 700; color: var(--color-primary); font-size: 0.95rem; }
+  .book-link { font-size: 0.85rem; font-weight: 600; color: var(--color-accent); text-decoration: none; }
+  .book-link:hover { text-decoration: underline; }
+  .section-cta { text-align: center; margin-top: 2.5rem; }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-images { position: relative; }
+  .img-main { width: 100%; border-radius: var(--radius-2xl); aspect-ratio: 4/5; object-fit: cover; }
+  .img-accent { position: absolute; bottom: -2rem; right: -1.5rem; width: 45%; border-radius: var(--radius-xl); border: 4px solid var(--color-bg-page); box-shadow: var(--shadow-lg); aspect-ratio: 1; object-fit: cover; }
+  .about-text h2 { font-size: clamp(1.75rem, 3.5vw, 2.75rem); margin-bottom: 1.25rem; }
+  .about-text p { color: var(--color-text-secondary); line-height: 1.8; margin-bottom: 0.875rem; }
+  .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; }
+  .staff-card { text-align: center; }
+  .staff-img { width: 8rem; height: 8rem; border-radius: 50%; overflow: hidden; margin: 0 auto 1rem; border: 3px solid var(--color-primary-light); }
+  .staff-img img { width: 100%; height: 100%; object-fit: cover; }
+  .staff-card h3 { font-size: 1.2rem; margin-bottom: 0.25rem; }
+  .staff-title { font-size: 0.85rem; color: var(--color-text-secondary); margin-bottom: 0.875rem; }
+  .staff-specs { display: flex; flex-wrap: wrap; gap: 0.375rem; justify-content: center; }
+  .staff-specs span { font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); background: var(--color-primary-light); color: var(--color-primary); }
+  .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .testimonial-card { background: var(--color-bg-warm); border-radius: var(--radius-card); padding: 1.75rem; }
+  .stars { color: var(--color-accent); font-size: 0.875rem; margin-bottom: 0.875rem; letter-spacing: 0.05em; }
+  blockquote { font-family: var(--font-heading); font-size: 1.05rem; font-style: italic; color: var(--color-text-primary); margin: 0 0 1rem; line-height: 1.6; }
+  cite { font-size: 0.8rem; font-style: normal; color: var(--color-text-secondary); font-weight: 600; }
+  .cta-section { background: var(--color-primary-light); }
+  .cta-section h2 { font-size: clamp(1.75rem, 3.5vw, 2.75rem); margin: 0.75rem 0 0.75rem; }
+  .cta-section p { color: var(--color-text-secondary); }
+  @media (max-width: 1024px) { .services-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 900px) { .about-grid { grid-template-columns: 1fr; gap: 2.5rem; } .usp-grid { grid-template-columns: repeat(2, 1fr); } .img-accent { display: none; } }
+  @media (max-width: 768px) { .team-grid { grid-template-columns: 1fr; } .testimonials-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 480px) { .usp-grid { grid-template-columns: 1fr; } }
+</style>

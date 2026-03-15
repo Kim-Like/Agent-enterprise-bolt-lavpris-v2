@@ -1,0 +1,66 @@
+---
+const navLinks = [
+  { href: '/menu', label: 'Menu' },
+  { href: '/about', label: 'Om Os' },
+  { href: '/contact', label: 'Find Os' },
+];
+---
+<header id="rest-header">
+  <div class="container-inner header-inner">
+    <button class="hamburger" id="rest-hamburger" aria-label="Menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <a href="/" class="logo" aria-label="BRASA Restaurant — hjem">
+      <span class="logo-flame">🔥</span>
+      <span class="logo-name">BRASA</span>
+    </a>
+    <nav class="desktop-nav">
+      <ul role="list">
+        {navLinks.map(l => <li><a href={l.href}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+    <div class="nav-right">
+      <a href="/takeaway" class="btn-primary nav-order">Bestil takeaway</a>
+    </div>
+  </div>
+  <nav class="mobile-nav" id="rest-mobile-nav" aria-hidden="true">
+    <ul role="list">
+      {navLinks.map(l => <li><a href={l.href}>{l.label}</a></li>)}
+      <li><a href="/takeaway" class="btn-primary" style="display:block;text-align:center;margin-top:0.75rem;">Bestil takeaway</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  #rest-header { background: var(--color-bg-page); border-bottom: 1px solid var(--color-border); position: sticky; top: 0; z-index: 100; }
+  .header-inner { display: flex; align-items: center; gap: 2rem; padding-top: 1rem; padding-bottom: 1rem; }
+  .logo { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+  .logo-flame { font-size: 1.25rem; }
+  .logo-name { font-family: var(--font-heading); font-weight: 700; font-size: 1.35rem; color: var(--color-primary); letter-spacing: 0.06em; }
+  .desktop-nav { margin-left: auto; }
+  .desktop-nav ul { display: flex; gap: 0; list-style: none; margin: 0; padding: 0; }
+  .desktop-nav a { padding: 0.4rem 0.875rem; text-decoration: none; font-size: 0.875rem; font-weight: 600; color: var(--color-text-secondary); transition: color 150ms; }
+  .desktop-nav a:hover { color: var(--color-primary); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-order { font-size: 0.85rem; padding: 0.55rem 1.25rem; }
+  .hamburger { display: none; flex-direction: column; gap: 5px; width: 2rem; height: 2rem; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hamburger span { display: block; width: 100%; height: 1.5px; background: var(--color-text-primary); border-radius: 2px; transition: transform 200ms, opacity 200ms; }
+  .hamburger[aria-expanded="true"] span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  .hamburger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .hamburger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+  .mobile-nav { display: none; padding: 0.75rem 1.5rem 1.25rem; border-top: 1px solid var(--color-border); }
+  .mobile-nav.open { display: block; }
+  .mobile-nav ul { list-style: none; margin: 0; padding: 0; }
+  .mobile-nav li a { display: block; padding: 0.7rem 0; text-decoration: none; color: var(--color-text-primary); border-bottom: 1px solid var(--color-border); font-weight: 600; }
+  @media (max-width: 768px) { .desktop-nav, .nav-right { display: none; } .hamburger { display: flex; } }
+</style>
+<script>
+  const hamburger = document.getElementById('rest-hamburger');
+  const mobileNav = document.getElementById('rest-mobile-nav');
+  hamburger.addEventListener('click', () => {
+    const open = hamburger.getAttribute('aria-expanded') === 'true';
+    hamburger.setAttribute('aria-expanded', String(!open));
+    mobileNav.classList.toggle('open', !open);
+    mobileNav.setAttribute('aria-hidden', String(open));
+  });
+</script>

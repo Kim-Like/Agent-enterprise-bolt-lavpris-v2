@@ -1,0 +1,70 @@
+---
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="container-inner footer-grid">
+    <div class="footer-brand">
+      <a href="/" class="logo">🌿 VERDE</a>
+      <p>Bæredygtig stil til bevidste forbrugere. Vi tror på, at mode kan være smuk og ansvarlig.</p>
+      <div class="social-row">
+        <a href="#" aria-label="Instagram">ig</a>
+        <a href="#" aria-label="TikTok">tt</a>
+        <a href="#" aria-label="Facebook">fb</a>
+      </div>
+    </div>
+    <div>
+      <h4>Shop</h4>
+      <ul>
+        <li><a href="/shop">Alle produkter</a></li>
+        <li><a href="/shop/toej">Tøj</a></li>
+        <li><a href="/shop/bolig">Bolig</a></li>
+        <li><a href="/shop/skoenhed">Skønhed</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Information</h4>
+      <ul>
+        <li><a href="/about">Om VERDE</a></li>
+        <li><a href="/sustainability">Bæredygtighed</a></li>
+        <li><a href="/contact">Kontakt</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Kundeservice</h4>
+      <ul>
+        <li><a href="/shipping">Fragt & levering</a></li>
+        <li><a href="/returns">Returpolitik</a></li>
+        <li><a href="/faq">FAQ</a></li>
+        <li><a href="mailto:hej@verde.dk">hej@verde.dk</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container-inner footer-bottom-inner">
+      <p>&copy; {year} VERDE ApS · CVR 12 34 56 78</p>
+      <div class="payment-icons">
+        <span>VISA</span><span>Mastercard</span><span>MobilePay</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer { background: var(--color-primary); color: rgba(255,255,255,0.8); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; padding: 4rem 0 3rem; }
+  .footer-brand .logo { display: inline-block; font-family: var(--font-heading); font-weight: 700; font-size: 1.25rem; color: #fff; text-decoration: none; margin-bottom: 0.875rem; }
+  .footer-brand p { font-size: 0.875rem; line-height: 1.7; margin-bottom: 1.25rem; max-width: 280px; }
+  .social-row { display: flex; gap: 0.625rem; }
+  .social-row a { width: 2rem; height: 2rem; border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.7); text-decoration: none; text-transform: uppercase; transition: border-color 150ms, color 150ms; }
+  .social-row a:hover { border-color: rgba(255,255,255,0.6); color: #fff; }
+  h4 { font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.5); margin-bottom: 1rem; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  a { color: rgba(255,255,255,0.75); text-decoration: none; font-size: 0.875rem; transition: color 150ms; }
+  a:hover { color: #fff; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.1); }
+  .footer-bottom-inner { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; font-size: 0.8rem; }
+  .payment-icons { display: flex; gap: 0.75rem; }
+  .payment-icons span { padding: 0.2rem 0.5rem; border: 1px solid rgba(255,255,255,0.2); border-radius: var(--radius-sm); font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.6); }
+  @media (max-width: 900px) { .footer-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .footer-grid { grid-template-columns: 1fr; } .footer-bottom-inner { flex-direction: column; gap: 0.75rem; } }
+</style>

@@ -1,0 +1,103 @@
+---
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="container-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" class="logo">
+          <span class="logo-mark">M</span>
+          <span class="logo-text">Studio Meridian</span>
+        </a>
+        <p>Vi skaber brand-identiteter, digitale oplevelser og print-design der huskes.</p>
+        <div class="socials">
+          <a href="#" aria-label="LinkedIn">in</a>
+          <a href="#" aria-label="Instagram">ig</a>
+          <a href="#" aria-label="Behance">be</a>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Arbejde</h4>
+          <ul>
+            <li><a href="/portfolio?filter=branding">Branding</a></li>
+            <li><a href="/portfolio?filter=digital">Digital</a></li>
+            <li><a href="/portfolio?filter=print">Print</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Studio</h4>
+          <ul>
+            <li><a href="/about">Om Os</a></li>
+            <li><a href="/services">Services</a></li>
+            <li><a href="/contact">Kontakt</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="mailto:hej@studiomeridian.dk">hej@studiomeridian.dk</a></li>
+            <li><a href="tel:+4570123456">+45 70 12 34 56</a></li>
+            <li>Vesterbrogade 12, 1620 KBH V</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; {year} Studio Meridian. Alle rettigheder forbeholdes.</p>
+      <div class="footer-bottom-links">
+        <a href="/privatliv">Privatlivspolitik</a>
+        <a href="/cookies">Cookies</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer {
+    background: var(--color-primary);
+    color: rgba(255,255,255,0.8);
+    margin-top: 0;
+  }
+  .footer-top {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 4rem;
+    padding: 5rem 0 4rem;
+  }
+  .logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; margin-bottom: 1rem; }
+  .logo-mark { width: 2rem; height: 2rem; background: var(--color-accent); color: #fff; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-weight: 700; }
+  .logo-text { font-family: var(--font-heading); font-weight: 600; color: #fff; }
+  .footer-brand p { font-size: 0.9rem; line-height: 1.7; margin-bottom: 1.5rem; }
+  .socials { display: flex; gap: 0.75rem; }
+  .socials a {
+    width: 2rem; height: 2rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: var(--radius-sm);
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.7);
+    text-decoration: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: border-color 200ms ease, color 200ms ease;
+  }
+  .socials a:hover { border-color: var(--color-accent); color: var(--color-accent); }
+  .footer-links { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .footer-col h4 { color: #fff; font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
+  .footer-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .footer-col a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; transition: color 200ms ease; }
+  .footer-col a:hover { color: var(--color-accent); }
+  .footer-col li:not(:has(a)) { font-size: 0.9rem; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.12); padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+  .footer-bottom-links { display: flex; gap: 1.5rem; }
+  .footer-bottom-links a { color: rgba(255,255,255,0.6); text-decoration: none; }
+  .footer-bottom-links a:hover { color: #fff; }
+  @media (max-width: 768px) {
+    .footer-top { grid-template-columns: 1fr; gap: 2.5rem; }
+    .footer-links { grid-template-columns: repeat(2, 1fr); }
+    .footer-bottom { flex-direction: column; gap: 0.75rem; text-align: center; }
+  }
+  @media (max-width: 480px) {
+    .footer-links { grid-template-columns: 1fr; }
+  }
+</style>

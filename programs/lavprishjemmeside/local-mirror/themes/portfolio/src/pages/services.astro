@@ -1,0 +1,123 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+const services = [
+  {
+    icon: '◈',
+    title: 'Branding & Visuel Identitet',
+    description: 'Vi hjælper virksomheder med at skabe en stærk, sammenhængende visuel identitet der kommunikerer de rigtige værdier og skiller sig ud fra konkurrenterne.',
+    includes: ['Logodesign & brandmark', 'Typografi & farvesystem', 'Brand guidelines', 'Emballagedesign', 'Skiltning & merchandise'],
+  },
+  {
+    icon: '◎',
+    title: 'Digital Design & Udvikling',
+    description: 'Fra brugerresearch til produktionsklart design. Vi designer og bygger digitale produkter der er intuitive, tilgængelige og konverterende.',
+    includes: ['UX research & personas', 'UI design & prototyper', 'Design systems i Figma', 'Frontend-udvikling (Astro)', 'Performance & SEO optimering'],
+  },
+  {
+    icon: '◻',
+    title: 'Print & Redaktionel Design',
+    description: 'Vi designer trykte materialer der imponerer — fra årsrapporter og kataloger til emballage og outdoor kommunikation.',
+    includes: ['Årsrapporter & magasiner', 'Produktkataloger', 'Outdoor & annoncering', 'Infografik & datavisualisering', 'Tryksagskoordinering'],
+  },
+  {
+    icon: '◇',
+    title: 'Kampagne & Strategi',
+    description: 'Integrerede kampagner der kombinerer strategi, konceptudvikling og produktion til alle flader.',
+    includes: ['Kampagnestrategi', 'Konceptudvikling & art direction', 'Content produktion', 'Multi-kanal eksekvering', 'Måling & optimering'],
+  },
+];
+const process = [
+  { step: '01', title: 'Briefing', text: 'Vi sætter os grundigt ind i din virksomhed, dine mål og din målgruppe.' },
+  { step: '02', title: 'Strategi', text: 'Vi definerer positionering, messaging og den kreative retning.' },
+  { step: '03', title: 'Design', text: 'Vi designer og itererer i tæt dialog med dig.' },
+  { step: '04', title: 'Levering', text: 'Vi leverer færdige filer, guidelines og alt du har brug for.' },
+];
+---
+<ThemeLayout title="Services" description="Se hvad Studio Meridian tilbyder af branding, digital og print services.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Hvad vi tilbyder</span>
+        <h1>Services der<br/>gør en forskel</h1>
+        <p>Vi arbejder med brands i alle størrelser — fra startups til etablerede virksomheder.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner">
+        <div class="services-grid">
+          {services.map((s, i) => (
+            <div class="service-card" data-reveal style={`--reveal-delay:${i * 100}ms`}>
+              <span class="service-icon">{s.icon}</span>
+              <h3>{s.title}</h3>
+              <p>{s.description}</p>
+              <ul>
+                {s.includes.map(inc => <li>{inc}</li>)}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="process-section section-py section-alt">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Vores proces</span>
+          <h2>Sådan arbejder vi</h2>
+        </div>
+        <div class="process-steps">
+          {process.map((p, i) => (
+            <div class="process-step" data-reveal style={`--reveal-delay:${i * 100}ms`}>
+              <div class="step-num">{p.step}</div>
+              <h4>{p.title}</h4>
+              <p>{p.text}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section section-py">
+      <div class="container-inner" style="text-align:center;">
+        <h2 data-reveal>Klar til at starte?</h2>
+        <p data-reveal style="color:var(--color-text-secondary);max-width:480px;margin:0 auto 2rem;">Fortæl os om dit projekt — vi vender tilbage med vores første tanker inden for 24 timer.</p>
+        <a href="/contact" class="btn-primary" data-reveal>Book et møde</a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 10rem 0 4rem; background: var(--color-primary); color: #fff; }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; margin-bottom: 1rem; }
+  .page-hero p { color: rgba(255,255,255,0.75); max-width: 480px; }
+  .section-header { text-align: center; max-width: 600px; margin: 0 auto 3rem; }
+  .section-header h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 0.75rem; }
+  .services-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 2rem; }
+  .service-card { background: var(--color-bg-page); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 2rem; }
+  .service-icon { font-size: 2rem; color: var(--color-primary); display: block; margin-bottom: 1rem; }
+  .service-card h3 { font-size: 1.3rem; margin-bottom: 0.75rem; }
+  .service-card > p { color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 1.25rem; }
+  .service-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .service-card li { font-size: 0.875rem; color: var(--color-text-secondary); padding-left: 1rem; position: relative; }
+  .service-card li::before { content: '→'; position: absolute; left: 0; color: var(--color-accent); font-size: 0.75rem; top: 0.05em; }
+  .process-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .process-step { text-align: center; }
+  .step-num { font-family: var(--font-heading); font-size: 3rem; font-weight: 700; color: var(--color-accent); opacity: 0.4; margin-bottom: 0.5rem; }
+  .process-step h4 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+  .process-step p { font-size: 0.875rem; color: var(--color-text-secondary); }
+  .cta-section h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); margin-bottom: 1rem; }
+  @media (max-width: 768px) {
+    .services-grid { grid-template-columns: 1fr; }
+    .process-steps { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .process-steps { grid-template-columns: 1fr; }
+  }
+</style>

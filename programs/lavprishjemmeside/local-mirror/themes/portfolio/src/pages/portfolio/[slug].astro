@@ -1,0 +1,134 @@
+---
+import ThemeLayout from '../../layouts/ThemeLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import portfolioItems from '../../data/portfolio-items.json';
+
+export function getStaticPaths() {
+  return portfolioItems.map(item => ({
+    params: { slug: item.slug },
+    props: { item },
+  }));
+}
+
+const { item } = Astro.props;
+const related = portfolioItems.filter(p => p.category === item.category && p.slug !== item.slug).slice(0, 3);
+---
+<ThemeLayout title={item.title} description={item.summary} ogImage={item.image}>
+  <Nav />
+  <main>
+    <section class="case-hero">
+      <img src={item.image} alt={item.title} />
+      <div class="case-hero-overlay"></div>
+      <div class="container-inner case-hero-content">
+        <a href="/portfolio" class="back-link">← Tilbage til portfolio</a>
+        <span class="eyebrow">{item.categoryLabel}</span>
+        <h1>{item.title}</h1>
+        <div class="case-meta">
+          <span><strong>Klient:</strong> {item.client}</span>
+          <span><strong>År:</strong> {item.year}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner case-body">
+        <div class="case-main">
+          <h2>Om projektet</h2>
+          <p>{item.description}</p>
+          {item.gallery.length > 1 && (
+            <div class="case-gallery">
+              {item.gallery.map(img => (
+                <img src={img} alt="" loading="lazy" />
+              ))}
+            </div>
+          )}
+        </div>
+        <aside class="case-aside">
+          <div class="results-card">
+            <h3>Resultater</h3>
+            <ul>
+              {item.results.map(r => (
+                <li>
+                  <span class="check">✓</span>
+                  {r}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="tags-card">
+            <h4>Discipliner</h4>
+            <div class="tags">
+              {item.tags.map(t => <span class="tag">{t}</span>)}
+            </div>
+          </div>
+          <a href="/contact" class="btn-primary" style="display:block;text-align:center;margin-top:1.5rem;">Start et lignende projekt</a>
+        </aside>
+      </div>
+    </section>
+
+    {related.length > 0 && (
+      <section class="section-py section-alt">
+        <div class="container-inner">
+          <h2 style="margin-bottom:2rem;">Lignende projekter</h2>
+          <div class="related-grid">
+            {related.map(r => (
+              <a href={`/portfolio/${r.slug}`} class="card related-card">
+                <img src={r.image} alt={r.title} loading="lazy" />
+                <div class="related-body">
+                  <span class="cat">{r.categoryLabel}</span>
+                  <h4>{r.title}</h4>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .case-hero { position: relative; height: 55vh; min-height: 400px; overflow: hidden; }
+  .case-hero > img { width: 100%; height: 100%; object-fit: cover; }
+  .case-hero-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(27,43,94,0.7) 0%, rgba(27,43,94,0.5) 100%); }
+  .case-hero-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 3rem; padding-top: 6rem; }
+  .back-link { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.875rem; margin-bottom: 1rem; display: inline-block; }
+  .back-link:hover { color: #fff; }
+  .case-hero-content .eyebrow { color: var(--color-accent); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.12); }
+  .case-hero-content h1 { font-size: clamp(2rem, 4vw, 3rem); color: #fff; margin-bottom: 1rem; }
+  .case-meta { display: flex; gap: 2rem; color: rgba(255,255,255,0.75); font-size: 0.9rem; }
+  .case-meta strong { color: #fff; }
+
+  .case-body { display: grid; grid-template-columns: 1fr 320px; gap: 4rem; align-items: start; }
+  .case-main h2 { font-size: 1.75rem; margin-bottom: 1rem; }
+  .case-main p { color: var(--color-text-secondary); line-height: 1.8; font-size: 1.05rem; }
+  .case-gallery { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 2rem; }
+  .case-gallery img { width: 100%; border-radius: var(--radius-lg); aspect-ratio: 4/3; object-fit: cover; }
+
+  .results-card { background: var(--color-primary-light); border-radius: var(--radius-card); padding: 1.5rem; margin-bottom: 1.25rem; }
+  .results-card h3 { font-size: 1.1rem; margin-bottom: 1rem; }
+  .results-card ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; }
+  .results-card li { display: flex; gap: 0.625rem; font-size: 0.9rem; color: var(--color-text-primary); }
+  .check { color: var(--color-accent); font-weight: 700; }
+  .tags-card h4 { font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+  .tags { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+  .tag { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: var(--radius-full); background: var(--color-neutral-100); color: var(--color-neutral-700); }
+
+  .related-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+  .related-card { display: block; text-decoration: none; }
+  .related-card img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: var(--radius-card) var(--radius-card) 0 0; }
+  .related-body { padding: 1rem; border: 1px solid var(--color-border); border-top: none; border-radius: 0 0 var(--radius-card) var(--radius-card); }
+  .cat { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+  .related-body h4 { font-size: 1rem; margin-top: 0.3rem; color: var(--color-text-primary); }
+
+  @media (max-width: 900px) {
+    .case-body { grid-template-columns: 1fr; }
+    .related-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 580px) {
+    .related-grid { grid-template-columns: 1fr; }
+    .case-gallery { grid-template-columns: 1fr; }
+  }
+</style>

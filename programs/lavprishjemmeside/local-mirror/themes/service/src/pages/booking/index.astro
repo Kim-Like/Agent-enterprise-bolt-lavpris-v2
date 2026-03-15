@@ -1,0 +1,423 @@
+---
+import ThemeLayout from '../../layouts/ThemeLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import services from '../../data/services.json';
+import staff from '../../data/staff.json';
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+const servicesJSON = JSON.stringify(services);
+const staffJSON = JSON.stringify(staff);
+---
+<ThemeLayout title="Book en tid" description="Book din frisørtime online hos Salon Rosé.">
+  <Nav />
+  <main>
+    <section class="booking-section">
+      <div class="container-inner">
+        <div class="booking-header" data-reveal>
+          <span class="eyebrow">Online booking</span>
+          <h1>Book din tid</h1>
+          <p>Følg de 4 trin herunder. Det tager under 2 minutter.</p>
+        </div>
+
+        <!-- Step progress -->
+        <div class="step-progress" id="step-progress" aria-label="Bookingstrin">
+          {[
+            { n: 1, label: 'Service' },
+            { n: 2, label: 'Dato & Tid' },
+            { n: 3, label: 'Stylist' },
+            { n: 4, label: 'Dine oplysninger' },
+          ].map(s => (
+            <div class="step-item" data-step={s.n}>
+              <div class="step-circle">{s.n}</div>
+              <span>{s.label}</span>
+            </div>
+          ))}
+        </div>
+
+        <!-- Wizard panels -->
+        <div class="wizard-card">
+          <!-- Step 1: Service -->
+          <div class="wizard-panel active" data-panel="1">
+            <h2>Vælg en service</h2>
+            <div class="services-list" id="service-list"></div>
+          </div>
+
+          <!-- Step 2: Date & Time -->
+          <div class="wizard-panel" data-panel="2">
+            <h2>Vælg dato og tidspunkt</h2>
+            <div class="date-time-grid">
+              <div class="calendar-wrap">
+                <div class="cal-header">
+                  <button class="cal-nav" id="cal-prev" aria-label="Forrige måned">‹</button>
+                  <span id="cal-month-label"></span>
+                  <button class="cal-nav" id="cal-next" aria-label="Næste måned">›</button>
+                </div>
+                <div class="cal-weekdays">
+                  {['Ma', 'Ti', 'On', 'To', 'Fr', 'Lø', 'Sø'].map(d => <span>{d}</span>)}
+                </div>
+                <div class="cal-days" id="cal-days"></div>
+              </div>
+              <div class="time-slots-wrap">
+                <h4 id="time-slots-title">Vælg en dato for at se ledige tider</h4>
+                <div class="time-slots" id="time-slots"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Staff -->
+          <div class="wizard-panel" data-panel="3">
+            <h2>Vælg din stylist</h2>
+            <div class="staff-list" id="staff-list"></div>
+            <div class="any-staff-option">
+              <button class="staff-card-btn any-btn" data-staff-id="any">
+                <div class="any-avatar">✦</div>
+                <div>
+                  <strong>Første ledige</strong>
+                  <p>Vi vælger den stylist der passer bedst til dit valgte tidspunkt</p>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 4: Details -->
+          <div class="wizard-panel" data-panel="4">
+            <h2>Dine oplysninger</h2>
+            <form id="booking-form" novalidate>
+              <div class="booking-summary" id="booking-summary"></div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="bk-fname">Fornavn *</label>
+                  <input type="text" id="bk-fname" required autocomplete="given-name" />
+                </div>
+                <div class="form-group">
+                  <label for="bk-lname">Efternavn *</label>
+                  <input type="text" id="bk-lname" required autocomplete="family-name" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="bk-email">E-mail *</label>
+                <input type="email" id="bk-email" required autocomplete="email" />
+              </div>
+              <div class="form-group">
+                <label for="bk-phone">Telefon *</label>
+                <input type="tel" id="bk-phone" required autocomplete="tel" />
+              </div>
+              <div class="form-group">
+                <label for="bk-notes">Kommentar (valgfrit)</label>
+                <textarea id="bk-notes" rows="3" placeholder="Noget vi skal vide på forhånd?"></textarea>
+              </div>
+              <button type="submit" class="btn-primary" style="width:100%;padding:1rem;font-size:1rem;margin-top:0.5rem;">Bekræft booking</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="wizard-nav">
+          <button class="btn-outline" id="wiz-back" style="display:none;">← Tilbage</button>
+          <button class="btn-primary" id="wiz-next" style="display:none;">Næste →</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Confirmation -->
+    <section class="confirmation-section section-py" id="confirmation" style="display:none;">
+      <div class="container-inner" style="max-width:560px;text-align:center;">
+        <div class="confirm-icon">✓</div>
+        <h1>Din tid er booket!</h1>
+        <p>Du modtager en bekræftelse på din e-mail med alle detaljer.</p>
+        <div class="confirm-details" id="confirm-details"></div>
+        <a href="/" class="btn-primary" style="display:inline-flex;margin-top:2rem;">Tilbage til forsiden</a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .booking-section { padding: 3rem 0 5rem; }
+  .booking-header { text-align: center; margin-bottom: 2.5rem; }
+  .booking-header h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.625rem; }
+  .booking-header p { color: var(--color-text-secondary); }
+
+  .step-progress { display: flex; justify-content: center; gap: 0; margin-bottom: 2.5rem; position: relative; }
+  .step-progress::before { content: ''; position: absolute; top: 1.125rem; left: 50%; transform: translateX(-50%); width: 60%; height: 1px; background: var(--color-border); z-index: 0; }
+  .step-item { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; flex: 1; max-width: 8rem; position: relative; z-index: 1; }
+  .step-circle { width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--color-neutral-200); color: var(--color-neutral-600); display: flex; align-items: center; justify-content: center; font-family: var(--font-body); font-weight: 700; font-size: 0.875rem; transition: background 250ms, color 250ms; }
+  .step-item span { font-size: 0.75rem; color: var(--color-text-secondary); text-align: center; }
+  .step-item.active .step-circle { background: var(--color-primary); color: #fff; }
+  .step-item.done .step-circle { background: var(--color-accent); color: #fff; }
+  .step-item.done .step-circle::after { content: '✓'; }
+
+  .wizard-card { background: var(--color-bg-page); border: 1px solid var(--color-border); border-radius: var(--radius-2xl); padding: 2.5rem; max-width: 800px; margin: 0 auto; box-shadow: var(--shadow-md); }
+  .wizard-card h2 { font-size: 1.5rem; margin-bottom: 1.75rem; }
+  .wizard-panel { display: none; }
+  .wizard-panel.active { display: block; }
+
+  .services-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .service-option { padding: 1.25rem; border: 2px solid var(--color-border); border-radius: var(--radius-lg); cursor: pointer; background: transparent; width: 100%; text-align: left; transition: all 200ms; font-family: var(--font-body); }
+  .service-option:hover { border-color: var(--color-primary); background: var(--color-primary-light); }
+  .service-option.selected { border-color: var(--color-primary); background: var(--color-primary-light); }
+  .service-option h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem; color: var(--color-text-primary); }
+  .service-option p { font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+  .service-meta { display: flex; gap: 0.75rem; }
+  .service-meta span { font-size: 0.75rem; }
+  .s-price { font-weight: 700; color: var(--color-primary); }
+  .s-dur { color: var(--color-text-secondary); }
+
+  .date-time-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+  .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  #cal-month-label { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 600; }
+  .cal-nav { background: none; border: 1px solid var(--color-border); border-radius: var(--radius-md); width: 2rem; height: 2rem; cursor: pointer; font-size: 1rem; transition: background 150ms; }
+  .cal-nav:hover { background: var(--color-neutral-100); }
+  .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
+  .cal-weekdays span { text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--color-text-secondary); padding: 0.25rem 0; }
+  .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); font-size: 0.875rem; cursor: pointer; border: none; background: transparent; transition: all 150ms; }
+  .cal-day:not(.empty):not(.past):hover { background: var(--color-primary-light); color: var(--color-primary); }
+  .cal-day.selected { background: var(--color-primary); color: #fff; }
+  .cal-day.today { border: 1.5px solid var(--color-accent); }
+  .cal-day.past { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+  .cal-day.empty { cursor: default; }
+  .time-slots-wrap h4 { font-family: var(--font-body); font-size: 0.9rem; font-weight: 600; margin-bottom: 1rem; color: var(--color-text-secondary); }
+  .time-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; max-height: 300px; overflow-y: auto; }
+  .time-btn { padding: 0.5rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); background: transparent; cursor: pointer; font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; transition: all 150ms; }
+  .time-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: var(--color-primary-light); }
+  .time-btn.selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .time-btn.taken { opacity: 0.35; cursor: not-allowed; pointer-events: none; text-decoration: line-through; }
+
+  .staff-list { display: flex; flex-direction: column; gap: 0.875rem; margin-bottom: 0.875rem; }
+  .staff-card-btn { display: flex; gap: 1.25rem; align-items: center; padding: 1.25rem; border: 2px solid var(--color-border); border-radius: var(--radius-lg); background: transparent; width: 100%; text-align: left; cursor: pointer; transition: all 200ms; font-family: var(--font-body); }
+  .staff-card-btn:hover { border-color: var(--color-primary); background: var(--color-primary-light); }
+  .staff-card-btn.selected { border-color: var(--color-primary); background: var(--color-primary-light); }
+  .staff-card-btn img { width: 3.5rem; height: 3.5rem; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .staff-card-btn strong { display: block; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  .staff-card-btn p { font-size: 0.8rem; color: var(--color-text-secondary); margin: 0; }
+  .any-avatar { width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--color-accent-light); color: var(--color-accent); font-size: 1.25rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+  .booking-summary { background: var(--color-primary-light); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 1.75rem; }
+  .booking-summary h4 { font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--color-primary); margin-bottom: 0.75rem; }
+  .summary-line { display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.375rem; }
+  .summary-line span:last-child { font-weight: 600; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 1.1rem; }
+  label { font-size: 0.83rem; font-weight: 600; }
+  input, textarea { padding: 0.7rem 1rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); font-family: var(--font-body); font-size: 0.95rem; transition: border-color 150ms; }
+  input:focus, textarea:focus { outline: none; border-color: var(--color-primary); }
+  textarea { resize: vertical; }
+
+  .wizard-nav { display: flex; justify-content: space-between; max-width: 800px; margin: 1.5rem auto 0; }
+
+  .confirmation-section { text-align: center; }
+  .confirm-icon { width: 5rem; height: 5rem; background: var(--color-primary-light); color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.5rem; }
+  .confirm-details { background: var(--color-bg-warm); border-radius: var(--radius-lg); padding: 1.5rem; margin-top: 1.5rem; text-align: left; font-size: 0.9rem; }
+  .confirm-details p { margin: 0.375rem 0; }
+  .confirm-details strong { color: var(--color-primary); }
+
+  @media (max-width: 768px) {
+    .wizard-card { padding: 1.5rem; }
+    .services-list { grid-template-columns: 1fr; }
+    .date-time-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .step-progress::before { display: none; }
+  }
+</style>
+<script define:vars={{ servicesData: servicesJSON, staffData: staffJSON }}>
+  const services = JSON.parse(servicesData);
+  const staff = JSON.parse(staffData);
+
+  const state = { step: 1, service: null, date: null, time: null, staff: null, calYear: null, calMonth: null };
+  const MONTHS = ['Januar','Februar','Marts','April','Maj','Juni','Juli','August','September','Oktober','November','December'];
+  const now = new Date();
+  state.calYear = now.getFullYear();
+  state.calMonth = now.getMonth();
+
+  function fmt(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+  function padded(n) { return String(n).padStart(2, '0'); }
+
+  // Render service list
+  const serviceList = document.getElementById('service-list');
+  services.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'service-option';
+    btn.dataset.serviceId = s.id;
+    btn.innerHTML = `<h4>${s.name}</h4><p>${s.description}</p><div class="service-meta"><span class="s-price">${fmt(s.price)}</span><span class="s-dur">${s.duration} min</span></div>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.service-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.service = s;
+      updateNav();
+    });
+    serviceList.appendChild(btn);
+  });
+
+  // Render staff list
+  const staffList = document.getElementById('staff-list');
+  staff.forEach(m => {
+    const btn = document.createElement('button');
+    btn.className = 'staff-card-btn';
+    btn.dataset.staffId = m.id;
+    btn.innerHTML = `<img src="${m.img}" alt="${m.name}" /><div><strong>${m.name}</strong><p>${m.title}</p></div>`;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.staff-card-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.staff = m;
+      updateNav();
+    });
+    staffList.appendChild(btn);
+  });
+  document.querySelector('.any-btn').addEventListener('click', () => {
+    document.querySelectorAll('.staff-card-btn').forEach(b => b.classList.remove('selected'));
+    document.querySelector('.any-btn').classList.add('selected');
+    state.staff = { id: 'any', name: 'Første ledige' };
+    updateNav();
+  });
+
+  // Calendar
+  function renderCalendar() {
+    const label = document.getElementById('cal-month-label');
+    label.textContent = `${MONTHS[state.calMonth]} ${state.calYear}`;
+    const calDays = document.getElementById('cal-days');
+    calDays.innerHTML = '';
+    const firstDay = new Date(state.calYear, state.calMonth, 1).getDay();
+    const offset = firstDay === 0 ? 6 : firstDay - 1;
+    for (let i = 0; i < offset; i++) {
+      const empty = document.createElement('div');
+      empty.className = 'cal-day empty';
+      calDays.appendChild(empty);
+    }
+    const daysInMonth = new Date(state.calYear, state.calMonth + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+      const dayDate = new Date(state.calYear, state.calMonth, d);
+      const btn = document.createElement('button');
+      btn.className = 'cal-day';
+      btn.textContent = d;
+      const dayStr = `${state.calYear}-${padded(state.calMonth + 1)}-${padded(d)}`;
+      if (dayDate < new Date(now.getFullYear(), now.getMonth(), now.getDate())) btn.classList.add('past');
+      if (dayDate.toDateString() === now.toDateString()) btn.classList.add('today');
+      if (dayDate.getDay() === 0) btn.classList.add('past'); // Sundays closed
+      if (state.date === dayStr) btn.classList.add('selected');
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.cal-day').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.date = dayStr;
+        state.time = null;
+        renderTimeSlots();
+        updateNav();
+      });
+      calDays.appendChild(btn);
+    }
+  }
+
+  function renderTimeSlots() {
+    const slots = [];
+    for (let h = 9; h < 18; h++) {
+      slots.push(`${padded(h)}:00`);
+      slots.push(`${padded(h)}:30`);
+    }
+    const container = document.getElementById('time-slots');
+    const title = document.getElementById('time-slots-title');
+    if (!state.date) { container.innerHTML = ''; title.textContent = 'Vælg en dato for at se ledige tider'; return; }
+    title.textContent = 'Ledige tider';
+    container.innerHTML = '';
+    const booked = (() => { try { return JSON.parse(localStorage.getItem('salon_bookings') || '[]'); } catch { return []; } })();
+    const takenSlots = booked.filter(b => b.date === state.date && (state.staff?.id === 'any' || b.staffId === state.staff?.id) && b.status !== 'cancelled').map(b => b.time);
+    slots.forEach(slot => {
+      const btn = document.createElement('button');
+      btn.className = 'time-btn';
+      btn.textContent = slot;
+      if (takenSlots.includes(slot)) { btn.classList.add('taken'); }
+      if (state.time === slot) btn.classList.add('selected');
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        state.time = slot;
+        updateNav();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  document.getElementById('cal-prev').addEventListener('click', () => {
+    state.calMonth--;
+    if (state.calMonth < 0) { state.calMonth = 11; state.calYear--; }
+    renderCalendar();
+  });
+  document.getElementById('cal-next').addEventListener('click', () => {
+    state.calMonth++;
+    if (state.calMonth > 11) { state.calMonth = 0; state.calYear++; }
+    renderCalendar();
+  });
+
+  function renderBookingSummary() {
+    const container = document.getElementById('booking-summary');
+    if (!container) return;
+    container.innerHTML = `
+      <h4>Din booking</h4>
+      <div class="summary-line"><span>Service</span><span>${state.service?.name || '—'}</span></div>
+      <div class="summary-line"><span>Dato</span><span>${state.date || '—'}</span></div>
+      <div class="summary-line"><span>Tidspunkt</span><span>${state.time || '—'}</span></div>
+      <div class="summary-line"><span>Stylist</span><span>${state.staff?.name || '—'}</span></div>
+      <div class="summary-line"><span>Pris</span><span>${state.service ? fmt(state.service.price) : '—'}</span></div>`;
+  }
+
+  // Step navigation
+  function goToStep(n) {
+    state.step = n;
+    document.querySelectorAll('.wizard-panel').forEach(p => p.classList.toggle('active', parseInt(p.dataset.panel) === n));
+    document.querySelectorAll('.step-item').forEach(item => {
+      const s = parseInt(item.dataset.step);
+      item.classList.toggle('active', s === n);
+      item.classList.toggle('done', s < n);
+    });
+    document.getElementById('wiz-back').style.display = n > 1 ? 'inline-flex' : 'none';
+    document.getElementById('wiz-next').style.display = n < 4 ? 'inline-flex' : 'none';
+    if (n === 2) renderCalendar();
+    if (n === 4) renderBookingSummary();
+    updateNav();
+  }
+
+  function canProceed() {
+    if (state.step === 1) return !!state.service;
+    if (state.step === 2) return !!(state.date && state.time);
+    if (state.step === 3) return !!state.staff;
+    return true;
+  }
+
+  function updateNav() {
+    const next = document.getElementById('wiz-next');
+    if (next) next.disabled = !canProceed();
+    if (next) next.style.opacity = canProceed() ? '1' : '0.5';
+  }
+
+  document.getElementById('wiz-next').addEventListener('click', () => { if (canProceed()) goToStep(state.step + 1); });
+  document.getElementById('wiz-back').addEventListener('click', () => goToStep(state.step - 1));
+
+  document.getElementById('booking-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const form = e.target;
+    const fname = document.getElementById('bk-fname').value.trim();
+    const lname = document.getElementById('bk-lname').value.trim();
+    const email = document.getElementById('bk-email').value.trim();
+    const phone = document.getElementById('bk-phone').value.trim();
+    if (!fname || !lname || !email || !phone) { alert('Udfyld alle obligatoriske felter.'); return; }
+    const booking = { serviceId: state.service.id, serviceName: state.service.name, servicePrice: state.service.price, date: state.date, time: state.time, staffId: state.staff.id, staffName: state.staff.name, customer: { firstName: fname, lastName: lname, email, phone } };
+    const id = 'BK-' + Date.now().toString(36).toUpperCase();
+    const full = { ...booking, id, created_at: new Date().toISOString(), status: 'confirmed' };
+    const bookings = (() => { try { return JSON.parse(localStorage.getItem('salon_bookings') || '[]'); } catch { return []; } })();
+    bookings.push(full);
+    localStorage.setItem('salon_bookings', JSON.stringify(bookings));
+    document.querySelector('.booking-section').style.display = 'none';
+    const confirm = document.getElementById('confirmation');
+    confirm.style.display = 'block';
+    document.getElementById('confirm-details').innerHTML = `
+      <p><strong>Booking-ID:</strong> ${id}</p>
+      <p><strong>Service:</strong> ${state.service.name}</p>
+      <p><strong>Dato & tid:</strong> ${state.date} kl. ${state.time}</p>
+      <p><strong>Stylist:</strong> ${state.staff.name}</p>
+      <p><strong>Pris:</strong> ${fmt(state.service.price)}</p>
+      <p><strong>Bekræftelse sendes til:</strong> ${email}</p>`;
+  });
+
+  // Init
+  goToStep(1);
+</script>

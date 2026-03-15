@@ -1,0 +1,452 @@
+---
+import ThemeLayout from '../../layouts/ThemeLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import menu from '../../data/menu.json';
+const categories = [
+  { id: 'koed', label: 'Kød fra grillen' },
+  { id: 'fisk', label: 'Fisk & Skaldyr' },
+  { id: 'vegetar', label: 'Vegetar' },
+  { id: 'smaeretter', label: 'Småretter' },
+  { id: 'dessert', label: 'Dessert' },
+  { id: 'drikkevarer', label: 'Drikkevarer' },
+];
+const availableItems = menu.filter(m => m.available);
+const menuJSON = JSON.stringify(availableItems);
+const categoriesJSON = JSON.stringify(categories);
+---
+<ThemeLayout title="Bestil Takeaway — BRASA">
+  <Nav />
+  <main>
+    <div class="takeaway-header">
+      <div class="container-inner takeaway-header-inner">
+        <div>
+          <h1>Bestil takeaway</h1>
+          <p>Afhent om 30–45 min · Levering inden for 3 km</p>
+        </div>
+        <div class="header-info">
+          <span>🕐 Åbent i dag: 17:00–22:00</span>
+          <span class="open-badge">Åben nu</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="takeaway-layout container-inner" id="takeaway-app">
+      <!-- Menu panel -->
+      <div class="menu-panel">
+        <div class="panel-tabs" id="panel-tabs">
+          {categories.map((c, i) => (
+            <button class:list={['tab-btn', { active: i === 0 }]} data-cat={c.id}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        {categories.map((cat, ci) => (
+          <div class:list={['menu-section', { hidden: ci !== 0 }]} data-cat-section={cat.id} id={`section-${cat.id}`}>
+            <h2 class="cat-title">{cat.label}</h2>
+            <div class="items-grid">
+              {availableItems.filter(item => item.category === cat.id).map(item => (
+                <div class="order-card" data-id={item.id} data-slug={item.slug} data-name={item.name} data-price={item.price} data-image={item.image}>
+                  <div class="order-card-img">
+                    <img src={item.image} alt={item.name} loading="lazy" />
+                    {item.popular && <span class="popular-pill">Populær</span>}
+                  </div>
+                  <div class="order-card-body">
+                    <div class="order-card-top">
+                      <h3>{item.name}</h3>
+                      <span class="oc-price" data-price={item.price}></span>
+                    </div>
+                    <p>{item.description}</p>
+                    <button class="add-btn" data-id={item.id} data-name={item.name} data-price={item.price} data-image={item.image} aria-label={`Tilføj ${item.name}`}>
+                      <span class="add-icon">+</span>
+                      <span class="add-label">Tilføj</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <!-- Order panel -->
+      <aside class="order-panel" id="order-panel">
+        <div class="order-panel-inner">
+          <div class="order-empty" id="order-empty">
+            <div class="empty-icon">🍽️</div>
+            <p>Din bestilling er tom</p>
+            <span>Tilføj retter fra menuen</span>
+          </div>
+
+          <div class="order-content" id="order-content" style="display:none;">
+            <h3 class="order-title">Din bestilling</h3>
+            <div class="order-items" id="order-items"></div>
+
+            <div class="delivery-toggle">
+              <button class="delivery-btn active" id="btn-pickup" data-type="pickup">Afhent selv</button>
+              <button class="delivery-btn" id="btn-delivery" data-type="delivery">Levering (+49 kr)</button>
+            </div>
+
+            <div class="delivery-form" id="delivery-form" style="display:none;">
+              <div class="form-group">
+                <label for="del-address">Adresse</label>
+                <input type="text" id="del-address" placeholder="Vej og husnummer" />
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="del-postal">Postnr.</label>
+                  <input type="text" id="del-postal" placeholder="1650" maxlength="4" />
+                </div>
+                <div class="form-group">
+                  <label for="del-city">By</label>
+                  <input type="text" id="del-city" placeholder="København V" />
+                </div>
+              </div>
+            </div>
+
+            <div class="order-summary">
+              <div class="summary-row">
+                <span>Subtotal</span>
+                <span id="subtotal-val">–</span>
+              </div>
+              <div class="summary-row" id="delivery-row" style="display:none;">
+                <span>Levering</span>
+                <span>49 kr</span>
+              </div>
+              <div class="summary-row total-row">
+                <span>Total</span>
+                <span id="total-val">–</span>
+              </div>
+            </div>
+
+            <div class="checkout-form" id="checkout-form">
+              <h4>Dine oplysninger</h4>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="cust-name">Navn *</label>
+                  <input type="text" id="cust-name" required autocomplete="name" />
+                </div>
+                <div class="form-group">
+                  <label for="cust-phone">Telefon *</label>
+                  <input type="tel" id="cust-phone" required autocomplete="tel" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="cust-email">E-mail *</label>
+                <input type="email" id="cust-email" required autocomplete="email" />
+              </div>
+              <div class="form-group">
+                <label for="cust-notes">Særlige ønsker</label>
+                <textarea id="cust-notes" rows="2" placeholder="Allergier, noter til bestilling..."></textarea>
+              </div>
+              <div class="payment-options">
+                <h4>Betaling</h4>
+                <label class="payment-opt">
+                  <input type="radio" name="payment" value="card" checked /> Betalingskort
+                </label>
+                <label class="payment-opt">
+                  <input type="radio" name="payment" value="mobilepay" /> MobilePay
+                </label>
+                <label class="payment-opt">
+                  <input type="radio" name="payment" value="cash" /> Kontant ved afhentning
+                </label>
+              </div>
+              <button class="submit-order-btn" id="submit-order-btn">Afgiv bestilling</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Confirmation overlay -->
+    <div class="confirm-overlay" id="confirm-overlay" style="display:none;" aria-live="polite">
+      <div class="confirm-box">
+        <div class="confirm-check">✓</div>
+        <h2>Bestilling modtaget!</h2>
+        <p id="confirm-msg">Vi bekræfter din bestilling om et øjeblik.</p>
+        <div class="confirm-details" id="confirm-details"></div>
+        <a href="/" class="btn-primary" style="margin-top:1.5rem;display:inline-block;">Tilbage til forsiden</a>
+      </div>
+    </div>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .takeaway-header { background: var(--color-bg-dark); padding: 3rem 0 2rem; }
+  .takeaway-header-inner { display: flex; justify-content: space-between; align-items: flex-end; gap: 1.5rem; flex-wrap: wrap; }
+  .takeaway-header h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); color: var(--color-text-on-dark); margin-bottom: 0.3rem; }
+  .takeaway-header p { color: rgba(245,240,232,0.65); font-size: 0.9rem; }
+  .header-info { display: flex; align-items: center; gap: 1rem; }
+  .header-info span { color: rgba(245,240,232,0.75); font-size: 0.85rem; }
+  .open-badge { background: #22c55e; color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.06em; }
+  .takeaway-layout { display: grid; grid-template-columns: 1fr 380px; gap: 2rem; align-items: start; padding-top: 2rem; padding-bottom: 4rem; }
+  .menu-panel { min-width: 0; }
+  .panel-tabs { display: flex; gap: 0.375rem; flex-wrap: wrap; margin-bottom: 2rem; position: sticky; top: 0; background: var(--color-bg-page); padding: 0.75rem 0; z-index: 10; border-bottom: 1px solid var(--color-border); }
+  .tab-btn { padding: 0.4rem 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-full); background: transparent; cursor: pointer; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; color: var(--color-text-secondary); transition: all 180ms ease; white-space: nowrap; }
+  .tab-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+  .tab-btn.active { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+  .menu-section { margin-bottom: 2.5rem; }
+  .menu-section.hidden { display: none; }
+  .cat-title { font-size: 1.25rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--color-accent); }
+  .items-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+  .order-card { display: grid; grid-template-columns: 100px 1fr; gap: 1rem; padding: 1rem; border: 1px solid var(--color-border); border-radius: var(--radius-card); background: var(--color-bg-page); transition: box-shadow 200ms; }
+  .order-card:hover { box-shadow: var(--shadow-md); }
+  .order-card-img { position: relative; width: 100px; height: 75px; border-radius: var(--radius-md); overflow: hidden; flex-shrink: 0; }
+  .order-card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .popular-pill { position: absolute; bottom: 0.3rem; left: 0.3rem; background: var(--color-accent); color: #fff; font-size: 0.55rem; font-weight: 700; padding: 0.1rem 0.4rem; border-radius: var(--radius-full); text-transform: uppercase; letter-spacing: 0.05em; }
+  .order-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.25rem; }
+  .order-card-body h3 { font-size: 0.95rem; }
+  .oc-price { font-weight: 700; color: var(--color-accent); font-size: 0.9rem; white-space: nowrap; }
+  .order-card-body p { font-size: 0.78rem; color: var(--color-text-secondary); line-height: 1.5; margin-bottom: 0.625rem; }
+  .add-btn { display: flex; align-items: center; gap: 0.375rem; padding: 0.35rem 0.875rem; background: var(--color-accent); color: #fff; border: none; border-radius: var(--radius-full); cursor: pointer; font-family: var(--font-body); font-size: 0.8rem; font-weight: 700; transition: background 180ms, transform 120ms; }
+  .add-btn:hover { background: var(--color-accent-dark, #b87a10); }
+  .add-btn:active { transform: scale(0.96); }
+  .add-icon { font-size: 1rem; line-height: 1; }
+  .add-btn.added { background: #22c55e; }
+
+  /* Order panel */
+  .order-panel { position: sticky; top: 1rem; }
+  .order-panel-inner { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; background: var(--color-bg-page); }
+  .order-empty { padding: 3rem 1.5rem; text-align: center; }
+  .empty-icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .order-empty p { font-weight: 600; margin-bottom: 0.25rem; }
+  .order-empty span { font-size: 0.85rem; color: var(--color-text-secondary); }
+  .order-content { padding: 1.25rem; }
+  .order-title { font-size: 1.1rem; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--color-border); }
+  .order-items { display: flex; flex-direction: column; gap: 0.625rem; margin-bottom: 1.25rem; }
+  .order-line { display: flex; align-items: center; gap: 0.75rem; }
+  .order-line-img { width: 40px; height: 40px; border-radius: var(--radius-sm); overflow: hidden; flex-shrink: 0; }
+  .order-line-img img { width: 100%; height: 100%; object-fit: cover; }
+  .order-line-name { flex: 1; font-size: 0.85rem; font-weight: 600; }
+  .qty-controls { display: flex; align-items: center; gap: 0.375rem; }
+  .qty-btn { width: 24px; height: 24px; border: 1px solid var(--color-border); background: transparent; cursor: pointer; border-radius: var(--radius-sm); font-size: 1rem; line-height: 1; display: flex; align-items: center; justify-content: center; transition: background 150ms; }
+  .qty-btn:hover { background: var(--color-bg-warm); }
+  .qty-num { font-size: 0.85rem; font-weight: 700; min-width: 1.25rem; text-align: center; }
+  .order-line-price { font-size: 0.85rem; font-weight: 700; color: var(--color-accent); white-space: nowrap; }
+
+  .delivery-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 1rem; }
+  .delivery-btn { padding: 0.6rem; border: 1.5px solid var(--color-border); background: transparent; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font-body); font-size: 0.8rem; font-weight: 600; transition: all 160ms; }
+  .delivery-btn.active { background: var(--color-bg-dark); color: var(--color-text-on-dark); border-color: var(--color-bg-dark); }
+  .delivery-form { background: var(--color-bg-warm); border-radius: var(--radius-md); padding: 0.875rem; margin-bottom: 1rem; }
+  .form-group { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.625rem; }
+  .form-group:last-child { margin-bottom: 0; }
+  .form-group label { font-size: 0.75rem; font-weight: 700; color: var(--color-text-secondary); }
+  .form-group input, .form-group textarea { padding: 0.5rem 0.75rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-sm); font-family: var(--font-body); font-size: 0.875rem; background: var(--color-bg-page); transition: border-color 150ms; }
+  .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--color-accent); }
+  .form-group textarea { resize: none; }
+  .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+  .order-summary { border-top: 1px solid var(--color-border); padding-top: 0.875rem; margin-bottom: 1.25rem; display: flex; flex-direction: column; gap: 0.375rem; }
+  .summary-row { display: flex; justify-content: space-between; font-size: 0.875rem; }
+  .total-row { font-weight: 700; font-size: 1rem; padding-top: 0.5rem; border-top: 1px solid var(--color-border); margin-top: 0.25rem; }
+
+  .checkout-form h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+  .payment-options { margin: 0.75rem 0; display: flex; flex-direction: column; gap: 0.375rem; }
+  .payment-opt { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; cursor: pointer; }
+  .payment-opt input { width: 16px; height: 16px; accent-color: var(--color-accent); }
+  .submit-order-btn { width: 100%; padding: 0.875rem; background: var(--color-accent); color: #fff; border: none; border-radius: var(--radius-md); cursor: pointer; font-family: var(--font-body); font-size: 1rem; font-weight: 700; transition: background 180ms, transform 120ms; margin-top: 0.75rem; }
+  .submit-order-btn:hover { background: var(--color-accent-dark, #b87a10); }
+  .submit-order-btn:active { transform: scale(0.98); }
+  .submit-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* Confirmation overlay */
+  .confirm-overlay { position: fixed; inset: 0; background: rgba(28,26,23,0.75); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .confirm-box { background: var(--color-bg-page); border-radius: var(--radius-2xl); padding: 3rem 2.5rem; max-width: 460px; width: 100%; text-align: center; }
+  .confirm-check { width: 4rem; height: 4rem; background: #22c55e; border-radius: 50%; color: #fff; font-size: 1.75rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+  .confirm-box h2 { font-size: 1.75rem; margin-bottom: 0.75rem; }
+  .confirm-box p { color: var(--color-text-secondary); margin-bottom: 0.5rem; }
+  .confirm-details { background: var(--color-bg-warm); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-top: 1rem; text-align: left; font-size: 0.875rem; display: flex; flex-direction: column; gap: 0.375rem; }
+  .confirm-detail-row { display: flex; justify-content: space-between; }
+  .confirm-detail-row span:first-child { color: var(--color-text-secondary); }
+  .confirm-detail-row span:last-child { font-weight: 600; }
+
+  @media (max-width: 1024px) { .takeaway-layout { grid-template-columns: 1fr; } .order-panel { position: static; } }
+  @media (max-width: 640px) {
+    .order-card { grid-template-columns: 80px 1fr; }
+    .order-card-img { width: 80px; height: 60px; }
+    .form-row-2 { grid-template-columns: 1fr; }
+  }
+</style>
+<script define:vars={{ menuData: menuJSON, categoriesData: categoriesJSON }}>
+  const menuItems = JSON.parse(menuData);
+  const ORDER_KEY = 'brasa_order';
+
+  function readOrder() {
+    try { return JSON.parse(localStorage.getItem(ORDER_KEY) || '{"items":[]}'); } catch { return { items: [] }; }
+  }
+  function writeOrder(order) {
+    order.updated_at = new Date().toISOString();
+    localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+  }
+  function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+
+  let deliveryType = 'pickup';
+
+  function renderOrder() {
+    const order = readOrder();
+    const empty = document.getElementById('order-empty');
+    const content = document.getElementById('order-content');
+    const itemsEl = document.getElementById('order-items');
+    const subtotalEl = document.getElementById('subtotal-val');
+    const totalEl = document.getElementById('total-val');
+    const deliveryRow = document.getElementById('delivery-row');
+
+    if (order.items.length === 0) {
+      empty.style.display = '';
+      content.style.display = 'none';
+      return;
+    }
+
+    empty.style.display = 'none';
+    content.style.display = '';
+
+    const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const deliveryFee = deliveryType === 'delivery' ? 4900 : 0;
+    const total = subtotal + deliveryFee;
+
+    subtotalEl.textContent = formatPrice(subtotal);
+    totalEl.textContent = formatPrice(total);
+    deliveryRow.style.display = deliveryType === 'delivery' ? '' : 'none';
+
+    itemsEl.innerHTML = order.items.map(item => `
+      <div class="order-line">
+        <div class="order-line-img"><img src="${item.image}" alt="${item.name}" /></div>
+        <span class="order-line-name">${item.name}</span>
+        <div class="qty-controls">
+          <button class="qty-btn" data-action="dec" data-id="${item.id}">−</button>
+          <span class="qty-num">${item.quantity}</span>
+          <button class="qty-btn" data-action="inc" data-id="${item.id}">+</button>
+        </div>
+        <span class="order-line-price">${formatPrice(item.price * item.quantity)}</span>
+      </div>
+    `).join('');
+
+    itemsEl.querySelectorAll('.qty-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const o = readOrder();
+        const idx = o.items.findIndex(i => i.id === id);
+        if (idx === -1) return;
+        if (action === 'inc') { o.items[idx].quantity += 1; }
+        else { o.items[idx].quantity -= 1; if (o.items[idx].quantity <= 0) o.items.splice(idx, 1); }
+        writeOrder(o);
+        renderOrder();
+      });
+    });
+  }
+
+  document.querySelectorAll('.add-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const item = menuItems.find(m => m.id === id);
+      if (!item) return;
+      const order = readOrder();
+      const existing = order.items.find(i => i.id === id);
+      if (existing) { existing.quantity += 1; }
+      else { order.items.push({ id: item.id, name: item.name, price: item.price, image: item.image, quantity: 1 }); }
+      writeOrder(order);
+      renderOrder();
+      btn.querySelector('.add-label').textContent = 'Tilføjet!';
+      btn.classList.add('added');
+      setTimeout(() => {
+        btn.querySelector('.add-label').textContent = 'Tilføj';
+        btn.classList.remove('added');
+      }, 1200);
+    });
+  });
+
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.menu-section').forEach(s => {
+        s.classList.toggle('hidden', s.dataset.catSection !== btn.dataset.cat);
+      });
+    });
+  });
+
+  document.getElementById('btn-pickup').addEventListener('click', () => {
+    deliveryType = 'pickup';
+    document.getElementById('btn-pickup').classList.add('active');
+    document.getElementById('btn-delivery').classList.remove('active');
+    document.getElementById('delivery-form').style.display = 'none';
+    renderOrder();
+  });
+  document.getElementById('btn-delivery').addEventListener('click', () => {
+    deliveryType = 'delivery';
+    document.getElementById('btn-delivery').classList.add('active');
+    document.getElementById('btn-pickup').classList.remove('active');
+    document.getElementById('delivery-form').style.display = '';
+    renderOrder();
+  });
+
+  document.getElementById('submit-order-btn').addEventListener('click', () => {
+    const name = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
+    const email = document.getElementById('cust-email').value.trim();
+    if (!name || !phone || !email) {
+      alert('Udfyld venligst dine oplysninger (navn, telefon, e-mail).');
+      return;
+    }
+    if (deliveryType === 'delivery') {
+      const addr = document.getElementById('del-address').value.trim();
+      const postal = document.getElementById('del-postal').value.trim();
+      if (!addr || !postal) {
+        alert('Udfyld venligst leveringsadressen.');
+        return;
+      }
+    }
+
+    const order = readOrder();
+    if (order.items.length === 0) { alert('Din bestilling er tom.'); return; }
+
+    const payment = document.querySelector('input[name="payment"]:checked')?.value || 'card';
+    const subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+    const deliveryFee = deliveryType === 'delivery' ? 4900 : 0;
+    const total = subtotal + deliveryFee;
+    const orderId = 'BRS-' + Date.now().toString().slice(-5);
+    const eta = deliveryType === 'pickup' ? '30–45 min' : '45–60 min';
+
+    const savedOrder = {
+      id: orderId,
+      customer: { name, phone, email },
+      items: order.items,
+      deliveryType,
+      subtotal,
+      deliveryFee,
+      total,
+      payment,
+      eta,
+      status: 'received',
+      created_at: new Date().toISOString(),
+    };
+
+    const allOrders = JSON.parse(localStorage.getItem('brasa_orders') || '[]');
+    allOrders.push(savedOrder);
+    localStorage.setItem('brasa_orders', JSON.stringify(allOrders));
+    localStorage.removeItem(ORDER_KEY);
+
+    document.getElementById('confirm-msg').textContent =
+      `Tak ${name}! Vi sender en bekræftelse til ${email}.`;
+
+    const paymentLabels = { card: 'Betalingskort', mobilepay: 'MobilePay', cash: 'Kontant ved afhentning' };
+    document.getElementById('confirm-details').innerHTML = `
+      <div class="confirm-detail-row"><span>Ordrenummer</span><span>${orderId}</span></div>
+      <div class="confirm-detail-row"><span>Levering</span><span>${deliveryType === 'pickup' ? 'Afhentning' : 'Levering'}</span></div>
+      <div class="confirm-detail-row"><span>Forventet tid</span><span>${eta}</span></div>
+      <div class="confirm-detail-row"><span>Betaling</span><span>${paymentLabels[payment]}</span></div>
+      <div class="confirm-detail-row"><span>Total</span><span>${formatPrice(total)}</span></div>
+    `;
+    document.getElementById('confirm-overlay').style.display = 'flex';
+  });
+
+  document.querySelectorAll('.oc-price').forEach(el => {
+    const price = parseInt(el.dataset.price);
+    el.textContent = formatPrice(price);
+  });
+
+  renderOrder();
+</script>

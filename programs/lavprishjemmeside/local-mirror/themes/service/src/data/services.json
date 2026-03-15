@@ -1,0 +1,10 @@
+[
+  { "id": "klip-dame", "name": "Klip & Styling (Dame)", "duration": 60, "price": 69900, "description": "Inkluderer vask, klip og finish styling med blow-dry.", "category": "klip" },
+  { "id": "klip-herre", "name": "Klip & Styling (Herre)", "duration": 45, "price": 44900, "description": "Vask, klip og styling med finish.", "category": "klip" },
+  { "id": "klip-barn", "name": "Børneklip (under 12 år)", "duration": 30, "price": 29900, "description": "Blid klipning til børn med vask og styling.", "category": "klip" },
+  { "id": "farve-hel", "name": "Helfarve", "duration": 120, "price": 129900, "description": "Komplet helfarve med vask, farve, spyle og finish styling.", "category": "farve" },
+  { "id": "farve-highlights", "name": "Highlights / Balayage", "duration": 150, "price": 164900, "description": "Håndmalet highlights eller balayage. Naturligt og smukt resultat.", "category": "farve" },
+  { "id": "farve-torvask", "name": "Tørvask & Gloss", "duration": 60, "price": 79900, "description": "Glansgivende behandling med tørvask og colour gloss.", "category": "farve" },
+  { "id": "behandling-keratin", "name": "Keratinbehandling", "duration": 120, "price": 199900, "description": "Fugtgivende keratinbehandling der glatter og styrker håret i op til 3 måneder.", "category": "behandling" },
+  { "id": "behandling-oreal", "name": "Intensiv Hårkur", "duration": 45, "price": 49900, "description": "Dybt plejende hårkur tilpasset din hårtype.", "category": "behandling" }
+]

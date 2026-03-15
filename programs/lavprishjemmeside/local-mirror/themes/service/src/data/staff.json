@@ -1,0 +1,5 @@
+[
+  { "id": "amalie", "name": "Amalie Skov", "title": "Senior Stylist & Indehaver", "specialties": ["Highlights", "Balayage", "Helfarve"], "img": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400", "bio": "Amalie har over 15 års erfaring og er specialist inden for farveteknikker og kreativt klippedesign." },
+  { "id": "lea", "name": "Lea Petersen", "title": "Stylist", "specialties": ["Klip", "Styling", "Keratinbehandling"], "img": "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=400", "bio": "Lea elsker at finde den perfekte frisure til hver enkelt kunde — klassisk eller moderne." },
+  { "id": "sofia", "name": "Sofia Dall", "title": "Farvespecialist", "specialties": ["Helfarve", "Highlights", "Toning"], "img": "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=400", "bio": "Sofia er uddannet i Paris og bringer europæiske farveteknikker til salonens arbejde." }
+]

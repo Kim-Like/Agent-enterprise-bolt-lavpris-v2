@@ -1,0 +1,93 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import services from '../data/services.json';
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+const categories = [
+  { id: 'klip', label: 'Klip', items: services.filter(s => s.category === 'klip') },
+  { id: 'farve', label: 'Farve', items: services.filter(s => s.category === 'farve') },
+  { id: 'behandling', label: 'Behandlinger', items: services.filter(s => s.category === 'behandling') },
+];
+---
+<ThemeLayout title="Services & Priser" description="Se vores services og priser hos Salon Rosé.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Services</span>
+        <h1>Services & Priser</h1>
+        <p>Alle priser er inkl. vask og finish styling. Gratis konsultation til nye kunder.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner">
+        {categories.map(cat => (
+          <div class="category-block" data-reveal>
+            <h2>{cat.label}</h2>
+            <div class="services-table">
+              {cat.items.map(s => (
+                <div class="service-row">
+                  <div class="service-info">
+                    <h4>{s.name}</h4>
+                    <p>{s.description}</p>
+                  </div>
+                  <div class="service-meta-col">
+                    <span class="duration">{s.duration} min</span>
+                    <span class="price">{formatPrice(s.price)}</span>
+                    <a href="/booking" class="book-btn">Book</a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div class="price-notes" data-reveal>
+          <h4>Prisbemærkninger</h4>
+          <ul>
+            <li>Alle priser er vejledende og kan variere efter hårlængde og -tykkelse.</li>
+            <li>Ved uregistreret udeblivelse eller aflysning under 24 timer opkræves et gebyr på 150 kr.</li>
+            <li>Vi tilbyder gratis konsultation til alle nye kunder — ring eller book en konsultationstid.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="container-inner cta-band-inner">
+        <p>Klar til at booke din tid?</p>
+        <a href="/booking" class="btn-accent">Book nu →</a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 5rem 0 3rem; background: var(--color-bg-warm); border-bottom: 1px solid var(--color-border); }
+  .page-hero .eyebrow { color: var(--color-accent); }
+  .page-hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.625rem; }
+  .page-hero p { color: var(--color-text-secondary); }
+  .category-block { margin-bottom: 3.5rem; }
+  .category-block h2 { font-size: 1.75rem; margin-bottom: 1.25rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--color-primary-light); }
+  .services-table { display: flex; flex-direction: column; gap: 0; }
+  .service-row { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid var(--color-border); gap: 1.5rem; }
+  .service-info { flex: 1; }
+  .service-info h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .service-info p { font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; }
+  .service-meta-col { display: flex; align-items: center; gap: 1.25rem; flex-shrink: 0; }
+  .duration { font-size: 0.8rem; color: var(--color-text-secondary); white-space: nowrap; }
+  .price { font-weight: 700; color: var(--color-primary); white-space: nowrap; font-size: 1rem; }
+  .book-btn { padding: 0.4rem 1rem; background: var(--color-primary); color: #fff; border-radius: var(--radius-full); text-decoration: none; font-size: 0.8rem; font-weight: 600; transition: background 150ms; white-space: nowrap; }
+  .book-btn:hover { background: var(--color-primary-hover); }
+  .price-notes { background: var(--color-neutral-50); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 1.5rem; }
+  .price-notes h4 { font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-secondary); margin-bottom: 0.875rem; }
+  .price-notes ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .price-notes li { font-size: 0.875rem; color: var(--color-text-secondary); padding-left: 1rem; position: relative; }
+  .price-notes li::before { content: '·'; position: absolute; left: 0; color: var(--color-accent); }
+  .cta-band { background: var(--color-primary); padding: 2rem 0; }
+  .cta-band-inner { display: flex; justify-content: space-between; align-items: center; }
+  .cta-band p { color: rgba(255,255,255,0.9); font-size: 1.05rem; margin: 0; }
+  @media (max-width: 580px) { .service-row { flex-direction: column; align-items: flex-start; } }
+</style>

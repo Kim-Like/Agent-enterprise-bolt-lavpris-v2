@@ -1,0 +1,147 @@
+[
+  {
+    "id": "1",
+    "slug": "nordic-brand-identity",
+    "title": "Nordic Brand Identity",
+    "client": "Nordfrost AS",
+    "category": "branding",
+    "categoryLabel": "Branding",
+    "year": "2024",
+    "summary": "Fuld visuel identitet for en skandinavisk fødevarevirksomhed — fra logo til emballage.",
+    "description": "Vi udviklede en komplet brand-identitet for Nordfrost, der afspejler virksomhedens rødder i nordisk natur og håndværk. Projektet inkluderede logodesign, typografisystem, farvepalet, emballagedesign og brand guidelines.",
+    "image": "https://images.pexels.com/photos/6476808/pexels-photo-6476808.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/6476808/pexels-photo-6476808.jpeg?auto=compress&cs=tinysrgb&w=1200",
+      "https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["40% øget brand genkendelse", "3 design awards", "Lanceret i 5 markeder"],
+    "tags": ["Logo", "Emballage", "Guidelines"],
+    "featured": true
+  },
+  {
+    "id": "2",
+    "slug": "digital-platform-launch",
+    "title": "Digital Platform Launch",
+    "client": "FinTech Nordic",
+    "category": "digital",
+    "categoryLabel": "Digital",
+    "year": "2024",
+    "summary": "UX-design og frontend-udvikling af en B2B fintech-platform med 2.000+ brugere.",
+    "description": "Fra brugerresearch til produktionsklart design. Vi kortlagde brugerrejser, udformede prototyper og leverede et komplet designsystem i Figma samt Astro-implementering.",
+    "image": "https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["68% reduceret onboarding tid", "NPS score: 72", "2.000+ aktive brugere"],
+    "tags": ["UX", "Design System", "Frontend"],
+    "featured": true
+  },
+  {
+    "id": "3",
+    "slug": "e-commerce-redesign",
+    "title": "E-Commerce Redesign",
+    "client": "Butik Helene",
+    "category": "digital",
+    "categoryLabel": "Digital",
+    "year": "2023",
+    "summary": "Komplet redesign af en etableret online butik — resulterede i 85% konverteringsstigning.",
+    "description": "Butik Helene ønskede en modernisering af deres onlinebutik. Vi gennemførte brugertest, redesignede hele kunderejsen og implementerede en ny Astro-baseret frontend.",
+    "image": "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/5632399/pexels-photo-5632399.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["85% stigning i konverteringer", "42% fald i afvisningsrate", "Lighthouse score 97"],
+    "tags": ["UX Research", "E-commerce", "Performance"],
+    "featured": true
+  },
+  {
+    "id": "4",
+    "slug": "annual-report-design",
+    "title": "Årsrapport 2023",
+    "client": "Dansk Energi Fonden",
+    "category": "print",
+    "categoryLabel": "Print",
+    "year": "2023",
+    "summary": "Trykt og digital årsrapport for en stor dansk energifond.",
+    "description": "Design af årsrapport i 64 sider — trykt og interaktiv PDF-version. Projektet inkluderede datavisualisering, infografik og redaktionel layout.",
+    "image": "https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/590016/pexels-photo-590016.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["64 siders rapport", "Trykt i 5.000 eksemplarer", "Digital version: 12.000 downloads"],
+    "tags": ["Print", "Infografik", "Redaktionel"],
+    "featured": false
+  },
+  {
+    "id": "5",
+    "slug": "restaurant-rebrand",
+    "title": "Restaurant Rebrand",
+    "client": "Café Verdun",
+    "category": "branding",
+    "categoryLabel": "Branding",
+    "year": "2023",
+    "summary": "Ny visuel identitet og menu-design for et etableret dansk café-restaurantkoncept.",
+    "description": "Café Verdun ønskede en gentænkning af deres visuelle identitet med respekt for historien. Vi leverede nyt logo, menudesign, skilte og digital tilstedeværelse.",
+    "image": "https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/941861/pexels-photo-941861.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["15% stigning i dækningsbidrag", "5-stjernet Google rating fastholdt", "Omtalt i Berlingske"],
+    "tags": ["Logo", "Menu Design", "Skiltning"],
+    "featured": false
+  },
+  {
+    "id": "6",
+    "slug": "saas-marketing-site",
+    "title": "SaaS Marketing Site",
+    "client": "DataLayer ApS",
+    "category": "digital",
+    "categoryLabel": "Digital",
+    "year": "2024",
+    "summary": "Konverteringsoptimeret marketingsite for et dansk B2B SaaS-produkt.",
+    "description": "Vi designede og udviklede et hurtigt, SEO-optimeret marketingsite med fokus på konvertering. Lighthouse score 100 på alle parametre.",
+    "image": "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/3184418/pexels-photo-3184418.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["Lighthouse 100/100", "Trial signups +120%", "Bounce rate -35%"],
+    "tags": ["Marketing", "SEO", "Konvertering"],
+    "featured": false
+  },
+  {
+    "id": "7",
+    "slug": "nonprofit-campaign",
+    "title": "Velgørenhedskampagne",
+    "client": "Børn & Natur Fonden",
+    "category": "branding",
+    "categoryLabel": "Branding",
+    "year": "2022",
+    "summary": "Integreret kampagne med print, outdoor og digitale flader for en dansk fond.",
+    "description": "En multi-kanal kampagne der satte fokus på børns adgang til natur. Vi leverede konceptudvikling, art direction og produktion til alle flader.",
+    "image": "https://images.pexels.com/photos/1374476/pexels-photo-1374476.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/1374476/pexels-photo-1374476.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["42M visninger", "38% over fundraising-mål", "Vandt Kreativitetsprisen 2022"],
+    "tags": ["Kampagne", "Art Direction", "Print"],
+    "featured": false
+  },
+  {
+    "id": "8",
+    "slug": "app-design-fitness",
+    "title": "Fitness App Design",
+    "client": "FitDK",
+    "category": "digital",
+    "categoryLabel": "Digital",
+    "year": "2024",
+    "summary": "UX/UI design for en dansk fitness-app med 50.000+ downloads på 6 måneder.",
+    "description": "Komplet produktdesign fra wireframes til produkt-klar UI. Vi designede onboarding, workout-flows, progress tracking og social features.",
+    "image": "https://images.pexels.com/photos/4164418/pexels-photo-4164418.jpeg?auto=compress&cs=tinysrgb&w=800",
+    "gallery": [
+      "https://images.pexels.com/photos/4164418/pexels-photo-4164418.jpeg?auto=compress&cs=tinysrgb&w=1200"
+    ],
+    "results": ["50.000+ downloads", "4.8 ★ App Store rating", "Retention rate 72%"],
+    "tags": ["App Design", "UX Research", "iOS & Android"],
+    "featured": true
+  }
+]

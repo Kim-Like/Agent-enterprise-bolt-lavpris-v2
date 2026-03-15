@@ -1,0 +1,98 @@
+---
+import ThemeLayout from '../../layouts/ThemeLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import products from '../../data/products.json';
+
+export function getStaticPaths() {
+  const categories = [
+    { slug: 'toej', label: 'Tøj', desc: 'Bæredygtige tøjstykker i høj kvalitet til hverdagen og det særlige.', img: 'https://images.pexels.com/photos/1020585/pexels-photo-1020585.jpeg?auto=compress&cs=tinysrgb&w=1200' },
+    { slug: 'bolig', label: 'Bolig', desc: 'Smukke og funktionelle boligartikler — håndlavet med omtanke for materialer.', img: 'https://images.pexels.com/photos/2123743/pexels-photo-2123743.jpeg?auto=compress&cs=tinysrgb&w=1200' },
+    { slug: 'skoenhed', label: 'Skønhed', desc: 'Naturlige skønhedsprodukter uden kompromis — gode for dig og planeten.', img: 'https://images.pexels.com/photos/3018845/pexels-photo-3018845.jpeg?auto=compress&cs=tinysrgb&w=1200' },
+  ];
+  return categories.map(cat => ({
+    params: { category: cat.slug },
+    props: { cat, items: products.filter(p => p.category === cat.slug) },
+  }));
+}
+
+const { cat, items } = Astro.props;
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+---
+<ThemeLayout title={cat.label} description={cat.desc}>
+  <Nav />
+  <main>
+    <section class="cat-hero">
+      <img src={cat.img} alt={cat.label} />
+      <div class="cat-hero-overlay"></div>
+      <div class="container-inner cat-hero-content">
+        <nav class="breadcrumb" aria-label="Brødkrumme">
+          <a href="/">Hjem</a> / <a href="/shop">Shop</a> / <span>{cat.label}</span>
+        </nav>
+        <h1>{cat.label}</h1>
+        <p>{cat.desc}</p>
+      </div>
+    </section>
+    <section class="section-py">
+      <div class="container-inner">
+        <p class="count">{items.length} produkter</p>
+        <div class="products-grid">
+          {items.map((p, i) => (
+            <div class="product-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              {p.badge && <span class={`badge badge-${p.badge}`}>{p.badge === 'sale' ? 'Tilbud' : 'Ny'}</span>}
+              <a href={`/shop/product/${p.slug}`}><img src={p.image} alt={p.name} loading="lazy" /></a>
+              <div class="product-body">
+                <h3 class="product-name">{p.name}</h3>
+                <div class="price-row">
+                  <span class="product-price">{formatPrice(p.price)}</span>
+                  {p.originalPrice && <span class="product-price-original">{formatPrice(p.originalPrice)}</span>}
+                </div>
+                <button class="btn-primary add-to-cart-btn" style="width:100%;margin-top:0.75rem;font-size:0.875rem;padding:0.6rem 1rem;"
+                  data-product-id={p.id} data-product-slug={p.slug}
+                  data-product-name={p.name} data-product-price={p.price}
+                  data-product-image={p.image}>
+                  Læg i kurv
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .cat-hero { position: relative; height: 40vh; min-height: 300px; overflow: hidden; }
+  .cat-hero img { width: 100%; height: 100%; object-fit: cover; }
+  .cat-hero-overlay { position: absolute; inset: 0; background: rgba(26,71,49,0.65); }
+  .cat-hero-content { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 2.5rem; }
+  .breadcrumb { font-size: 0.8rem; color: rgba(255,255,255,0.65); margin-bottom: 0.625rem; }
+  .breadcrumb a { color: rgba(255,255,255,0.65); text-decoration: none; }
+  .breadcrumb a:hover { color: #fff; }
+  .cat-hero-content h1 { font-size: clamp(2rem, 5vw, 3rem); color: #fff; margin-bottom: 0.5rem; }
+  .cat-hero-content p { color: rgba(255,255,255,0.8); max-width: 480px; }
+  .count { color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem; }
+  .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .product-card { position: relative; }
+  .badge { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 2; }
+  @media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .products-grid { grid-template-columns: 1fr; } }
+</style>
+<script>
+  document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = { id: btn.dataset.productId, slug: btn.dataset.productSlug, name: btn.dataset.productName, price: parseInt(btn.dataset.productPrice), image: btn.dataset.productImage, quantity: 1 };
+      try {
+        const cart = JSON.parse(localStorage.getItem('verde_cart') || '{"items":[]}');
+        const existing = cart.items.find(i => i.id === item.id);
+        if (existing) existing.quantity += 1; else cart.items.push(item);
+        localStorage.setItem('verde_cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+        btn.textContent = '✓ Lagt i kurv';
+        setTimeout(() => { btn.textContent = 'Læg i kurv'; }, 1800);
+      } catch {}
+    });
+  });
+</script>

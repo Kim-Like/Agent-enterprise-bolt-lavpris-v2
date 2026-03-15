@@ -1,0 +1,106 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+const team = [
+  { name: 'Mia Christensen', role: 'Creative Director & Founder', img: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { name: 'Anders Møller', role: 'UX Lead', img: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { name: 'Sophie Larsen', role: 'Brand Strategist', img: 'https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { name: 'Jonas Berg', role: 'Frontend Developer', img: 'https://images.pexels.com/photos/1681010/pexels-photo-1681010.jpeg?auto=compress&cs=tinysrgb&w=400' },
+];
+---
+<ThemeLayout title="Om Studio Meridian" description="Lær bureauet bag projekterne at kende.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Om os</span>
+        <h1>Et bureau bygget<br/>på nysgerrighed</h1>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner about-intro">
+        <div class="about-img" data-reveal>
+          <img src="https://images.pexels.com/photos/3182812/pexels-photo-3182812.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Studio Meridian team" />
+        </div>
+        <div class="about-text" data-reveal>
+          <span class="eyebrow">Vores historie</span>
+          <h2>Grundlagt i 2012.<br/>Drevet af det svære.</h2>
+          <p>Studio Meridian blev grundlagt af Mia Christensen med en enkel tese: godt design opstår i spændet mellem strategi og æstetik. Vi løser ikke bare det visuelle — vi forstår forretningen bag.</p>
+          <p>I dag er vi et team på 12 specialister med ekspertise inden for branding, digital design og print. Vi arbejder med virksomheder der tror på, at form og funktion ikke er modsætninger.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="values-section section-py section-alt">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Vores værdier</span>
+          <h2>Det vi tror på</h2>
+        </div>
+        <div class="values-grid">
+          {[
+            { v: 'Ærlighed', t: 'Vi siger hvad vi mener — også når det er svært. Det skaber bedre projekter.' },
+            { v: 'Håndværk', t: 'Vi går i dybden. Detaljerne er ikke detaljer — de er produktet.' },
+            { v: 'Nysgerrighed', t: 'Vi spørger altid én gang mere. De bedste løsninger gemmer sig bag det indlysende.' },
+            { v: 'Langtidstænkning', t: 'Vi designer til at holde. Ikke til næste trend.' },
+          ].map((val, i) => (
+            <div class="value-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <h4>{val.v}</h4>
+              <p>{val.t}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="team-section section-py">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Holdet</span>
+          <h2>Menneskene bag arbejdet</h2>
+        </div>
+        <div class="team-grid">
+          {team.map((member, i) => (
+            <div class="team-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <img src={member.img} alt={member.name} loading="lazy" />
+              <h4>{member.name}</h4>
+              <p>{member.role}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 10rem 0 4rem; background: var(--color-primary); color: #fff; }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; }
+  .section-header { text-align: center; max-width: 600px; margin: 0 auto 3rem; }
+  .section-header h2 { font-size: clamp(1.75rem, 3vw, 2.5rem); }
+  .about-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .about-img img { width: 100%; border-radius: var(--radius-xl); object-fit: cover; aspect-ratio: 4/3; }
+  .about-text h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); margin-bottom: 1rem; }
+  .about-text p { color: var(--color-text-secondary); line-height: 1.8; margin-bottom: 1rem; }
+  .values-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .value-card { background: var(--color-bg-page); border: 1px solid var(--color-border); border-radius: var(--radius-card); padding: 1.5rem; }
+  .value-card h4 { font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--color-primary); }
+  .value-card p { font-size: 0.875rem; color: var(--color-text-secondary); margin: 0; line-height: 1.6; }
+  .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .team-card img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 50%; margin-bottom: 1rem; }
+  .team-card h4 { font-size: 1rem; margin-bottom: 0.25rem; }
+  .team-card p { font-size: 0.85rem; color: var(--color-text-secondary); margin: 0; }
+  .team-card { text-align: center; }
+  @media (max-width: 900px) {
+    .about-intro { grid-template-columns: 1fr; gap: 2.5rem; }
+    .values-grid { grid-template-columns: repeat(2, 1fr); }
+    .team-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 480px) {
+    .values-grid { grid-template-columns: 1fr; }
+  }
+</style>

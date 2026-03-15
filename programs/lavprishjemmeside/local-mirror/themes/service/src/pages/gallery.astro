@@ -1,0 +1,94 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+const galleryImages = [
+  { src: 'https://images.pexels.com/photos/3993444/pexels-photo-3993444.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Balayage behandling', category: 'farve' },
+  { src: 'https://images.pexels.com/photos/3993449/pexels-photo-3993449.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Klip og styling', category: 'klip' },
+  { src: 'https://images.pexels.com/photos/3992874/pexels-photo-3992874.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Hårbehandling', category: 'behandling' },
+  { src: 'https://images.pexels.com/photos/3993456/pexels-photo-3993456.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Highlights', category: 'farve' },
+  { src: 'https://images.pexels.com/photos/1319460/pexels-photo-1319460.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Styling', category: 'klip' },
+  { src: 'https://images.pexels.com/photos/3993447/pexels-photo-3993447.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Salonnen', category: 'salon' },
+  { src: 'https://images.pexels.com/photos/3993450/pexels-photo-3993450.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Helfarve', category: 'farve' },
+  { src: 'https://images.pexels.com/photos/3992875/pexels-photo-3992875.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Klipning', category: 'klip' },
+  { src: 'https://images.pexels.com/photos/3993448/pexels-photo-3993448.jpeg?auto=compress&cs=tinysrgb&w=700', alt: 'Vask', category: 'behandling' },
+];
+---
+<ThemeLayout title="Galleri" description="Se billeder fra Salon Rosé.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Galleri</span>
+        <h1>Vores arbejde</h1>
+        <p>Inspirationsbilleder fra salonnen — klip, farve og behandlinger.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner">
+        <div class="filter-row">
+          {['all', 'klip', 'farve', 'behandling', 'salon'].map(f => (
+            <button class:list={['filter-btn', { active: f === 'all' }]} data-filter={f}>
+              {f === 'all' ? 'Alle' : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div class="gallery-grid" id="gallery-grid">
+          {galleryImages.map((img, i) => (
+            <div class="gallery-item" data-category={img.category} data-reveal style={`--reveal-delay:${(i % 3) * 80}ms`}>
+              <img src={img.src} alt={img.alt} loading="lazy" />
+              <div class="gallery-overlay">
+                <span>{img.alt}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-band">
+      <div class="container-inner cta-band-inner">
+        <p>Vil du prøve noget nyt?</p>
+        <a href="/booking" class="btn-accent">Book en tid →</a>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 5rem 0 3rem; background: var(--color-bg-warm); border-bottom: 1px solid var(--color-border); }
+  .page-hero .eyebrow { color: var(--color-accent); }
+  .page-hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin-bottom: 0.625rem; }
+  .page-hero p { color: var(--color-text-secondary); }
+  .filter-row { display: flex; gap: 0.5rem; margin-bottom: 2rem; flex-wrap: wrap; }
+  .filter-btn { padding: 0.4rem 1.1rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-full); background: transparent; cursor: pointer; font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; color: var(--color-text-secondary); transition: all 150ms; }
+  .filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .filter-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .gallery-item { position: relative; border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 4/5; cursor: pointer; }
+  .gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .gallery-item:hover img { transform: scale(1.05); }
+  .gallery-overlay { position: absolute; inset: 0; background: rgba(124,61,82,0.5); display: flex; align-items: flex-end; padding: 1.25rem; opacity: 0; transition: opacity 300ms ease; }
+  .gallery-item:hover .gallery-overlay { opacity: 1; }
+  .gallery-overlay span { color: #fff; font-weight: 500; font-size: 0.9rem; }
+  .gallery-item.hidden { display: none; }
+  .cta-band { background: var(--color-primary); padding: 2rem 0; }
+  .cta-band-inner { display: flex; justify-content: space-between; align-items: center; }
+  .cta-band p { color: rgba(255,255,255,0.9); font-size: 1.05rem; margin: 0; }
+  @media (max-width: 768px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .gallery-grid { grid-template-columns: 1fr; } }
+</style>
+<script>
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      document.querySelectorAll('.gallery-item').forEach(item => {
+        item.classList.toggle('hidden', filter !== 'all' && item.dataset.category !== filter);
+      });
+    });
+  });
+</script>

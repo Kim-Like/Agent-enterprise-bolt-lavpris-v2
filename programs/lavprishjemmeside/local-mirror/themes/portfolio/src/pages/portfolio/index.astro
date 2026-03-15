@@ -1,0 +1,123 @@
+---
+import ThemeLayout from '../../layouts/ThemeLayout.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import portfolioItems from '../../data/portfolio-items.json';
+const categories = [
+  { id: 'all', label: 'Alle' },
+  { id: 'branding', label: 'Branding' },
+  { id: 'digital', label: 'Digital' },
+  { id: 'print', label: 'Print' },
+];
+---
+<ThemeLayout title="Vores arbejde — Portfolio" description="Se udvalgte projekter fra Studio Meridian.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Portfolio</span>
+        <h1>Arbejde vi er<br/>stolte af</h1>
+        <p>Projekter der løser reelle problemer og skaber varig værdi for vores kunder.</p>
+      </div>
+    </section>
+
+    <section class="section-py">
+      <div class="container-inner">
+        <!-- Filter -->
+        <div class="filters" id="filters">
+          {categories.map(c => (
+            <button class:list={['filter-btn', { active: c.id === 'all' }]} data-filter={c.id}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+
+        <div class="portfolio-grid" id="portfolio-grid">
+          {portfolioItems.map((item, i) => (
+            <a href={`/portfolio/${item.slug}`} class="portfolio-card" data-category={item.category} data-reveal style={`--reveal-delay:${(i % 4) * 80}ms`}>
+              <div class="card-img">
+                <img src={item.image} alt={item.title} loading="lazy" />
+                <div class="card-overlay"><span>Se projekt →</span></div>
+                {item.featured && <span class="featured-badge">Featured</span>}
+              </div>
+              <div class="card-body">
+                <div class="card-meta">
+                  <span class="cat">{item.categoryLabel}</span>
+                  <span class="yr">{item.year}</span>
+                </div>
+                <h3>{item.title}</h3>
+                <p>{item.summary}</p>
+                <div class="tags">
+                  {item.tags.map(t => <span class="tag">{t}</span>)}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 10rem 0 4rem; background: var(--color-primary); color: #fff; }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(201,168,76,0.3); background: rgba(201,168,76,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: #fff; margin-bottom: 1rem; }
+  .page-hero p { color: rgba(255,255,255,0.75); max-width: 480px; }
+
+  .filters { display: flex; gap: 0.5rem; margin-bottom: 3rem; flex-wrap: wrap; }
+  .filter-btn {
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: all 200ms ease;
+  }
+  .filter-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+  .filter-btn.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+
+  .portfolio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .portfolio-card { text-decoration: none; display: block; transition: opacity 300ms ease; }
+  .portfolio-card.hidden { display: none; }
+  .card-img { position: relative; border-radius: var(--radius-card); overflow: hidden; aspect-ratio: 4/3; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .portfolio-card:hover .card-img img { transform: scale(1.05); }
+  .card-overlay { position: absolute; inset: 0; background: rgba(27,43,94,0.65); display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 300ms ease; }
+  .portfolio-card:hover .card-overlay { opacity: 1; }
+  .card-overlay span { color: #fff; font-weight: 600; }
+  .featured-badge { position: absolute; top: 0.75rem; left: 0.75rem; background: var(--color-accent); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); letter-spacing: 0.06em; text-transform: uppercase; }
+  .card-body { padding: 1rem 0.25rem 0; }
+  .card-meta { display: flex; justify-content: space-between; margin-bottom: 0.4rem; }
+  .cat { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-accent); }
+  .yr { font-size: 0.8rem; color: var(--color-neutral-300); }
+  .card-body h3 { font-size: 1.125rem; margin-bottom: 0.4rem; color: var(--color-text-primary); }
+  .card-body p { font-size: 0.875rem; color: var(--color-text-secondary); margin-bottom: 0.75rem; }
+  .tags { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+  .tag { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: var(--radius-full); background: var(--color-neutral-100); color: var(--color-neutral-700); }
+  @media (max-width: 900px) { .portfolio-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 580px) { .portfolio-grid { grid-template-columns: 1fr; } }
+</style>
+<script>
+  const btns = document.querySelectorAll('.filter-btn');
+  const cards = document.querySelectorAll('.portfolio-card');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      cards.forEach(card => {
+        if (filter === 'all' || card.dataset.category === filter) {
+          card.classList.remove('hidden');
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>

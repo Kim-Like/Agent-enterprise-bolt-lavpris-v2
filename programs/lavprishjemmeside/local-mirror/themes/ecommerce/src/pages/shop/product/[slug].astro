@@ -1,0 +1,208 @@
+---
+import ThemeLayout from '../../../layouts/ThemeLayout.astro';
+import Nav from '../../../components/Nav.astro';
+import Footer from '../../../components/Footer.astro';
+import products from '../../../data/products.json';
+
+export function getStaticPaths() {
+  return products.map(p => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+const related = products.filter(p => p.category === product.category && p.slug !== product.slug).slice(0, 4);
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+const isClothing = product.category === 'toej';
+---
+<ThemeLayout title={product.name} description={product.description} ogImage={product.image}>
+  <Nav />
+  <main>
+    <section class="section-py">
+      <div class="container-inner product-detail">
+        <!-- Gallery -->
+        <div class="product-gallery">
+          <div class="main-image-wrap">
+            <img id="main-product-image" src={product.image} alt={product.name} />
+            {product.badge && <span class={`badge badge-${product.badge}`}>{product.badge === 'sale' ? 'Tilbud' : 'Ny'}</span>}
+          </div>
+        </div>
+        <!-- Info -->
+        <div class="product-info">
+          <nav class="breadcrumb">
+            <a href="/">Hjem</a> / <a href="/shop">Shop</a> / <a href={`/shop/${product.category}`}>{product.categoryLabel}</a> / <span>{product.name}</span>
+          </nav>
+          <h1>{product.name}</h1>
+          <div class="price-row" style="margin-bottom:1.5rem;">
+            <span class="big-price">{formatPrice(product.price)}</span>
+            {product.originalPrice && (
+              <>
+                <span class="original-price">{formatPrice(product.originalPrice)}</span>
+                <span class="savings">Du sparer {formatPrice(product.originalPrice - product.price)}</span>
+              </>
+            )}
+          </div>
+          <p class="product-description">{product.description}</p>
+
+          {isClothing && (
+            <div class="variant-group">
+              <p class="variant-label">Størrelse: <strong id="selected-size">—</strong></p>
+              <div class="size-options" id="size-options">
+                {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map(s => (
+                  <button class="size-btn" data-size={s}>{s}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div class="qty-row">
+            <p class="variant-label">Antal:</p>
+            <div class="qty-control">
+              <button class="qty-btn" id="qty-minus">−</button>
+              <span id="qty-display">1</span>
+              <button class="qty-btn" id="qty-plus">+</button>
+            </div>
+          </div>
+
+          <button class="btn-primary add-btn" id="add-to-cart-detail" style="width:100%;padding:0.875rem;"
+            data-product-id={product.id} data-product-slug={product.slug}
+            data-product-name={product.name} data-product-price={product.price}
+            data-product-image={product.image}>
+            Læg i kurv
+          </button>
+
+          <div class="stock-info">
+            {product.stock > 10
+              ? <span class="in-stock">✓ På lager ({product.stock} stk.)</span>
+              : product.stock > 0
+              ? <span class="low-stock">⚠ Kun {product.stock} tilbage</span>
+              : <span class="out-stock">✗ Udsolgt</span>
+            }
+          </div>
+
+          <!-- Accordion -->
+          <div class="accordion">
+            <div class="accordion-item">
+              <button class="accordion-trigger" aria-expanded="true">Produktdetaljer</button>
+              <div class="accordion-body open">
+                <ul>
+                  {product.details.map(d => <li>{d}</li>)}
+                </ul>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-trigger" aria-expanded="false">Fragt & Levering</button>
+              <div class="accordion-body">
+                <p>Gratis fragt ved køb over 500 kr. Under 500 kr: 49 kr. Levering 2–4 hverdage med PostNord.</p>
+              </div>
+            </div>
+            <div class="accordion-item">
+              <button class="accordion-trigger" aria-expanded="false">Retur</button>
+              <div class="accordion-body">
+                <p>30 dages retur uden spørgsmål. Returfragt er gratis ved reklamation, 29 kr ved omfortrydelse.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {related.length > 0 && (
+      <section class="section-py section-alt">
+        <div class="container-inner">
+          <h2 style="margin-bottom:2rem;">Du vil måske også synes om</h2>
+          <div class="related-grid">
+            {related.map(p => (
+              <a href={`/shop/product/${p.slug}`} class="product-card" style="text-decoration:none;display:block;">
+                <img src={p.image} alt={p.name} loading="lazy" />
+                <div class="product-body">
+                  <h3 class="product-name">{p.name}</h3>
+                  <span class="product-price">{formatPrice(p.price)}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: start; }
+  .main-image-wrap { position: relative; border-radius: var(--radius-xl); overflow: hidden; aspect-ratio: 1; }
+  .main-image-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .badge { position: absolute; top: 1rem; left: 1rem; }
+  .breadcrumb { font-size: 0.8rem; color: var(--color-text-secondary); margin-bottom: 1.25rem; }
+  .breadcrumb a { color: var(--color-text-secondary); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--color-primary); }
+  .product-info h1 { font-size: clamp(1.75rem, 3vw, 2.25rem); margin-bottom: 1rem; }
+  .big-price { font-size: 1.75rem; font-weight: 700; color: var(--color-primary); }
+  .original-price { font-size: 1.1rem; color: var(--color-neutral-600); text-decoration: line-through; margin-left: 0.75rem; }
+  .savings { font-size: 0.85rem; color: #DC2626; margin-left: 0.75rem; font-weight: 600; }
+  .product-description { color: var(--color-text-secondary); line-height: 1.7; margin-bottom: 1.5rem; }
+  .variant-label { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.625rem; }
+  .size-options { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .size-btn { width: 2.75rem; height: 2.75rem; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); background: transparent; cursor: pointer; font-family: var(--font-body); font-size: 0.85rem; font-weight: 500; transition: all 150ms; }
+  .size-btn:hover { border-color: var(--color-primary); }
+  .size-btn.selected { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+  .qty-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+  .qty-control { display: flex; align-items: center; border: 1.5px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; }
+  .qty-btn { width: 2.5rem; height: 2.5rem; background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--color-text-primary); transition: background 150ms; }
+  .qty-btn:hover { background: var(--color-neutral-100); }
+  #qty-display { width: 2.5rem; text-align: center; font-weight: 600; border-left: 1.5px solid var(--color-border); border-right: 1.5px solid var(--color-border); line-height: 2.5rem; }
+  .add-btn { margin-bottom: 1rem; }
+  .stock-info { font-size: 0.85rem; margin-bottom: 1.5rem; }
+  .in-stock { color: var(--color-primary); }
+  .low-stock { color: #D97706; }
+  .out-stock { color: #DC2626; }
+  .accordion { border-top: 1px solid var(--color-border); }
+  .accordion-item { border-bottom: 1px solid var(--color-border); }
+  .accordion-trigger { width: 100%; text-align: left; padding: 1rem 0; background: none; border: none; cursor: pointer; font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--color-text-primary); display: flex; justify-content: space-between; align-items: center; }
+  .accordion-trigger::after { content: '+'; font-size: 1.2rem; color: var(--color-text-secondary); transition: transform 200ms; }
+  .accordion-trigger[aria-expanded="true"]::after { transform: rotate(45deg); }
+  .accordion-body { display: none; padding-bottom: 1rem; font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.7; }
+  .accordion-body.open { display: block; }
+  .accordion-body ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+  .accordion-body li::before { content: '· '; color: var(--color-primary); }
+  .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  @media (max-width: 900px) { .product-detail { grid-template-columns: 1fr; gap: 2rem; } }
+  @media (max-width: 768px) { .related-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+<script>
+  let qty = 1;
+  const qtyDisplay = document.getElementById('qty-display');
+  document.getElementById('qty-minus')?.addEventListener('click', () => { if (qty > 1) { qty--; qtyDisplay.textContent = qty; } });
+  document.getElementById('qty-plus')?.addEventListener('click', () => { qty++; qtyDisplay.textContent = qty; });
+
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      const label = document.getElementById('selected-size');
+      if (label) label.textContent = btn.dataset.size;
+    });
+  });
+
+  document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+    trigger.addEventListener('click', () => {
+      const expanded = trigger.getAttribute('aria-expanded') === 'true';
+      trigger.setAttribute('aria-expanded', String(!expanded));
+      const body = trigger.nextElementSibling;
+      body.classList.toggle('open', !expanded);
+    });
+  });
+
+  document.getElementById('add-to-cart-detail')?.addEventListener('click', (e) => {
+    const btn = e.currentTarget;
+    const item = { id: btn.dataset.productId, slug: btn.dataset.productSlug, name: btn.dataset.productName, price: parseInt(btn.dataset.productPrice), image: btn.dataset.productImage, quantity: qty };
+    try {
+      const cart = JSON.parse(localStorage.getItem('verde_cart') || '{"items":[]}');
+      const existing = cart.items.find(i => i.id === item.id);
+      if (existing) existing.quantity += item.quantity; else cart.items.push(item);
+      localStorage.setItem('verde_cart', JSON.stringify(cart));
+      window.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+      btn.textContent = `✓ ${item.quantity} lagt i kurv`;
+      setTimeout(() => { btn.textContent = 'Læg i kurv'; }, 2200);
+    } catch {}
+  });
+</script>

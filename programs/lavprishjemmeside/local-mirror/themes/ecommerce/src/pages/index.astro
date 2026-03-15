@@ -1,0 +1,239 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import products from '../data/products.json';
+const featured = products.filter(p => p.featured);
+const saleProducts = products.filter(p => p.badge === 'sale');
+function formatPrice(ore) { return (ore / 100).toLocaleString('da-DK', { style: 'currency', currency: 'DKK', minimumFractionDigits: 0 }); }
+---
+<ThemeLayout title="Bæredygtig stil">
+  <Nav />
+  <main>
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-media">
+        <img src="https://images.pexels.com/photos/1536619/pexels-photo-1536619.jpeg?auto=compress&cs=tinysrgb&w=1600" alt="" role="presentation" />
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="container-inner hero-content">
+        <span class="hero-badge">Ny kollektion 2025</span>
+        <h1>Stil med<br/><em>omtanke</em></h1>
+        <p>Bæredygtige materialer. Tidløst design. Skabt til at holde.</p>
+        <div class="hero-ctas">
+          <a href="/shop" class="btn-accent">Shop nu</a>
+          <a href="/shop/toej" class="hero-link">Udforsk tøj →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="section-py">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Kategorier</span>
+          <h2>Shop efter kategori</h2>
+        </div>
+        <div class="cat-grid">
+          {[
+            { slug: 'toej', label: 'Tøj', sub: '4 produkter', img: 'https://images.pexels.com/photos/1020585/pexels-photo-1020585.jpeg?auto=compress&cs=tinysrgb&w=700' },
+            { slug: 'bolig', label: 'Bolig', sub: '4 produkter', img: 'https://images.pexels.com/photos/2123743/pexels-photo-2123743.jpeg?auto=compress&cs=tinysrgb&w=700' },
+            { slug: 'skoenhed', label: 'Skønhed', sub: '4 produkter', img: 'https://images.pexels.com/photos/3018845/pexels-photo-3018845.jpeg?auto=compress&cs=tinysrgb&w=700' },
+          ].map((c, i) => (
+            <a href={`/shop/${c.slug}`} class="cat-tile" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <img src={c.img} alt={c.label} loading="lazy" />
+              <div class="cat-tile-body">
+                <h3>{c.label}</h3>
+                <p>{c.sub}</p>
+                <span>Shop nu →</span>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured products -->
+    <section class="section-py section-alt">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Udvalgte</span>
+          <h2>Bestsellers</h2>
+        </div>
+        <div class="products-grid">
+          {featured.map((p, i) => (
+            <div class="product-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              {p.badge && <span class={`badge badge-${p.badge}`}>{p.badge === 'sale' ? 'Tilbud' : 'Ny'}</span>}
+              <a href={`/shop/product/${p.slug}`}>
+                <img src={p.image} alt={p.name} loading="lazy" />
+              </a>
+              <div class="product-body">
+                <p class="product-category">{p.categoryLabel}</p>
+                <h3 class="product-name">{p.name}</h3>
+                <div class="price-row">
+                  <span class="product-price">{formatPrice(p.price)}</span>
+                  {p.originalPrice && <span class="product-price-original">{formatPrice(p.originalPrice)}</span>}
+                </div>
+                <button class="btn-primary add-to-cart-btn" style="width:100%;margin-top:0.75rem;font-size:0.875rem;padding:0.6rem 1rem;"
+                  data-product-id={p.id} data-product-slug={p.slug}
+                  data-product-name={p.name} data-product-price={p.price}
+                  data-product-image={p.image}>
+                  Læg i kurv
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div class="section-cta" data-reveal>
+          <a href="/shop" class="btn-outline">Se alle produkter</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- USP strip -->
+    <section class="usp-strip">
+      <div class="container-inner usp-grid">
+        {[
+          { icon: '🚚', title: 'Gratis fragt', sub: 'Ved køb over 500 kr' },
+          { icon: '↩', title: '30 dages retur', sub: 'Ingen spørgsmål' },
+          { icon: '🌱', title: 'Bæredygtigt', sub: '100% organiske materialer' },
+          { icon: '🔒', title: 'Sikker betaling', sub: 'Krypteret og trygt' },
+        ].map(u => (
+          <div class="usp-item">
+            <span class="usp-icon">{u.icon}</span>
+            <div>
+              <strong>{u.title}</strong>
+              <p>{u.sub}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- Sale -->
+    {saleProducts.length > 0 && (
+      <section class="section-py">
+        <div class="container-inner">
+          <div class="section-header" data-reveal>
+            <span class="eyebrow" style="color:var(--color-accent);border-color:rgba(196,97,31,0.2);background:rgba(196,97,31,0.06);">Tilbud</span>
+            <h2>Aktuelle tilbud</h2>
+          </div>
+          <div class="products-grid">
+            {saleProducts.map((p, i) => (
+              <div class="product-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+                <span class="badge badge-sale">Tilbud</span>
+                <a href={`/shop/product/${p.slug}`}><img src={p.image} alt={p.name} loading="lazy" /></a>
+                <div class="product-body">
+                  <p class="product-category">{p.categoryLabel}</p>
+                  <h3 class="product-name">{p.name}</h3>
+                  <div class="price-row">
+                    <span class="product-price">{formatPrice(p.price)}</span>
+                    {p.originalPrice && <span class="product-price-original">{formatPrice(p.originalPrice)}</span>}
+                  </div>
+                  <button class="btn-primary add-to-cart-btn" style="width:100%;margin-top:0.75rem;font-size:0.875rem;padding:0.6rem 1rem;"
+                    data-product-id={p.id} data-product-slug={p.slug}
+                    data-product-name={p.name} data-product-price={p.price}
+                    data-product-image={p.image}>
+                    Læg i kurv
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+
+    <!-- Newsletter -->
+    <section class="newsletter-section section-py">
+      <div class="container-inner" style="text-align:center;max-width:560px;">
+        <span class="eyebrow" data-reveal>Nyhedsbrev</span>
+        <h2 data-reveal>Bliv en del af VERDE</h2>
+        <p data-reveal>Få besked om nye produkter, tilbud og bæredygtighedsnyheder.</p>
+        <form class="newsletter-form" data-reveal id="newsletter-form">
+          <input type="email" placeholder="Din e-mail" required aria-label="E-mail adresse" />
+          <button type="submit" class="btn-primary">Tilmeld</button>
+        </form>
+        <p class="nl-note" data-reveal>Vi sender max 2 emails om måneden. Afmeld til enhver tid.</p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .hero { position: relative; min-height: 90vh; display: flex; align-items: center; overflow: hidden; }
+  .hero-media { position: absolute; inset: 0; }
+  .hero-media img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-overlay { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(26,71,49,0.82) 0%, rgba(26,71,49,0.55) 60%, transparent 100%); }
+  .hero-content { position: relative; z-index: 2; padding-top: 6rem; padding-bottom: 4rem; max-width: 600px; }
+  .hero-badge { display: inline-block; background: var(--color-accent); color: #fff; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.3rem 0.85rem; border-radius: var(--radius-full); margin-bottom: 1.25rem; }
+  .hero-content h1 { font-size: clamp(2.75rem, 7vw, 5rem); color: #fff; margin-bottom: 1rem; font-weight: 700; }
+  .hero-content h1 em { font-style: italic; color: var(--color-accent); }
+  .hero-content p { font-size: 1.1rem; color: rgba(255,255,255,0.85); margin-bottom: 2rem; }
+  .hero-ctas { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+  .hero-link { color: rgba(255,255,255,0.9); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: color 200ms; }
+  .hero-link:hover { color: var(--color-accent); }
+  .section-header { text-align: center; margin-bottom: 2.5rem; }
+  .section-header h2 { font-size: clamp(1.6rem, 3vw, 2.25rem); margin-bottom: 0; }
+  .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .cat-tile { display: block; position: relative; border-radius: var(--radius-card); overflow: hidden; text-decoration: none; aspect-ratio: 4/5; }
+  .cat-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms ease; }
+  .cat-tile:hover img { transform: scale(1.05); }
+  .cat-tile-body { position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; background: linear-gradient(to top, rgba(0,0,0,0.65), transparent); color: #fff; }
+  .cat-tile-body h3 { font-size: 1.4rem; margin-bottom: 0.2rem; }
+  .cat-tile-body p { font-size: 0.8rem; color: rgba(255,255,255,0.7); margin-bottom: 0.5rem; }
+  .cat-tile-body span { font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+  .products-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .product-card { position: relative; }
+  .badge { position: absolute; top: 0.75rem; left: 0.75rem; z-index: 2; }
+  .section-cta { text-align: center; margin-top: 2.5rem; }
+  .usp-strip { background: var(--color-primary-light); padding: 2.5rem 0; }
+  .usp-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .usp-item { display: flex; align-items: center; gap: 0.875rem; }
+  .usp-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .usp-item strong { display: block; font-size: 0.875rem; color: var(--color-text-primary); margin-bottom: 0.1rem; }
+  .usp-item p { font-size: 0.8rem; color: var(--color-text-secondary); margin: 0; }
+  .newsletter-section { background: var(--color-primary); }
+  .newsletter-section .eyebrow { color: var(--color-accent); background: rgba(196,97,31,0.15); border-color: rgba(196,97,31,0.3); }
+  .newsletter-section h2 { color: #fff; font-size: clamp(1.6rem, 3vw, 2.25rem); margin-bottom: 0.75rem; }
+  .newsletter-section p { color: rgba(255,255,255,0.75); margin-bottom: 1.5rem; }
+  .newsletter-form { display: flex; gap: 0.625rem; max-width: 420px; margin: 0 auto; }
+  .newsletter-form input { flex: 1; padding: 0.75rem 1rem; border: none; border-radius: var(--radius-md); font-family: var(--font-body); font-size: 0.95rem; }
+  .newsletter-form input:focus { outline: 2px solid var(--color-accent); }
+  .nl-note { font-size: 0.78rem; color: rgba(255,255,255,0.5); margin-top: 0.75rem; }
+  @media (max-width: 1024px) { .products-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 768px) { .cat-grid { grid-template-columns: 1fr; } .usp-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .usp-grid { grid-template-columns: 1fr; } .newsletter-form { flex-direction: column; } }
+</style>
+<script>
+  document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = {
+        id: btn.dataset.productId,
+        slug: btn.dataset.productSlug,
+        name: btn.dataset.productName,
+        price: parseInt(btn.dataset.productPrice),
+        image: btn.dataset.productImage,
+        quantity: 1,
+      };
+      try {
+        const raw = localStorage.getItem('verde_cart');
+        const cart = raw ? JSON.parse(raw) : { items: [] };
+        if (!Array.isArray(cart.items)) cart.items = [];
+        const existing = cart.items.find(i => i.id === item.id);
+        if (existing) existing.quantity += 1;
+        else cart.items.push(item);
+        cart.updated_at = new Date().toISOString();
+        localStorage.setItem('verde_cart', JSON.stringify(cart));
+        window.dispatchEvent(new CustomEvent('cart:updated', { detail: cart }));
+        btn.textContent = '✓ Lagt i kurv';
+        setTimeout(() => { btn.textContent = 'Læg i kurv'; }, 1800);
+      } catch {}
+    });
+  });
+  document.getElementById('newsletter-form')?.addEventListener('submit', e => {
+    e.preventDefault();
+    e.target.innerHTML = '<p style="color:rgba(255,255,255,0.9);font-weight:600;">✓ Tak — du er tilmeldt!</p>';
+  });
+</script>

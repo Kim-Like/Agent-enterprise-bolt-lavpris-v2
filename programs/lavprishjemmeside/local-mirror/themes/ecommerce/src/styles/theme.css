@@ -1,0 +1,38 @@
+:root {
+  --color-primary: #1A4731;
+  --color-primary-hover: #14382A;
+  --color-primary-light: #EBF4EE;
+  --color-accent: #C4611F;
+  --color-accent-hover: #A84F18;
+  --color-neutral-50: #F9FAFB;
+  --color-neutral-100: #F3F4F6;
+  --color-neutral-200: #E5E7EB;
+  --color-neutral-300: #D1D5DB;
+  --color-neutral-600: #4B5563;
+  --color-neutral-700: #374151;
+  --color-neutral-800: #1F2937;
+  --color-neutral-900: #111827;
+  --color-text-primary: #111827;
+  --color-text-secondary: #4B5563;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-on-accent: #FFFFFF;
+  --color-bg-page: #FFFFFF;
+  --color-bg-section-alt: #F9FAFB;
+  --color-border: #E5E7EB;
+  --font-heading: 'DM Sans', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  --radius-card: 0.75rem;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.10);
+  --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+  --section-padding-y: 4.5rem;
+  --section-padding-y-lg: 6.5rem;
+  --container-max-width: 80rem;
+  --container-padding-x: 1.5rem;
+}

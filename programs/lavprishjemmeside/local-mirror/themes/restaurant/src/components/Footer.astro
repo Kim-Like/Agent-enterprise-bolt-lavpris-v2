@@ -1,0 +1,64 @@
+---
+const year = new Date().getFullYear();
+---
+<footer>
+  <div class="container-inner footer-inner">
+    <div class="footer-left">
+      <a href="/" class="logo">🔥 BRASA</a>
+      <p>Autentisk grillmad lavet over åben ild. Bæredygtige råvarer. Mere smag.</p>
+    </div>
+    <div class="footer-links-grid">
+      <div>
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="/menu">Menu</a></li>
+          <li><a href="/takeaway">Takeaway</a></li>
+          <li><a href="/about">Om Os</a></li>
+          <li><a href="/contact">Find Os</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Åbningstider</h4>
+        <address>
+          <p>Man–Tors: 17–22</p>
+          <p>Fre–Lør: 17–23</p>
+          <p>Søndag: 16–21</p>
+          <p>Takeaway: fra 16:00</p>
+        </address>
+      </div>
+      <div>
+        <h4>Kontakt</h4>
+        <address>
+          Istedgade 88<br/>
+          1650 KBH V<br/>
+          <a href="tel:+4533123456">+45 33 12 34 56</a><br/>
+          <a href="mailto:hej@brasa.dk">hej@brasa.dk</a>
+        </address>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container-inner fb-inner">
+      <p>&copy; {year} BRASA Restaurant</p>
+      <a href="/privatlivspolitik">Privatlivspolitik</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  footer { background: var(--color-bg-dark); color: rgba(245,240,232,0.7); }
+  .footer-inner { display: grid; grid-template-columns: 1fr 2fr; gap: 4rem; padding: 4rem 0 3rem; }
+  .footer-left .logo { display: inline-block; font-family: var(--font-heading); font-weight: 700; font-size: 1.35rem; color: var(--color-text-on-dark); text-decoration: none; letter-spacing: 0.06em; margin-bottom: 1rem; }
+  .footer-left p { font-size: 0.875rem; line-height: 1.7; max-width: 260px; }
+  .footer-links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  h4 { font-family: var(--font-body); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: rgba(245,240,232,0.4); margin-bottom: 1rem; }
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  a { color: rgba(245,240,232,0.7); text-decoration: none; font-size: 0.875rem; transition: color 150ms; }
+  a:hover { color: var(--color-accent); }
+  address { font-style: normal; font-size: 0.875rem; line-height: 1.8; }
+  address p { margin: 0; }
+  .footer-bottom { border-top: 1px solid rgba(245,240,232,0.1); }
+  .fb-inner { display: flex; justify-content: space-between; padding: 1.25rem 0; font-size: 0.8rem; }
+  @media (max-width: 900px) { .footer-inner { grid-template-columns: 1fr; gap: 2rem; } .footer-links-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .footer-links-grid { grid-template-columns: 1fr; } }
+</style>

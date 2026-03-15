@@ -1,0 +1,144 @@
+---
+import ThemeLayout from '../layouts/ThemeLayout.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+const team = [
+  { name: 'Carlos Reyes', role: 'Head Chef & Grundlægger', bio: 'Med rødder i Sydamerika og 20 års erfaring fra europæiske michelinstjernede restauranter bragte Carlos sin passion for åben ild til København.', img: 'https://images.pexels.com/photos/3814446/pexels-photo-3814446.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { name: 'Sofie Krag', role: 'Sous Chef', bio: 'Sofie er specialiseret i fisk og skaldyr og bringer sin viden fra de nordiske farvande ind i BRASA\'s menu med et frisk blik.', img: 'https://images.pexels.com/photos/3771120/pexels-photo-3771120.jpeg?auto=compress&cs=tinysrgb&w=400' },
+  { name: 'Marcus Lund', role: 'Sommelier & Bar Manager', bio: 'Marcus kuraterer vores naturvinslist og håndmixer alle husets cocktails — altid med sæsonens friske råvarer som udgangspunkt.', img: 'https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=400' },
+];
+const values = [
+  { icon: '🔥', title: 'Ild & Håndværk', desc: 'Åben ild er sjælen i alt vi laver. Vi behersker temperaturer og timing som ingen anden tilberedningsmetode tillader.' },
+  { icon: '🌱', title: 'Bæredygtighed', desc: 'Alle råvarer er lokale og sæsonbetonede. Vi arbejder tæt med leverandører der deler vores værdier om dyrevelfærd og jordbrug.' },
+  { icon: '🤝', title: 'Fællesskab', desc: 'Mad er bedst når den deles. BRASA er skabt til at samle mennesker — familier, venner, kollegaer — om grillen og bordet.' },
+  { icon: '🏆', title: 'Kvalitet', desc: 'Vi går aldrig på kompromis. Fra råvare til tallerken til gæstens oplevelse — vi stræber altid efter det bedste.' },
+];
+---
+<ThemeLayout title="Om BRASA" description="Historien bag BRASA — autentisk grillrestaurant i København.">
+  <Nav />
+  <main>
+    <section class="page-hero">
+      <div class="container-inner">
+        <span class="eyebrow">Om os</span>
+        <h1>Ild, røg og passion</h1>
+        <p>Historien bag restauranten der satte den åbne ild i centrum af dansk madkultur.</p>
+      </div>
+    </section>
+
+    <section class="story-section section-py">
+      <div class="container-inner story-grid">
+        <div class="story-text" data-reveal>
+          <span class="eyebrow">Vores historie</span>
+          <h2>Startet af en passion for ilden</h2>
+          <p>BRASA åbnede i 2018 med en simpel idé: at bringe den ældste og mest primitive tilberedningsform — ilden — ind i hjertet af moderne dansk madkultur. Grundlægger og head chef Carlos Reyes vendte hjem fra årevis i internationale michelinstjernede køkkener med én ambition.</p>
+          <p>Siden åbningen er BRASA vokset fra en lille restaurant på 40 siddepladser til et af Københavns mest elskede spisesteder med over 600 anmeldelser og en gennemsnitlig bedømmelse på 4.8 stjerner.</p>
+          <p>Vi tror på at mad er mere end ernæring — det er kultur, tradition og fællesskab. Og den åbne ild er det mest ærlige udtryk for det.</p>
+        </div>
+        <div class="story-images" data-reveal>
+          <img class="img-main" src="https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=800" alt="BRASA restauranten" />
+          <img class="img-accent" src="https://images.pexels.com/photos/3338497/pexels-photo-3338497.jpeg?auto=compress&cs=tinysrgb&w=400" alt="Vores grill" />
+        </div>
+      </div>
+    </section>
+
+    <section class="values-section section-py section-warm">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Vores værdier</span>
+          <h2>Det vi tror på</h2>
+        </div>
+        <div class="values-grid">
+          {values.map((v, i) => (
+            <div class="value-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <span class="v-icon">{v.icon}</span>
+              <h3>{v.title}</h3>
+              <p>{v.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="team-section section-py">
+      <div class="container-inner">
+        <div class="section-header" data-reveal>
+          <span class="eyebrow">Teamet</span>
+          <h2>Menneskene bag BRASA</h2>
+          <p>Vores hold af passionerede kokke, sommeliers og servicepersonale er grundlaget for din oplevelse.</p>
+        </div>
+        <div class="team-grid">
+          {team.map((member, i) => (
+            <div class="team-card" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+              <div class="team-img">
+                <img src={member.img} alt={member.name} loading="lazy" />
+              </div>
+              <div class="team-body">
+                <h3>{member.name}</h3>
+                <span class="team-role">{member.role}</span>
+                <p>{member.bio}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="press-section section-py section-dark">
+      <div class="container-inner" style="text-align:center;">
+        <span class="eyebrow" data-reveal style="border-color:rgba(212,144,26,0.3);background:rgba(212,144,26,0.12);">Pressen skriver</span>
+        <div class="quotes-grid" data-reveal>
+          <blockquote>
+            <p>"BRASA er det nærmeste vi kommer en åben ild-oplevelse i København — råvarer i topklasse, service i verdensklasse."</p>
+            <cite>— Politiken, Madanmeldelse ★★★★★</cite>
+          </blockquote>
+          <blockquote>
+            <p>"Carlos Reyes' grillteknik er simpelthen uovertruffen. En oplevelse der sidder i kroppen længe efter."</p>
+            <cite>— Berlingske, Restaurantguide</cite>
+          </blockquote>
+          <blockquote>
+            <p>"Årets bedste nye restaurant. BRASA redefinerer, hvad dansk grillmad kan være."</p>
+            <cite>— Gastro, Årets Restaurant 2023</cite>
+          </blockquote>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</ThemeLayout>
+
+<style>
+  .page-hero { padding: 6rem 0 3.5rem; background: var(--color-bg-dark); color: var(--color-text-on-dark); }
+  .page-hero .eyebrow { color: var(--color-accent); border-color: rgba(212,144,26,0.3); background: rgba(212,144,26,0.12); }
+  .page-hero h1 { font-size: clamp(2.25rem, 5vw, 3.5rem); color: var(--color-text-on-dark); margin-bottom: 0.75rem; }
+  .page-hero p { color: rgba(245,240,232,0.7); max-width: 480px; }
+  .story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+  .story-text h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin-bottom: 1.25rem; }
+  .story-text p { color: var(--color-text-secondary); line-height: 1.8; margin-bottom: 1rem; }
+  .story-images { position: relative; }
+  .img-main { width: 100%; border-radius: var(--radius-2xl); aspect-ratio: 4/5; object-fit: cover; }
+  .img-accent { position: absolute; bottom: -2rem; right: -1.5rem; width: 48%; border-radius: var(--radius-xl); border: 4px solid #fff; box-shadow: var(--shadow-lg); aspect-ratio: 1; object-fit: cover; }
+  .section-header { text-align: center; margin-bottom: 3rem; }
+  .section-header h2 { font-size: clamp(1.75rem, 4vw, 2.5rem); margin-bottom: 0.5rem; }
+  .section-header p { color: var(--color-text-secondary); max-width: 500px; margin: 0 auto; }
+  .values-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
+  .value-card { padding: 1.75rem 1.5rem; background: var(--color-bg-page); border-radius: var(--radius-card); border: 1px solid var(--color-border); }
+  .v-icon { font-size: 2rem; display: block; margin-bottom: 1rem; }
+  .value-card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+  .value-card p { font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.7; margin: 0; }
+  .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .team-card { border: 1px solid var(--color-border); border-radius: var(--radius-card); overflow: hidden; }
+  .team-img { aspect-ratio: 3/4; overflow: hidden; }
+  .team-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 400ms; }
+  .team-card:hover .team-img img { transform: scale(1.04); }
+  .team-body { padding: 1.25rem; }
+  .team-body h3 { font-size: 1.05rem; margin-bottom: 0.2rem; }
+  .team-role { font-size: 0.8rem; color: var(--color-accent); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-bottom: 0.75rem; }
+  .team-body p { font-size: 0.875rem; color: var(--color-text-secondary); line-height: 1.7; margin: 0; }
+  .quotes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-top: 2.5rem; }
+  blockquote { background: rgba(245,240,232,0.05); border-radius: var(--radius-card); padding: 1.75rem; border-left: 3px solid var(--color-accent); text-align: left; margin: 0; }
+  blockquote p { color: rgba(245,240,232,0.85); font-size: 0.95rem; line-height: 1.7; margin-bottom: 0.875rem; font-style: italic; }
+  blockquote cite { font-size: 0.8rem; color: var(--color-accent); font-style: normal; font-weight: 600; }
+  @media (max-width: 1024px) { .values-grid { grid-template-columns: repeat(2, 1fr); } .quotes-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .story-grid { grid-template-columns: 1fr; gap: 2.5rem; } .img-accent { display: none; } .team-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 580px) { .team-grid { grid-template-columns: 1fr; } .values-grid { grid-template-columns: 1fr; } }
+</style>
